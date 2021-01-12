@@ -1,7 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
-import passport from 'passport';
 import usuarioModel from './usuario.model';
 // email
 import nodemailer from 'nodemailer';
@@ -26,17 +25,15 @@ class UsuarioController implements Controller {
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(
       `${this.path}/:id`,
-      passport.authenticate('jwt', { session: false }),
       this.obtenerUsuarioPorId
     );
     this.router.get(
       `${this.path}/completo/:id`,
-      passport.authenticate('jwt', { session: false }),
       this.obtenerUsuarioPorIdCompleto
     );
     this.router.post(
       `${this.path}/change-password`,
-      passport.authenticate('jwt', { session: false }),
+      // passport.authenticate('jwt', { session: false }),
       this.cambiarPassword
     );
   }

@@ -38,11 +38,10 @@ http://127.0.0.1:5000/pesos/insertarMagia
 
 
 
-## Crear usuarios mercado pago
-https://api.mercadopago.com/users/test_user?access_token=TEST-75849391691048-120115-bfff5f6b27e1aedbd20ad329998843d7-170413421 
+## Crear usuario
+db.createUser(
+{	user: "adminEscuela",
+	pwd: "123456",
 
-curl -X POST \
--H "Content-Type: application/json" \
--H 'Authorization: Bearer APP_USR-75849391691048-120115-2489131b15a4bca1146bc37223b5dab4-170413421' \
-"https://api.mercadopago.com/users/test_user" \
--d '{"site_id":"MLA"}'
+	roles:[{role: "userAdmin" , db:"escuela"}]})
+

@@ -1,8 +1,5 @@
 import * as mongoose from 'mongoose';
-import passportLocalMongoose from 'passport-local-mongoose';
 import { rolesEnum } from '../utils/roles.enum';
-import { direccionSchema } from '../direccion/direccion.model';
-import { tarjetaSchema } from '../tarjeta/tarjeta.model';
 import { IUsuario } from './iUsuario';
 
 export const usuarioSchema = new mongoose.Schema({
@@ -15,13 +12,10 @@ export const usuarioSchema = new mongoose.Schema({
   rol: { type: String, default:rolesEnum.CLIENTE },
   identificacion: { type: String },
   fechaNacimiento: Date,
-  direccionActual: direccionSchema,
-  direcciones: [direccionSchema],
   perfilCompleto: { type: Boolean, default: false },
   observacion: { type: String },
   totalGastado: { type: String, default: 0 },
   ultimaCompra: { type: String, default: null },
-  tarjetaGuardada: tarjetaSchema,
 
   fechaCreacion: { type: Date, default: Date.now },
   usuarioCreacion: { type: String }, // id
@@ -43,16 +37,7 @@ usuarioSchema.pre('save', async function (this: IUsuario, next: any) {
   }
   next();
 });
-// Plugin
-usuarioSchema.plugin(passportLocalMongoose, {
-  usernameField: 'email',
-  errorMessages: {
-    IncorrectPasswordError: 'Contraseña incorrecta',
-    IncorrectUsernameError: 'No hay una cuenta registrada con el correo ingresado',
-    UserExistsError: 'El email ya se encuentra asignado a otro usuario',
-  },
-  usernameUnique: false,
-});
+
 
 // usuarioSchema.pre('update', function (this: IUsuario, next: any) {
 //   const now = new Date();
