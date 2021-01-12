@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "target": "es6", // es2017
+    "outDir": "./dist",
+    "baseUrl": "./src",
+    "alwaysStrict": true,
+    "noImplicitAny": true,
+    "emitDecoratorMetadata": true,
+    "moduleResolution": "Node",
+    "strict": true /* Enable all strict type-checking options. */,
+    "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
+    "skipLibCheck": true /* Skip type checking of declaration files. */,
+    "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
+    "strictNullChecks": false,
+    "typeRoots": ["@types", "./node_modules/@types"],
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false
+
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
