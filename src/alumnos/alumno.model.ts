@@ -1,10 +1,10 @@
 import * as mongoose from 'mongoose';
 import IAlumno from './alumno.interface';
 import mongoosePaginate from 'mongoose-paginate';
-import { adultoSchema } from 'adulto/adulto.model';
+import { adultoSchema } from '../adulto/adulto.model';
 
 export const alumnoSchema = new mongoose.Schema({
-  adulto: [adultoSchema],
+  adultos: [adultoSchema],
   dni: { type: String },
   nombreCompleto: { type: String },
   fechaNacimiento: { type: String },
@@ -26,6 +26,8 @@ export const alumnoSchema = new mongoose.Schema({
   nombreCompletoTae: { type: String },
   emailTae: { type: String },
   archivoDiagnostico: { type: String },
+  observaciones: { type: String },
+  observacionTelefono: { type: String },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },

@@ -1,10 +1,8 @@
-import IAdulto from 'adulto/adulto.interface';
+import IAdulto from '../adulto/adulto.interface';
 import {
   IsString,
   ValidateNested,
   IsOptional,
-  ArrayMinSize,
-  ArrayMaxSize,
   IsBoolean,
   IsNumber,
   IsDateString,
@@ -18,12 +16,30 @@ class CrearAlumnoDto {
   @IsString()
   @IsOptional()
   public _id: string;
+  @IsString()
+  @IsOptional()
+  @MinLength(4, {
+    message: 'La obs del telefono es muy corto',
+  })
+  @MaxLength(50, {
+    message: 'La obs del telefono no puede superar los 9 digitos',
+  })
+  public observacionTelefono: string;
+  @IsString()
+  @IsOptional()
+  @MinLength(4, {
+    message: 'La obs del telefono es muy corto',
+  })
+  @MaxLength(200, {
+    message: 'La obs del telefono no puede superar los 200 digitos',
+  })
+  public observacion: string;
 
   @ValidateNested()
   @IsArray({
     message: 'Debe ingresar al menos un elemento en la lista de adultos',
   })
-  adulto: IAdulto[];
+  adultos: IAdulto[];
 
   @IsString()
   @MinLength(4, {
@@ -33,6 +49,14 @@ class CrearAlumnoDto {
     message: 'El dni no puede superar los 9 digitos',
   })
   public dni: string;
+  @IsString()
+  @MinLength(4, {
+    message: 'El tipo Dni es muy corto',
+  })
+  @MaxLength(9, {
+    message: 'El tipo Dni no puede superar los 9 digitos',
+  })
+  public tipoDni: string;
   @IsString()
   @MinLength(3, {
     message: 'El nombre es muy corto',

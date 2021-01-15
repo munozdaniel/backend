@@ -3,65 +3,217 @@ import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
-import CreateProductoDto from './producto.dto';
-import Producto from './producto.interface';
-import productoModel from './producto.model';
-import passport from 'passport';
-import { IQueryProductoPag } from '../utils/interfaces/iQueryProductoPag';
+import CreateAlumnoDto from './alumno.dto';
+import Alumno from './alumno.interface';
+import alumnoModel from './alumno.model';
+import { IQueryAlumnoPag } from '../utils/interfaces/iQueryAlumnoPag';
 import escapeStringRegexp from 'escape-string-regexp';
-import { Query } from 'mongoose';
-class ProductoController implements Controller {
-  public path = '/productos';
+import IAlumno from './alumno.interface';
+import IAdulto from '../adulto/adulto.interface';
+import alumnoOriginalModel from './alumnoOriginal.model';
+class AlumnoController implements Controller {
+  public path = '/alumnos';
   public router = Router();
-  private producto = productoModel;
+  private alumno = alumnoModel;
+  private alumnoOriginal = alumnoOriginalModel;
 
   constructor() {
     this.initializeRoutes();
   }
 
   private initializeRoutes() {
-    console.log('ProductoController/initializeRoutes');
-    // we want everyone to be able to see our productos, guests included. We can apply the middleware for a specific handler
-    this.router.get(this.path, this.getAllProductos);
-    this.router.get(`${this.path}/paginado`, this.getAllProductosPag);
-    this.router.get(`${this.path}/paginadoFav`, this.getAllProductosPag);
-    this.router.get(
-      `${this.path}/destacados`,
-      // checkPermisos(rolesEnum.ADMIN), // elimintar. test
-      this.getAllProductosDestacados
-    );
-    this.router.get(`${this.path}/:id`, this.getProductoById);
+    console.log('AlumnoController/initializeRoutes');
+    this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
 
     // Using the  route.all in such a way applies the middleware only to the route
-    // handlers in the chain that match the  `${this.path}/*` route, including  POST /productos.
+    // handlers in the chain that match the  `${this.path}/*` route, including  POST /alumnos.
     this.router
-      .all(`${this.path}/*`, passport.authenticate('jwt', { session: false }))
+      .all(`${this.path}/*`)
       .patch(
         `${this.path}/:id`,
-        validationMiddleware(CreateProductoDto, true),
-        this.modifyProducto
+        validationMiddleware(CreateAlumnoDto, true),
+        this.modifyAlumno
       )
-      .delete(`${this.path}/:id`, this.deleteProducto)
+      .delete(`${this.path}/:id`, this.deleteAlumno)
       .put(
         this.path,
-        validationMiddleware(CreateProductoDto),
+        validationMiddleware(CreateAlumnoDto),
         // checkPermisos(rolesEnum.ADMIN), // elimintar. test
-        this.createProducto
+        this.createAlumno
       );
   }
 
-  private getAllProductos = async (request: Request, response: Response) => {
-    const productos = await this.producto.find().populate('imagenes'); //.populate('author', '-password') populate con imagen
+  private getAllAlumnos = async (request: Request, response: Response) => {
+    const alumnos = await this.alumno.find().populate('imagenes'); //.populate('author', '-password') populate con imagen
 
-    response.send(productos);
+    response.send(alumnos);
   };
 
-  private getAllProductosPag = async (request: Request, response: Response) => {
+  private migrar = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const alumnos: any = await this.alumnoOriginal.find();
+      // {},
+      // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
+
+      // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
+      // console.log(
+      //   'alumnos',
+      //   alumnos[100].dni,
+      //   alumnos[100].telefonos,
+      //   alumnos[100].procedencia_colegio_primario
+      // );
+      console.log('Datos', alumnos);
+
+      // console.log(
+      //   'alumnos2',alumnos,
+
+      // );
+      const alumnosRefactorizados: IAlumno[] = alumnos.map((x: any) => {
+        const padre = {
+          tipoAdulto: 'PADRE',
+          activo: true,
+          fechaCreacion: new Date(),
+          nombreCompleto: x.nombre_y_apellido_padre,
+          telefono: x.telefono_padre,
+          email: x.mail_padre,
+        };
+        const madre = {
+          tipoAdulto: 'MADRE',
+          activo: true,
+          fechaCreacion: new Date(),
+          nombreCompleto: x.nombre_y_apellido_madre,
+          telefono: x.telefono_madre,
+          email: x.mail_madre,
+        };
+        const tutor1 = {
+          tipoAdulto: 'TUTOR',
+          activo: true,
+          fechaCreacion: new Date(),
+          nombreCompleto: x.nombre_y_apellido_tutor1,
+          telefono: x.telefono_tutor1,
+          email: x.mail_tutor1,
+        };
+        const tutor2 = {
+          tipoAdulto: 'TUTOR',
+          activo: true,
+          fechaCreacion: new Date(),
+          nombreCompleto: x.nombre_y_apellido_tutor2,
+          telefono: x.telefono_tutor2,
+          email: x.mail_tutor2,
+        };
+        const adultos: any = [padre, madre, tutor1, tutor2];
+        let telefono = null;
+        let celular = null;
+        let obsTelefono = null;
+        if (x.telefonos && x.telefonos.toString().length > 0) {
+          console.log(x._id, 'x.telefonos', x.telefonos);
+          const tel = x.telefonos.replace(' ', '').split('-');
+          if (tel && tel.length == 2) {
+            // 29951760044-2995176036
+            if (tel[0].length > 2) {
+              //!299
+              telefono = tel[0].toUpperCase();
+              celular = tel[1].toUpperCase();
+            } else {
+              // ===299
+              telefono = tel[0] + tel[1];
+            }
+          } else {
+            console.log(x._id, '===>', x.telefonos);
+            const tel = x.telefonos.replace(' ', '').split('/');
+            if (tel[0] && tel[1]) {
+              telefono = tel[0].trim().toUpperCase();
+              celular = tel[1].trim().toUpperCase();
+            } else {
+              telefono = x.telefonos.toUpperCase();
+            }
+          }
+        }
+        let dniMod = null;
+        let tipoDniMod = null;
+        if (x.dni) {
+          const d = x.dni.split('-');
+          if (d && d.length > 1) {
+            dniMod = d[0];
+            tipoDniMod = d[1];
+          } else {
+            dniMod = x.dni;
+          }
+        }
+        const retorno: any = {
+          adultos,
+          dni: dniMod,
+          tipoDni: tipoDniMod,
+          nombreCompleto: x.ApellidoyNombre,
+          fechaNacimiento: x.fecha_nacimiento,
+          observaciones: '',
+          observacionTelefono: '',
+          sexo:
+            x.sexo.trim().length === 0
+              ? 'SIN ESPECIFICAR'
+              : x.sexo.toUpperCase() === 'MASCULINO' ||
+                x.sexo.toUpperCase() === 'M'
+              ? 'MASCULINO'
+              : 'FEMENINO',
+          nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : null,
+          telefono,
+          celular,
+          email: x.mail,
+          fechaIngreso: x.fecha_ingreso,
+          procedenciaColegioPrimario: x.procedencia_colegio_primario
+            ? x.procedencia_colegio_primario.toUpperCase()
+            : null,
+          procedenciaColegioSecundario: x.procedencia_colegio_secundario
+            ? x.procedencia_colegio_secundario.toUpperCase()
+            : null,
+          fechaDeBaja: x.fecha_de_baja,
+          motivoDeBaja: x.motivo_de_baja
+            ? x.motivo_de_baja.toUpperCase()
+            : null,
+          domicilio: x.domicilio,
+
+          cantidadIntegranteGrupoFamiliar:
+            x.cantidad_integrantes_grupo_familiar,
+          seguimientoEtap: x.SeguimientoETAP,
+
+          nombreCompletoTae: x.NombreyApellidoTae,
+          emailTae: x.MailTae,
+          archivoDiagnostico: x.ArchivoDiagnostico,
+
+          fechaCreacion: new Date(),
+          activo: true,
+        };
+
+        return retorno;
+      });
+      
+      try {
+        const savedAlumnos = await this.alumno.insertMany(
+          alumnosRefactorizados
+        );
+        response.send({
+          savedAlumnos,
+        });
+      } catch (e) {
+        console.log('ERROR', e);
+        next(new HttpException(400, 'Parametros Incorrectos'));
+      }
+    } catch (e2) {
+      console.log('ERROR', e2);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+  private getAllAlumnosPag = async (request: Request, response: Response) => {
     // console.log('====================================================');
     // console.log('request body', request.body);
     console.log('request ', request.query);
     // console.log('escapeStringRegexp ', escapeStringRegexp(request.query));
-    const parametros: IQueryProductoPag = request.query;
+    const parametros: IQueryAlumnoPag = request.query;
 
     const criterios = request.query.query
       ? JSON.parse(request.query.query)
@@ -116,7 +268,7 @@ class ProductoController implements Controller {
     const page = request.query.page || 1;
     console.log('query ', query);
 
-    this.producto.paginate(
+    this.alumno.paginate(
       query,
       {
         page: Number(parametros.page),
@@ -136,30 +288,19 @@ class ProductoController implements Controller {
     );
     // const  count = request.query.count || 5;
     // const  page = request.query.page || 1;
-    //   const productos = await this.producto.find().populate('imagenes'); //.populate('author', '-password') populate con imagen
+    //   const alumnos = await this.alumno.find().populate('imagenes'); //.populate('author', '-password') populate con imagen
   };
 
-  private getAllProductosDestacados = async (
-    request: Request,
-    response: Response
-  ) => {
-    const productos = await this.producto
-      .find({ esDestacado: true })
-      .populate('imagenes'); //.populate('author', '-password') populate con imagen
-
-    response.send(productos);
-  };
-
-  private getProductoById = async (
+  private getAlumnoById = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
     const id = request.params.id;
     try {
-      const producto = await this.producto.findById(id).populate('imagenes');
-      if (producto) {
-        response.send(producto);
+      const alumno = await this.alumno.findById(id).populate('imagenes');
+      if (alumno) {
+        response.send(alumno);
       } else {
         next(new NotFoundException(id));
       }
@@ -169,20 +310,20 @@ class ProductoController implements Controller {
     }
   };
 
-  private modifyProducto = async (
+  private modifyAlumno = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
     const id = request.params.id;
-    const productoData: Producto = request.body;
+    const alumnoData: Alumno = request.body;
     try {
-      const producto = await this.producto.findByIdAndUpdate(id, productoData, {
+      const alumno = await this.alumno.findByIdAndUpdate(id, alumnoData, {
         new: true,
       });
 
-      if (producto) {
-        response.send(producto);
+      if (alumno) {
+        response.send(alumno);
       } else {
         next(new NotFoundException(id));
       }
@@ -192,22 +333,22 @@ class ProductoController implements Controller {
     }
   };
 
-  private createProducto = async (
+  private createAlumno = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
     // Agregar datos
-    const productoData: CreateProductoDto = request.body;
-    const createdProducto = new this.producto({
-      ...productoData,
+    const alumnoData: CreateAlumnoDto = request.body;
+    const createdAlumno = new this.alumno({
+      ...alumnoData,
       // author: request.user ? request.user._id : null,
     });
-    const savedProducto = await createdProducto.save();
-    // await savedProducto.populate('author', '-password').execPopulate();
-    response.send(savedProducto);
+    const savedAlumno = await createdAlumno.save();
+    // await savedAlumno.populate('author', '-password').execPopulate();
+    response.send(savedAlumno);
   };
-  private createProductoComplete = async (
+  private createAlumnoComplete = async (
     request: Request,
     response: Response,
     next: NextFunction
@@ -216,29 +357,29 @@ class ProductoController implements Controller {
     console.log('datos archio', request.file.filename);
     console.log('datos body', request.body);
     // Agregar datos
-    const productoData: CreateProductoDto = request.body;
-    const createdProducto = new this.producto({
-      ...productoData,
+    const alumnoData: CreateAlumnoDto = request.body;
+    const createdAlumno = new this.alumno({
+      ...alumnoData,
       // author: request.user ? request.user._id : null,
     });
-    const savedProducto = await createdProducto.save();
+    const savedAlumno = await createdAlumno.save();
     //     const imagen: ImagenDto = {
     //       descripcion:''
     // posicion:.posicion,
     // src:''
     //     }
-    // await savedProducto.populate('author', '-password').execPopulate();
-    response.send(savedProducto);
+    // await savedAlumno.populate('author', '-password').execPopulate();
+    response.send(savedAlumno);
   };
-  private deleteProducto = async (
+  private deleteAlumno = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
-    console.log('deleteProducto');
+    console.log('deleteAlumno');
     const id = request.params.id;
     try {
-      const successResponse = await this.producto.findByIdAndDelete(id);
+      const successResponse = await this.alumno.findByIdAndDelete(id);
       if (successResponse) {
         response.send({
           status: 200,
@@ -255,4 +396,4 @@ class ProductoController implements Controller {
   };
 }
 
-export default ProductoController;
+export default AlumnoController;

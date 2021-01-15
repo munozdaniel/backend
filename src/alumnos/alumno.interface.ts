@@ -1,15 +1,17 @@
-import IAdulto from 'adulto/adulto.interface';
+import IAdulto from '../adulto/adulto.interface';
 import * as mongoose from 'mongoose';
 interface IAlumno extends mongoose.Document {
-  _id: string;
-  adulto:IAdulto[];
+  // _id: string;
+  adultos:IAdulto[];
+  tipoDni: string;
   dni: string;
   nombreCompleto: string;
   fechaNacimiento: string;
   sexo: string;
   nacionalidad: string;
+  observacionTelefono?: string;
   telefono?: string;
-  celular: string;
+  celular?: string;
   email: string;
   fechaIngreso: string;
   procedenciaColegioPrimario: string;
@@ -24,6 +26,8 @@ interface IAlumno extends mongoose.Document {
   nombreCompletoTae: string;
   emailTae: string;
   archivoDiagnostico: string;
+
+  observacion?: string;
 
   fechaCreacion: Date;
   fechaModificacion?: Date;
