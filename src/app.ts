@@ -6,7 +6,9 @@ import Controller from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
 import cors from 'cors';
 import path from 'path';
-
+const methodOverride = require('method-override');
+// Config
+const config = require('./utils/server/config');
 const API_URL = '*';
 class App {
   public app: express.Application;
@@ -25,6 +27,7 @@ class App {
 
  
   public configurarCors() {
+    this.app.use(methodOverride('X-HTTP-Method-Override'));
     this.app.use((req, res, next) => {
       const origin =
         req.headers.origin === 'http://localhost:8083/api/'
@@ -68,7 +71,7 @@ class App {
 
   private initializeControllers(controllers: Controller[]) {
     controllers.forEach((controller) => {
-      this.app.use('/', controller.router);
+      this.app.use('/api/', controller.router);
     });
   }
 

@@ -12,9 +12,7 @@ const app = new App([
   // new AuthenticationController(),
   // Test
   // Escuela
-    new UsuarioController(),
-
-
+  new UsuarioController(),
 ]);
 
 app.listen();
