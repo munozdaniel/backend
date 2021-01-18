@@ -13,6 +13,14 @@ import {
 } from 'class-validator';
 
 class CrearAlumnoDto {
+  @IsString({message:'El dni no ha sido ingresado'})
+  @MinLength(7, {
+    message: 'El dni es muy corto',
+  })
+  @MaxLength(9, {
+    message: 'El dni no puede superar los 9 digitos',
+  })
+  public dni: string;
   @IsString()
   @IsOptional()
   public _id: string;
@@ -22,16 +30,16 @@ class CrearAlumnoDto {
     message: 'La obs del telefono es muy corto',
   })
   @MaxLength(50, {
-    message: 'La obs del telefono no puede superar los 9 digitos',
+    message: 'La obs del telefono no puede superar los 50 digitos',
   })
   public observacionTelefono: string;
   @IsString()
   @IsOptional()
   @MinLength(4, {
-    message: 'La obs del telefono es muy corto',
+    message: 'La observación es muy corta',
   })
   @MaxLength(200, {
-    message: 'La obs del telefono no puede superar los 200 digitos',
+    message: 'La observación no puede superar los 200 digitos',
   })
   public observacion: string;
 
@@ -41,16 +49,9 @@ class CrearAlumnoDto {
   })
   adultos: IAdulto[];
 
+
   @IsString()
-  @MinLength(4, {
-    message: 'El dni es muy corto',
-  })
-  @MaxLength(50, {
-    message: 'El dni no puede superar los 9 digitos',
-  })
-  public dni: string;
-  @IsString()
-  @MinLength(4, {
+  @MinLength(3, {
     message: 'El tipo Dni es muy corto',
   })
   @MaxLength(9, {
@@ -65,7 +66,7 @@ class CrearAlumnoDto {
     message: 'El nombre no puede superar los 250 caracteres',
   })
   public nombreCompleto: string;
-  @IsDate({ message: 'La fecha de nacimiento no es válida' })
+  @IsDateString({ message: 'La fecha de nacimiento no es válida' })
   public fechaNacimiento: string;
   @IsString()
   @MinLength(4, {
@@ -84,13 +85,14 @@ class CrearAlumnoDto {
   })
   public nacionalidad: string;
   @IsOptional()
-  @IsString()
+  @IsString({message:'El telefono no fue ingresado'})
   @MinLength(4, {
     message: 'El telefono debe contener al menos 4 caracteres',
   })
   @MaxLength(50, {
     message: 'El telefono debe contener 50 caracteres máximo',
   })
+  @IsOptional()
   public telefono: string;
   @IsString()
   @MinLength(4, {
@@ -99,6 +101,7 @@ class CrearAlumnoDto {
   @MaxLength(50, {
     message: 'El celular debe contener 50 caracteres máximo',
   })
+  @IsOptional()
   public celular: string;
   @IsString()
   @MinLength(4, {
@@ -108,7 +111,7 @@ class CrearAlumnoDto {
     message: 'El email debe contener 70 caracteres máximo',
   })
   public email: string;
-  @IsDate({ message: 'La fecha de ingreso no es válida' })
+  @IsDateString({ message: 'La fecha de ingreso no es válida' })
   public fechaIngreso: string;
   @IsString()
   @MinLength(4, {
@@ -128,9 +131,12 @@ class CrearAlumnoDto {
     message:
       'La procedencia del colegio secundario debe contener 50 caracteres máximo',
   })
+  @IsOptional()
   public procedenciaColegioSecundario: string;
-  @IsDate({ message: 'La fecha de ingreso no es válida' })
+  @IsOptional()
+  @IsDateString({ message: 'La fecha de baja no es válida' })
   public fechaDeBaja: string;
+  @IsOptional()
   @IsString()
   @MinLength(4, {
     message: 'El motivo de baja debe contener al menos 4 caracteres',
@@ -163,28 +169,31 @@ class CrearAlumnoDto {
     message: 'Seguimiento Etap de 2 caracteres',
   })
   public seguimientoEtap: string;
+  @IsOptional()
   @IsString()
   @MinLength(4, {
     message: 'El nombre del TAE debe contener al menos 4 caracteres',
   })
   @MaxLength(100, {
-    message: 'El nombre del TAE debe contener 100 caracteres máximo',
+    message: 'El nombre del TAE debe contener 100 caracteres máximo. ',
   })
   public nombreCompletoTae: string;
-  @IsString()
+  @IsString({ message: 'El email del TAE no ha sido ingresado'})
+  @IsOptional()
   @MinLength(4, {
-    message: 'El email del TAE debe contener al menos 4 caracteres',
+    message: 'El email del TAE debe contener al menos 4 caracteres. ',
   })
   @MaxLength(70, {
-    message: 'El email del TAE debe contener 70 caracteres máximo',
+    message: 'El email del TAE debe contener 70 caracteres máximo. ' ,
   })
   public emailTae: string;
-  @IsString()
+  @IsOptional()
+  @IsString({ message: 'El diagnositico no ha sido ingresado. ' })
   @MinLength(4, {
-    message: 'El diagnostico debe contener al menos 4 caracteres',
+    message: 'El diagnostico debe contener al menos 4 caracteres. ',
   })
   @MaxLength(70, {
-    message: 'El diagnostico debe contener 70 caracteres máximo',
+    message: 'El diagnostico debe contener 70 caracteres máximo.',
   })
   public archivoDiagnostico: string;
   @IsOptional()

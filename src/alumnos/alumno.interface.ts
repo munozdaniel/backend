@@ -8,7 +8,7 @@ interface IAlumno extends mongoose.Document {
   dni: string;
   nombreCompleto: string;
   fechaNacimiento: string;
-  sexo: string;
+  sexo: 'Masculino' | 'Femenino' | 'Otros';
   nacionalidad: string;
   observacionTelefono?: string;
   telefono?: string;

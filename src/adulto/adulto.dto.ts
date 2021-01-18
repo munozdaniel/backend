@@ -13,35 +13,35 @@ class CrearAlumnoDto {
   public _id: string;
   @IsString()
   @MinLength(4, {
-    message: 'El dni es muy corto',
+    message: 'El nombre del Padre/Madre/Tutor es muy corto',
   })
   @MaxLength(50, {
-    message: 'El dni no puede superar los 9 digitos',
+    message: 'El nombre del Padre/Madre/Tutor no puede superar los 9 digitos',
   })
   nombreCompleto: string;
   @IsOptional()
   @IsString()
   @MinLength(4, {
-    message: 'El telefono debe contener al menos 4 caracteres',
+    message: 'El telefono del  Padre/Madre/Tutor debe contener al menos 4 caracteres',
   })
   @MaxLength(50, {
-    message: 'El telefono debe contener 50 caracteres máximo',
+    message: 'El telefono del   Padre/Madre/Tutor debe contener 50 caracteres máximo',
   })
   public telefono: string;
   @IsString()
   @MinLength(4, {
-    message: 'El celular debe contener al menos 4 caracteres',
+    message: 'El celular del Padre/Madre/Tutor debe contener al menos 4 caracteres',
   })
   @MaxLength(50, {
-    message: 'El celular debe contener 50 caracteres máximo',
+    message: 'El celular del Padre/Madre/Tutor debe contener 50 caracteres máximo',
   })
   public celular: string;
   @IsString()
   @MinLength(4, {
-    message: 'El email debe contener al menos 4 caracteres',
+    message: 'El email del Padre/Madre/Tutor debe contener al menos 4 caracteres',
   })
   @MaxLength(70, {
-    message: 'El email debe contener 70 caracteres máximo',
+    message: 'El email del Padre/Madre/Tutor debe contener 70 caracteres máximo',
   })
   public email: string;
   @IsString()
