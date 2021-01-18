@@ -23,7 +23,6 @@
     "install": "^0.13.0",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^1.12.2",
-    "mercadopago": "^1.5.2",
     "method-override": "^3.0.0",
     "mongoose": "^5.8.11",
     "mongoose-paginate": "^5.0.3",

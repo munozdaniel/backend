@@ -9,7 +9,6 @@ import alumnoModel from './alumno.model';
 import { IQueryAlumnoPag } from '../utils/interfaces/iQueryAlumnoPag';
 import escapeStringRegexp from 'escape-string-regexp';
 import IAlumno from './alumno.interface';
-import IAdulto from '../adulto/adulto.interface';
 import alumnoOriginalModel from './alumnoOriginal.model';
 class AlumnoController implements Controller {
   public path = '/alumnos';
@@ -24,6 +23,7 @@ class AlumnoController implements Controller {
   private initializeRoutes() {
     console.log('AlumnoController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
     this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
 
     // Using the  route.all in such a way applies the middleware only to the route
@@ -45,7 +45,7 @@ class AlumnoController implements Controller {
   }
 
   private getAllAlumnos = async (request: Request, response: Response) => {
-    const alumnos = await this.alumno.find().populate('imagenes'); //.populate('author', '-password') populate con imagen
+    const alumnos = await this.alumno.find({activo:true}).sort('_id'); //.populate('author', '-password') populate con imagen
 
     response.send(alumnos);
   };
@@ -73,125 +73,128 @@ class AlumnoController implements Controller {
       //   'alumnos2',alumnos,
 
       // );
-      const alumnosRefactorizados: IAlumno[] = alumnos.map((x: any) => {
-        const padre = {
-          tipoAdulto: 'PADRE',
-          activo: true,
-          fechaCreacion: new Date(),
-          nombreCompleto: x.nombre_y_apellido_padre,
-          telefono: x.telefono_padre,
-          email: x.mail_padre,
-        };
-        const madre = {
-          tipoAdulto: 'MADRE',
-          activo: true,
-          fechaCreacion: new Date(),
-          nombreCompleto: x.nombre_y_apellido_madre,
-          telefono: x.telefono_madre,
-          email: x.mail_madre,
-        };
-        const tutor1 = {
-          tipoAdulto: 'TUTOR',
-          activo: true,
-          fechaCreacion: new Date(),
-          nombreCompleto: x.nombre_y_apellido_tutor1,
-          telefono: x.telefono_tutor1,
-          email: x.mail_tutor1,
-        };
-        const tutor2 = {
-          tipoAdulto: 'TUTOR',
-          activo: true,
-          fechaCreacion: new Date(),
-          nombreCompleto: x.nombre_y_apellido_tutor2,
-          telefono: x.telefono_tutor2,
-          email: x.mail_tutor2,
-        };
-        const adultos: any = [padre, madre, tutor1, tutor2];
-        let telefono = null;
-        let celular = null;
-        let obsTelefono = null;
-        if (x.telefonos && x.telefonos.toString().length > 0) {
-          console.log(x._id, 'x.telefonos', x.telefonos);
-          const tel = x.telefonos.replace(' ', '').split('-');
-          if (tel && tel.length == 2) {
-            // 29951760044-2995176036
-            if (tel[0].length > 2) {
-              //!299
-              telefono = tel[0].toUpperCase();
-              celular = tel[1].toUpperCase();
+      const alumnosRefactorizados: IAlumno[] = alumnos.map(
+        (x: any, index: number) => {
+          const padre = {
+            tipoAdulto: 'PADRE',
+            activo: true,
+            fechaCreacion: new Date(),
+            nombreCompleto: x.nombre_y_apellido_padre,
+            telefono: x.telefono_padre,
+            email: x.mail_padre,
+          };
+          const madre = {
+            tipoAdulto: 'MADRE',
+            activo: true,
+            fechaCreacion: new Date(),
+            nombreCompleto: x.nombre_y_apellido_madre,
+            telefono: x.telefono_madre,
+            email: x.mail_madre,
+          };
+          const tutor1 = {
+            tipoAdulto: 'TUTOR',
+            activo: true,
+            fechaCreacion: new Date(),
+            nombreCompleto: x.nombre_y_apellido_tutor1,
+            telefono: x.telefono_tutor1,
+            email: x.mail_tutor1,
+          };
+          const tutor2 = {
+            tipoAdulto: 'TUTOR',
+            activo: true,
+            fechaCreacion: new Date(),
+            nombreCompleto: x.nombre_y_apellido_tutor2,
+            telefono: x.telefono_tutor2,
+            email: x.mail_tutor2,
+          };
+          const adultos: any = [padre, madre, tutor1, tutor2];
+          let telefono = null;
+          let celular = null;
+          let obsTelefono = null;
+          if (x.telefonos && x.telefonos.toString().length > 0) {
+            console.log(x._id, 'x.telefonos', x.telefonos);
+            const tel = x.telefonos.replace(' ', '').split('-');
+            if (tel && tel.length == 2) {
+              // 29951760044-2995176036
+              if (tel[0].length > 2) {
+                //!299
+                telefono = tel[0].toUpperCase();
+                celular = tel[1].toUpperCase();
+              } else {
+                // ===299
+                telefono = tel[0] + tel[1];
+              }
             } else {
-              // ===299
-              telefono = tel[0] + tel[1];
-            }
-          } else {
-            console.log(x._id, '===>', x.telefonos);
-            const tel = x.telefonos.replace(' ', '').split('/');
-            if (tel[0] && tel[1]) {
-              telefono = tel[0].trim().toUpperCase();
-              celular = tel[1].trim().toUpperCase();
-            } else {
-              telefono = x.telefonos.toUpperCase();
+              console.log(x._id, '===>', x.telefonos);
+              const tel = x.telefonos.replace(' ', '').split('/');
+              if (tel[0] && tel[1]) {
+                telefono = tel[0].trim().toUpperCase();
+                celular = tel[1].trim().toUpperCase();
+              } else {
+                telefono = x.telefonos.toUpperCase();
+              }
             }
           }
-        }
-        let dniMod = null;
-        let tipoDniMod = null;
-        if (x.dni) {
-          const d = x.dni.split('-');
-          if (d && d.length > 1) {
-            dniMod = d[0];
-            tipoDniMod = d[1];
-          } else {
-            dniMod = x.dni;
+          let dniMod = null;
+          let tipoDniMod = null;
+          if (x.dni) {
+            const d = x.dni.split('-');
+            if (d && d.length > 1) {
+              dniMod = d[0];
+              tipoDniMod = d[1];
+            } else {
+              dniMod = x.dni;
+            }
           }
+          const retorno: any = {
+            identificador: index + 100,
+            adultos,
+            dni: dniMod,
+            tipoDni: tipoDniMod,
+            nombreCompleto: x.ApellidoyNombre,
+            fechaNacimiento: x.fecha_nacimiento,
+            observaciones: '',
+            observacionTelefono: '',
+            sexo:
+              x.sexo.trim().length === 0
+                ? 'SIN ESPECIFICAR'
+                : x.sexo.toUpperCase() === 'MASCULINO' ||
+                  x.sexo.toUpperCase() === 'M'
+                ? 'MASCULINO'
+                : 'FEMENINO',
+            nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : null,
+            telefono,
+            celular,
+            email: x.mail,
+            fechaIngreso: x.fecha_ingreso,
+            procedenciaColegioPrimario: x.procedencia_colegio_primario
+              ? x.procedencia_colegio_primario.toUpperCase()
+              : null,
+            procedenciaColegioSecundario: x.procedencia_colegio_secundario
+              ? x.procedencia_colegio_secundario.toUpperCase()
+              : null,
+            fechaDeBaja: x.fecha_de_baja,
+            motivoDeBaja: x.motivo_de_baja
+              ? x.motivo_de_baja.toUpperCase()
+              : null,
+            domicilio: x.domicilio,
+
+            cantidadIntegranteGrupoFamiliar:
+              x.cantidad_integrantes_grupo_familiar,
+            seguimientoEtap: x.SeguimientoETAP,
+
+            nombreCompletoTae: x.NombreyApellidoTae,
+            emailTae: x.MailTae,
+            archivoDiagnostico: x.ArchivoDiagnostico,
+
+            fechaCreacion: new Date(),
+            activo: true,
+          };
+
+          return retorno;
         }
-        const retorno: any = {
-          adultos,
-          dni: dniMod,
-          tipoDni: tipoDniMod,
-          nombreCompleto: x.ApellidoyNombre,
-          fechaNacimiento: x.fecha_nacimiento,
-          observaciones: '',
-          observacionTelefono: '',
-          sexo:
-            x.sexo.trim().length === 0
-              ? 'SIN ESPECIFICAR'
-              : x.sexo.toUpperCase() === 'MASCULINO' ||
-                x.sexo.toUpperCase() === 'M'
-              ? 'MASCULINO'
-              : 'FEMENINO',
-          nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : null,
-          telefono,
-          celular,
-          email: x.mail,
-          fechaIngreso: x.fecha_ingreso,
-          procedenciaColegioPrimario: x.procedencia_colegio_primario
-            ? x.procedencia_colegio_primario.toUpperCase()
-            : null,
-          procedenciaColegioSecundario: x.procedencia_colegio_secundario
-            ? x.procedencia_colegio_secundario.toUpperCase()
-            : null,
-          fechaDeBaja: x.fecha_de_baja,
-          motivoDeBaja: x.motivo_de_baja
-            ? x.motivo_de_baja.toUpperCase()
-            : null,
-          domicilio: x.domicilio,
+      );
 
-          cantidadIntegranteGrupoFamiliar:
-            x.cantidad_integrantes_grupo_familiar,
-          seguimientoEtap: x.SeguimientoETAP,
-
-          nombreCompletoTae: x.NombreyApellidoTae,
-          emailTae: x.MailTae,
-          archivoDiagnostico: x.ArchivoDiagnostico,
-
-          fechaCreacion: new Date(),
-          activo: true,
-        };
-
-        return retorno;
-      });
-      
       try {
         const savedAlumnos = await this.alumno.insertMany(
           alumnosRefactorizados
@@ -218,66 +221,21 @@ class AlumnoController implements Controller {
     const criterios = request.query.query
       ? JSON.parse(request.query.query)
       : {};
-    const query: { [k: string]: any } = {};
-    for (const [key, value] of Object.entries(criterios)) {
-      switch (key.toLocaleLowerCase()) {
-        case 'titulo':
-          if (value) {
-            query.titulo = {
-              $regex: new RegExp(
-                '^' + escapeStringRegexp(value.toString()).toLowerCase(),
-                'i'
-              ),
-            };
-          }
-          break;
-        case 'marca':
-          if (value) {
-            const marcas: string[] = value as string[];
-            if (marcas.length > 0) {
-              query.marca = { $in: marcas };
-            }
-          }
-          break;
-        case 'tamano':
-          if (value) {
-            query.tamano = value;
-          }
-          break;
-        case 'edad':
-          if (value) {
-            query.edad = value;
-          }
-          break;
-        default:
-          break;
-      }
-      // console.log(key + ' ' + value); // "titulo AAAA"
 
-      // if (key.toLocaleLowerCase() === 'marca' && value) {
-      //   const marcas: string[] = value as string[];
-      //   if (marcas.length > 0) {
-      //     query.marca = { $in: marcas };
-      //   }
-      // }
-      // if (key.toLocaleLowerCase() === 'tamano' && value) {
-      //   query.tamano = value;
-      // }
-    }
-    const count = request.query.count || 5;
-    const page = request.query.page || 1;
-    console.log('query ', query);
+    console.log('query criterios', criterios);
 
     this.alumno.paginate(
-      query,
+      {},
       {
         page: Number(parametros.page),
         limit: Number(parametros.limit),
         sort: JSON.parse(parametros.sort || null),
-        populate: ['imagenes', 'categorias'],
       },
       (err: any, result: any) => {
-        // console.log('>>>',  result);
+        if (err) {
+          console.log('[ERROR]', err);
+        }
+        console.log('result', result);
         // result.docs
         // result.total
         // result.limit - 10

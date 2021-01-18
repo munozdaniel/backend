@@ -45,3 +45,7 @@ db.createUser(
 
 	roles:[{role: "userAdmin" , db:"escuela"}]})
 
+
+# PASOS MIGRACION
+## migrar alumnos 
+alumnos/migrar
