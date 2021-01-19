@@ -46,7 +46,7 @@ class AlumnoController implements Controller {
   }
 
   private getAllAlumnos = async (request: Request, response: Response) => {
-    const alumnos = await this.alumno.find({ activo: true }).sort('_id'); //.populate('author', '-password') populate con imagen
+    const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
 
     response.send(alumnos);
   };
@@ -133,7 +133,6 @@ class AlumnoController implements Controller {
           let celular = null;
           let obsTelefono = null;
           if (x.telefonos && x.telefonos.toString().length > 0) {
-            console.log(x._id, 'x.telefonos', x.telefonos);
             const tel = x.telefonos.replace(' ', '').split('-');
             if (tel && tel.length == 2) {
               // 29951760044-2995176036
@@ -146,7 +145,6 @@ class AlumnoController implements Controller {
                 telefono = tel[0] + tel[1];
               }
             } else {
-              console.log(x._id, '===>', x.telefonos);
               const tel = x.telefonos.replace(' ', '').split('/');
               if (tel[0] && tel[1]) {
                 telefono = tel[0].trim().toUpperCase();
@@ -161,14 +159,15 @@ class AlumnoController implements Controller {
           if (x.dni) {
             const d = x.dni.split('-');
             if (d && d.length > 1) {
-              dniMod = d[0];
-              tipoDniMod = d[1];
+              dniMod = d[0].trim();
+              tipoDniMod = d[1].trim();
             } else {
               dniMod = x.dni;
             }
           }
+          console.log('dniMod',dniMod, tipoDniMod);
           const retorno: any = {
-            identificador: index + 100,
+            alumnoNro: index + 100,
             adultos,
             dni: dniMod,
             tipoDni: tipoDniMod,
@@ -183,22 +182,22 @@ class AlumnoController implements Controller {
                   x.sexo.toUpperCase() === 'M'
                 ? 'MASCULINO'
                 : 'FEMENINO',
-            nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : null,
+            nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : 'ARGENTINA',
             telefono,
             celular,
-            email: x.mail,
-            fechaIngreso: x.fecha_ingreso,
+            email: x.mail?x.mail:'SIN REGISTRAR',
+            fechaIngreso: x.fecha_ingreso?x.fecha_ingreso:'SIN REGISTRAR',
             procedenciaColegioPrimario: x.procedencia_colegio_primario
-              ? x.procedencia_colegio_primario.toUpperCase()
-              : null,
+              ? x.procedencia_colegio_primario.toCamelCase()
+              : '',
             procedenciaColegioSecundario: x.procedencia_colegio_secundario
-              ? x.procedencia_colegio_secundario.toUpperCase()
-              : null,
+              ? x.procedencia_colegio_secundario.toCamelCase()
+              : '',
             fechaDeBaja: x.fecha_de_baja,
             motivoDeBaja: x.motivo_de_baja
-              ? x.motivo_de_baja.toUpperCase()
+              ? x.motivo_de_baja.toCamelCase()
               : null,
-            domicilio: x.domicilio,
+            domicilio: x.domicilio?x.domicilio:'SIN REGISTRAR',
 
             cantidadIntegranteGrupoFamiliar:
               x.cantidad_integrantes_grupo_familiar,

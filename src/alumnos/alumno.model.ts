@@ -7,17 +7,17 @@ import AutoincrementService from '../services/AutoincrementService';
 export const alumnoSchema = new mongoose.Schema({
   alumnoNro: { type: Number, default: 100, required: true },
   adultos: [adultoSchema],
-  dni: { type: String, required: true },
+  dni: { type: String, required: true }, // Para migrar sin required
   tipoDni: { type: String, default: 'DNI', uppercase: true },
   nombreCompleto: { type: String, required: true },
-  fechaNacimiento: { type: String, required: true },
+  fechaNacimiento: { type: String, required: true }, // Para migrar sin required
   sexo: { type: String, default: 'MASCULINO', uppercase: true },
   nacionalidad: { type: String, required: true },
   telefono: { type: String },
   celular: { type: String },
   email: { type: String, required: true },
   fechaIngreso: { type: String, required: true },
-  procedenciaColegioPrimario: { type: String, required: true },
+  procedenciaColegioPrimario: { type: String, required: true }, // Para migrar sin required
   procedenciaColegioSecundario: { type: String },
   fechaDeBaja: { type: String },
   motivoDeBaja: { type: String },
@@ -44,6 +44,7 @@ alumnoModel.paginate();
 // Hooks
 alumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
   inc_field: 'alumnoNro',
+  start_seq: 100,
 });
 
 // alumnoSchema.pre('save', function (this: IAlumno, next: any) {
