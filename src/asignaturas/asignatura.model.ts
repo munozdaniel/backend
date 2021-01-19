@@ -1,6 +1,7 @@
 import * as mongoose from 'mongoose';
 import IAsignatura from './asignatura.interface';
 import mongoosePaginate from 'mongoose-paginate';
+// import AutoincrementFieldService from '../services/AutoincrementFieldService';
 import AutoincrementService from '../services/AutoincrementService';
 
 export const asignaturaSchema = new mongoose.Schema({
@@ -32,6 +33,8 @@ asignaturaSchema.plugin(AutoincrementService.getAutoIncrement(), {
   inc_field: 'asignaturaNro',
   start_seq:100
 });
+// asignaturaSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Asignatura', field: 'asignaturaNro' });
+
 
 // asignaturaSchema.pre('save', function (this: IAsignatura, next: any) {
 //   const now = new Date();

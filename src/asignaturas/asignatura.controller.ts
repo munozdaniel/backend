@@ -99,6 +99,7 @@ class AsignaturaController implements Controller {
         (x: any, index: number) => {
           const unaAsignatura: IAsignatura & any = {
             // _id: x._id,
+            asignaturaNro: 100 + index,
             detalle: x.DetalleAsignatura,
             tipoAsignatura: x.TipoAsignatura,
             tipoCiclo: x.TipoCiclo,
@@ -129,7 +130,9 @@ class AsignaturaController implements Controller {
         });
       } catch (e) {
         console.log('ERROR', e);
-        next(new HttpException(500, 'Ocurrió un error al guardar las asignaturas'));
+        next(
+          new HttpException(500, 'Ocurrió un error al guardar las asignaturas')
+        );
       }
     } catch (e2) {
       console.log('ERROR', e2);
