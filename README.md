@@ -49,3 +49,4 @@ db.createUser(
 # PASOS MIGRACION
 ## migrar alumnos 
 alumnos/migrar
+asignaturas/migrar

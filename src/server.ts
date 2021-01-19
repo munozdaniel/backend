@@ -5,6 +5,7 @@ import App from './app';
 import validateEnv from './utils/validateEnv';
 import UsuarioController from './usuario/usuario.controller';
 import AlumnoController from './alumnos/alumno.controller';
+import AsignaturaController from './asignaturas/asignatura.controller';
 
 validateEnv();
 
@@ -15,6 +16,7 @@ const app = new App([
   // Escuela
   new UsuarioController(),
   new AlumnoController(),
+  new AsignaturaController()
 ]);
 
 app.listen();

@@ -35,6 +35,7 @@ class AlumnoController implements Controller {
         validationMiddleware(CreateAlumnoDto, true),
         this.modifyAlumno
       )
+      .get(`${this.path}/:id`, this.obtenerAlumnoPorId)
       .delete(`${this.path}/:id`, this.deleteAlumno)
       .put(
         this.path,
@@ -45,9 +46,29 @@ class AlumnoController implements Controller {
   }
 
   private getAllAlumnos = async (request: Request, response: Response) => {
-    const alumnos = await this.alumno.find({activo:true}).sort('_id'); //.populate('author', '-password') populate con imagen
+    const alumnos = await this.alumno.find({ activo: true }).sort('_id'); //.populate('author', '-password') populate con imagen
 
     response.send(alumnos);
+  };
+  private obtenerAlumnoPorId = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    const id = request.params.id;
+    console.log('id', id);
+    try {
+      const alumno = await this.alumno.findById(id);
+      console.log(alumno);
+      if (alumno) {
+        response.send(alumno);
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
   };
 
   private migrar = async (

@@ -2,7 +2,7 @@ import IAdulto from '../adulto/adulto.interface';
 import * as mongoose from 'mongoose';
 interface IAlumno extends mongoose.Document {
   // _id: string;
-  identificador?:number;
+  alumnoNro?:number;
   adultos:IAdulto[];
   tipoDni: string;
   dni: string;
