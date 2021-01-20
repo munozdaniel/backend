@@ -10,11 +10,13 @@ import { IQueryAlumnoPag } from '../utils/interfaces/iQueryAlumnoPag';
 import escapeStringRegexp from 'escape-string-regexp';
 import IAlumno from './alumno.interface';
 import alumnoOriginalModel from './alumnoOriginal.model';
+import comisionModel from '../comisiones/comision.model';
 class AlumnoController implements Controller {
   public path = '/alumnos';
   public router = Router();
   private alumno = alumnoModel;
   private alumnoOriginal = alumnoOriginalModel;
+  private comision = comisionModel;
 
   constructor() {
     this.initializeRoutes();
@@ -165,11 +167,15 @@ class AlumnoController implements Controller {
               dniMod = x.dni;
             }
           }
-          console.log('dniMod',dniMod, tipoDniMod);
+          // Recupero las comisiones para guardarla
+          if (!dniMod) {
+            console.log('dniMod', x);
+          }
+
           const retorno: any = {
             alumnoNro: index + 100,
             adultos,
-            dni: dniMod,
+            dni: dniMod ? dniMod : 'SIN REGISTRAR',
             tipoDni: tipoDniMod,
             nombreCompleto: x.ApellidoyNombre,
             fechaNacimiento: x.fecha_nacimiento,
@@ -182,22 +188,22 @@ class AlumnoController implements Controller {
                   x.sexo.toUpperCase() === 'M'
                 ? 'MASCULINO'
                 : 'FEMENINO',
-            nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : 'ARGENTINA',
+            nacionalidad: x.nacionalidad
+              ? x.nacionalidad.toUpperCase()
+              : 'ARGENTINA',
             telefono,
             celular,
-            email: x.mail?x.mail:'SIN REGISTRAR',
-            fechaIngreso: x.fecha_ingreso?x.fecha_ingreso:'SIN REGISTRAR',
+            email: x.mail ? x.mail : 'SIN REGISTRAR',
+            fechaIngreso: x.fecha_ingreso ? x.fecha_ingreso : 'SIN REGISTRAR',
             procedenciaColegioPrimario: x.procedencia_colegio_primario
-              ? x.procedencia_colegio_primario.toCamelCase()
-              : '',
+              ? x.procedencia_colegio_primario
+              : 'SIN REGISTRAR',
             procedenciaColegioSecundario: x.procedencia_colegio_secundario
-              ? x.procedencia_colegio_secundario.toCamelCase()
-              : '',
+              ? x.procedencia_colegio_secundario
+              : 'SIN REGISTRAR',
             fechaDeBaja: x.fecha_de_baja,
-            motivoDeBaja: x.motivo_de_baja
-              ? x.motivo_de_baja.toCamelCase()
-              : null,
-            domicilio: x.domicilio?x.domicilio:'SIN REGISTRAR',
+            motivoDeBaja: x.motivo_de_baja ? x.motivo_de_baja : null,
+            domicilio: x.domicilio ? x.domicilio : 'SIN REGISTRAR',
 
             cantidadIntegranteGrupoFamiliar:
               x.cantidad_integrantes_grupo_familiar,

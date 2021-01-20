@@ -3,68 +3,63 @@ import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
-import CreateAsignaturaDto from './asignatura.dto';
-import Asignatura from './asignatura.interface';
-import asignaturaModel from './asignatura.model';
+import CreateProfesorDto from './profesor.dto';
+import Profesor from './profesor.interface';
+import profesorModel from './profesor.model';
 import escapeStringRegexp from 'escape-string-regexp';
-import IAsignatura from './asignatura.interface';
-import asignaturaOriginalModel from './asignaturaOriginal.model';
-class AsignaturaController implements Controller {
-  public path = '/asignaturas';
+import IProfesor from './profesor.interface';
+import profesorOriginalModel from './profesorOriginal.model';
+class ProfesorController implements Controller {
+  public path = '/profesores';
   public router = Router();
-  private asignatura = asignaturaModel;
-  private asignaturaOriginal = asignaturaOriginalModel;
+  private profesor = profesorModel;
+  private profesorOriginal = profesorOriginalModel;
 
   constructor() {
     this.initializeRoutes();
   }
 
   private initializeRoutes() {
-    console.log('AsignaturaController/initializeRoutes');
+    console.log('ProfesorController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
-    this.router.get(`${this.path}`, this.getAllAsignaturas);
-    this.router.get(
-      `${this.path}/habilitados`,
-      this.getAllAsignaturasHabilitadas
-    );
-    // this.router.get(`${this.path}/paginado`, this.getAllAsignaturasPag);
+    this.router.get(`${this.path}/habilitados`, this.getAllProfesoresHabilitadas);
+    this.router.get(`${this.path}/:id`, this.getProfesorByAlumnoId);
+    // this.router.get(`${this.path}/paginado`, this.getAllProfesorsPag);
 
     // Using the  route.all in such a way applies the middleware only to the route
-    // handlers in the chain that match the  `${this.path}/*` route, including  POST /asignaturas.
+    // handlers in the chain that match the  `${this.path}/*` route, including  POST /profesores.
     this.router
       .all(`${this.path}/*`)
       .patch(
         `${this.path}/:id`,
-        validationMiddleware(CreateAsignaturaDto, true),
-        this.modifyAsignatura
+        validationMiddleware(CreateProfesorDto, true),
+        this.modifyProfesor
       )
-      .get(`${this.path}/:id`, this.obtenerAsignaturaPorId)
-      .delete(`${this.path}/:id`, this.deleteAsignatura)
-      .put(`${this.path}/deshabilitar/:id`, this.deshabilitarAsignatura)
-      .put(`${this.path}/habilitar/:id`, this.habilitarAsignatura)
+      .get(`${this.path}/:id`, this.obtenerProfesorPorId)
+      .delete(`${this.path}/:id`, this.deleteProfesor)
+      .put(`${this.path}/deshabilitar/:id`, this.deshabilitarProfesor)
+      .put(`${this.path}/habilitar/:id`, this.habilitarProfesor)
       .put(
         this.path,
-        validationMiddleware(CreateAsignaturaDto),
+        validationMiddleware(CreateProfesorDto),
         // checkPermisos(rolesEnum.ADMIN), // elimintar. test
-        this.createAsignatura
+        this.createProfesor
       );
   }
-  private getAllAsignaturas = async (request: Request, response: Response) => {
-    const asignaturas = await this.asignatura.find().sort('_id'); //.populate('author', '-password') populate con imagen
+  private getAllProfesors = async (request: Request, response: Response) => {
+    const profesores = await this.profesor.find().sort('_id'); //.populate('author', '-password') populate con imagen
 
-    response.send(asignaturas);
+    response.send(profesores);
   };
-  private getAllAsignaturasHabilitadas = async (
+  private getAllProfesoresHabilitadas = async (
     request: Request,
     response: Response
   ) => {
-    const asignaturas = await this.asignatura
-      .find({ activo: true })
-      .sort('_id'); //.populate('author', '-password') populate con imagen
+    const profesores = await this.profesor.find({ activo: true }).sort('_id'); //.populate('author', '-password') populate con imagen
 
-    response.send(asignaturas);
+    response.send(profesores);
   };
-  private obtenerAsignaturaPorId = async (
+  private obtenerProfesorPorId = async (
     request: Request,
     response: Response,
     next: NextFunction
@@ -72,10 +67,30 @@ class AsignaturaController implements Controller {
     const id = request.params.id;
     console.log('id', id);
     try {
-      const asignatura = await this.asignatura.findById(id);
-      console.log(asignatura);
-      if (asignatura) {
-        response.send(asignatura);
+      const profesor = await this.profesor.findById(id);
+      console.log(profesor);
+      if (profesor) {
+        response.send(profesor);
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+  private getProfesorByAlumnoId = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    const id = request.params.id;
+    console.log('id', id);
+    try {
+      const profesor = await this.profesor.findById({ alumnoId: id });
+      console.log(profesor);
+      if (profesor) {
+        response.send(profesor);
       } else {
         next(new NotFoundException(id));
       }
@@ -91,61 +106,54 @@ class AsignaturaController implements Controller {
     next: NextFunction
   ) => {
     try {
-      const asignaturas: any = await this.asignaturaOriginal.find();
-      console.log('asignaturas', asignaturas);
+      const profesores: any = await this.profesorOriginal.find();
+      console.log('profesores', profesores);
       // {},
       // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
 
       // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
       // console.log(
-      //   'asignaturas',
-      //   asignaturas[100].dni,
-      //   asignaturas[100].telefonos,
-      //   asignaturas[100].procedencia_colegio_primario
+      //   'profesores',
+      //   profesores[100].dni,
+      //   profesores[100].telefonos,
+      //   profesores[100].procedencia_colegio_primario
       // );
 
       // console.log(
-      //   'asignaturas2',asignaturas,
+      //   'profesores2',profesores,
 
       // );
-      const asignaturasRefactorizados: IAsignatura[] = asignaturas.map(
+      const profesoresRefactorizados: IProfesor[] = profesores.map(
         (x: any, index: number) => {
-          console.log('.TipoAsignatura', x.TipoAsignatura);
-          const unaAsignatura: IAsignatura & any = {
+           const unaProfesor: IProfesor & any = {
             // _id: x._id,
-            asignaturaNro: 100 + index,
-            detalle: x.DetalleAsignatura,
-            tipoAsignatura: x.TipoAsignatura,
-            tipoCiclo: x.TipoCiclo.toUpperCase(),
-            tipoFormacion: x.Tipodeformacion,
-            curso: Number(x.Tcurso),
-            meses: Number(x.Meses),
-            horasCatedraAnuales: x.HorasCatedraAnuales
-              ? x.HorasCatedraAnuales
-              : 0,
-            horasCatedraSemanales: x.HorasCatedraSemanales
-              ? x.HorasCatedraSemanales
-              : 0,
+            profesorNro: 100 + index,
+            nombreCompleto: x.nombre_y_apellido,
+            telefono: x.telefono,
+            celular: null,
+            email: x.mail,
+            formacion: x.formacion,
+            titulo: x.tipo_de_titulacion,
 
             fechaCreacion: new Date(),
             activo: true,
           };
 
-          return unaAsignatura;
+          return unaProfesor;
         }
       );
 
       try {
-        const savedAsignaturas = await this.asignatura.insertMany(
-          asignaturasRefactorizados
+        const savedProfesors = await this.profesor.insertMany(
+          profesoresRefactorizados
         );
         response.send({
-          savedAsignaturas,
+          savedProfesors,
         });
       } catch (e) {
         console.log('ERROR', e);
         next(
-          new HttpException(500, 'Ocurrió un error al guardar las asignaturas')
+          new HttpException(500, 'Ocurrió un error al guardar las profesores')
         );
       }
     } catch (e2) {
@@ -154,18 +162,16 @@ class AsignaturaController implements Controller {
     }
   };
 
-  private getAsignaturaById = async (
+  private getProfesorById = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
     const id = request.params.id;
     try {
-      const asignatura = await this.asignatura
-        .findById(id)
-        .populate('imagenes');
-      if (asignatura) {
-        response.send(asignatura);
+      const profesor = await this.profesor.findById(id).populate('imagenes');
+      if (profesor) {
+        response.send(profesor);
       } else {
         next(new NotFoundException(id));
       }
@@ -175,24 +181,20 @@ class AsignaturaController implements Controller {
     }
   };
 
-  private modifyAsignatura = async (
+  private modifyProfesor = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
     const id = request.params.id;
-    const asignaturaData: Asignatura = request.body;
+    const profesorData: Profesor = request.body;
     try {
-      const asignatura = await this.asignatura.findByIdAndUpdate(
-        id,
-        asignaturaData,
-        {
-          new: true,
-        }
-      );
+      const profesor = await this.profesor.findByIdAndUpdate(id, profesorData, {
+        new: true,
+      });
 
-      if (asignatura) {
-        response.send(asignatura);
+      if (profesor) {
+        response.send(profesor);
       } else {
         next(new NotFoundException(id));
       }
@@ -202,22 +204,22 @@ class AsignaturaController implements Controller {
     }
   };
 
-  private createAsignatura = async (
+  private createProfesor = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
     // Agregar datos
-    const asignaturaData: CreateAsignaturaDto = request.body;
-    const createdAsignatura = new this.asignatura({
-      ...asignaturaData,
+    const profesorData: CreateProfesorDto = request.body;
+    const createdProfesor = new this.profesor({
+      ...profesorData,
       // author: request.user ? request.user._id : null,
     });
-    const savedAsignatura = await createdAsignatura.save();
-    // await savedAsignatura.populate('author', '-password').execPopulate();
-    response.send(savedAsignatura);
+    const savedProfesor = await createdProfesor.save();
+    // await savedProfesor.populate('author', '-password').execPopulate();
+    response.send(savedProfesor);
   };
-  private createAsignaturaComplete = async (
+  private createProfesorComplete = async (
     request: Request,
     response: Response,
     next: NextFunction
@@ -226,29 +228,29 @@ class AsignaturaController implements Controller {
     console.log('datos archio', request.file.filename);
     console.log('datos body', request.body);
     // Agregar datos
-    const asignaturaData: CreateAsignaturaDto = request.body;
-    const createdAsignatura = new this.asignatura({
-      ...asignaturaData,
+    const profesorData: CreateProfesorDto = request.body;
+    const createdProfesor = new this.profesor({
+      ...profesorData,
       // author: request.user ? request.user._id : null,
     });
-    const savedAsignatura = await createdAsignatura.save();
+    const savedProfesor = await createdProfesor.save();
     //     const imagen: ImagenDto = {
     //       descripcion:''
     // posicion:.posicion,
     // src:''
     //     }
-    // await savedAsignatura.populate('author', '-password').execPopulate();
-    response.send(savedAsignatura);
+    // await savedProfesor.populate('author', '-password').execPopulate();
+    response.send(savedProfesor);
   };
-  private deleteAsignatura = async (
+  private deleteProfesor = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
-    console.log('deleteAsignatura');
+    console.log('deleteProfesor');
     const id = request.params.id;
     try {
-      const successResponse = await this.asignatura.findByIdAndDelete(id);
+      const successResponse = await this.profesor.findByIdAndDelete(id);
       if (successResponse) {
         response.send({
           status: 200,
@@ -263,7 +265,7 @@ class AsignaturaController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private deshabilitarAsignatura = async (
+  private deshabilitarProfesor = async (
     request: Request,
     response: Response,
     next: NextFunction
@@ -271,7 +273,7 @@ class AsignaturaController implements Controller {
     console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
-      const successResponse = await this.asignatura.findByIdAndUpdate(id, {
+      const successResponse = await this.profesor.findByIdAndUpdate(id, {
         activo: false,
       });
       if (successResponse) {
@@ -288,7 +290,7 @@ class AsignaturaController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private habilitarAsignatura = async (
+  private habilitarProfesor = async (
     request: Request,
     response: Response,
     next: NextFunction
@@ -296,7 +298,7 @@ class AsignaturaController implements Controller {
     console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
-      const successResponse = await this.asignatura.findByIdAndUpdate(id, {
+      const successResponse = await this.profesor.findByIdAndUpdate(id, {
         activo: true,
       });
       if (successResponse) {
@@ -315,4 +317,4 @@ class AsignaturaController implements Controller {
   };
 }
 
-export default AsignaturaController;
+export default ProfesorController;

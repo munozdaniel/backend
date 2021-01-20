@@ -3,10 +3,18 @@ import IAlumno from './alumno.interface';
 import mongoosePaginate from 'mongoose-paginate';
 import { adultoSchema } from '../adulto/adulto.model';
 import AutoincrementService from '../services/AutoincrementService';
+const Schema = mongoose.Schema;
 
 export const alumnoSchema = new mongoose.Schema({
   alumnoNro: { type: Number, default: 100, required: true },
   adultos: [adultoSchema],
+  comisiones:[
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Comisione',
+    },
+  ],
+  id_alumno: { type: String, required: false }, // Para migrar sin required
   dni: { type: String, required: true }, // Para migrar sin required
   tipoDni: { type: String, default: 'DNI', uppercase: true },
   nombreCompleto: { type: String, required: true },
