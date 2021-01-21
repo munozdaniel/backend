@@ -2,11 +2,12 @@ import IAdulto from '../adulto/adulto.interface';
 import * as mongoose from 'mongoose';
 interface IComision extends mongoose.Document {
   _id: string;
+  comisionNro:number;
   comision:string;
   alumnoId?: string;
-  cicloLectivo?: string;
-  curso:string;
-  division:string;
+  cicloLectivo: number;
+  curso:number;
+  division:number;
   condicion:string;
 
   fechaCreacion: Date;

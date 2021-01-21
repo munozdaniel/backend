@@ -1,6 +1,7 @@
 import * as mongoose from 'mongoose';
 interface IProfesor extends mongoose.Document {
   _id: string;
+  profesorNro: string;
   nombreCompleto: string;
   telefono?: string;
   celular?: string;

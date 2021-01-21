@@ -23,6 +23,10 @@ class ComisionController implements Controller {
     console.log('ComisionController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}`, this.getAllComisions);
+    this.router.get(
+      `${this.path}/habilitados`,
+      this.getAllComisionesHabilitadas
+    );
     this.router.get(`${this.path}/:id`, this.getComisionByAlumnoId);
     // this.router.get(`${this.path}/paginado`, this.getAllComisionsPag);
 
@@ -51,11 +55,13 @@ class ComisionController implements Controller {
 
     response.send(comisiones);
   };
-  private getAllComisionsHabilitadas = async (
+  private getAllComisionesHabilitadas = async (
     request: Request,
     response: Response
   ) => {
-    const comisiones = await this.comision.find({ activo: true }).sort('_id'); //.populate('author', '-password') populate con imagen
+    const comisiones = await this.comision
+      .find({ activo: true })
+      .sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
 
     response.send(comisiones);
   };
@@ -130,12 +136,13 @@ class ComisionController implements Controller {
             // _id: x._id,
             alumnoId: x.id_alumno,
             comisionNro: 100 + index,
-            nombreCompleto: x.nombreCompleto,
-            telefono: x.telefono,
-            celular: x.celular,
-            email: x.email,
-            formacion: x.formacion,
-            titulo: x.titulo,
+            comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
+            cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
+            curso: x.Tcurso ? Number(x.Tcurso) : null,
+            division: x.Division ? Number(x.Division) : null,
+            condicion: x.Condicion
+              ? x.Condicion.toUpperCase()
+              : 'SIN REGISTRAR',
 
             fechaCreacion: new Date(),
             activo: true,

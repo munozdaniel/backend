@@ -22,8 +22,11 @@ class ProfesorController implements Controller {
   private initializeRoutes() {
     console.log('ProfesorController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
-    this.router.get(`${this.path}/habilitados`, this.getAllProfesoresHabilitadas);
-    this.router.get(`${this.path}/:id`, this.getProfesorByAlumnoId);
+    this.router.get(
+      `${this.path}/habilitados`,
+      this.getAllProfesoresHabilitadas
+    );
+    this.router.get(`${this.path}/:id`, this.getProfesorById);
     // this.router.get(`${this.path}/paginado`, this.getAllProfesorsPag);
 
     // Using the  route.all in such a way applies the middleware only to the route
@@ -79,26 +82,7 @@ class ProfesorController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private getProfesorByAlumnoId = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
-    const id = request.params.id;
-    console.log('id', id);
-    try {
-      const profesor = await this.profesor.findById({ alumnoId: id });
-      console.log(profesor);
-      if (profesor) {
-        response.send(profesor);
-      } else {
-        next(new NotFoundException(id));
-      }
-    } catch (e) {
-      console.log('[ERROR]', e);
-      next(new HttpException(400, 'Parametros Incorrectos'));
-    }
-  };
+ 
 
   private migrar = async (
     request: Request,
@@ -125,7 +109,7 @@ class ProfesorController implements Controller {
       // );
       const profesoresRefactorizados: IProfesor[] = profesores.map(
         (x: any, index: number) => {
-           const unaProfesor: IProfesor & any = {
+          const unaProfesor: IProfesor & any = {
             // _id: x._id,
             profesorNro: 100 + index,
             nombreCompleto: x.nombre_y_apellido,
