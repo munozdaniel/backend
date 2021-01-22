@@ -1,11 +1,13 @@
  import * as mongoose from 'mongoose';
 interface IComisionOriginal extends mongoose.Document {
-  _id:string;
-  nombre_y_apellido:string;
-  telefono:string;
-  mail:string;
-  formacion:string;
-  tipo_de_titulacion:string;
+  _id: number;
+  id_comisiones: number;
+  comision: string ;
+  id_alumnos: number;
+  ciclo_lectivo: number;
+  Tcurso: number;
+  Division: number;
+  Condicion: string;
 
 }
 

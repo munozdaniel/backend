@@ -2,12 +2,14 @@ import * as mongoose from 'mongoose';
 import IComisionOriginal from './comisionOriginal.interface';
 
 export const comisionesOriginalSchema = new mongoose.Schema({
-  _id: { type: String },
-  nombre_y_apellido: { type: String },
-  telefono: { type: String },
-  mail: { type: String },
-  formacion: { type: String },
-  tipo_de_titulacion: { type: String },
+  _id: { type: Number},
+  id_comisiones: { type: Number },
+  comision: { type: String },
+  id_alumnos: { type: Number },
+  ciclo_lectivo: { type: Number },
+  Tcurso: { type: Number },
+  Division: { type: Number },
+  Condicion: { type: String },
 });
 
 // Modelo

@@ -7,12 +7,12 @@ import AutoincrementService from '../services/AutoincrementService';
 export const comisionSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
   comisionNro: { type: Number },
-  _id: { type: String },
+  // _id: { type: String },
   comision: { type: String, required: true, uppercase: true },
   alumnoId: { type: String, required: true },
   cicloLectivo: { type: Number, required: true },
-  curso: { type: Number, required: true },
-  division: { type: Number, required: true },
+  curso: { type: Number, required: false, default:0,  min:0 },
+  division: { type: Number, required: false, default:0, min:0 },
   condicion: { type: String, required: true, uppercase: true },
 
   fechaCreacion: { type: Date, default: Date.now },

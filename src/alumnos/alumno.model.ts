@@ -8,24 +8,25 @@ const Schema = mongoose.Schema;
 export const alumnoSchema = new mongoose.Schema({
   alumnoNro: { type: Number, default: 100, required: true },
   adultos: [adultoSchema],
-  comisiones:[
+  comisiones: [
     {
       type: Schema.Types.ObjectId,
       ref: 'Comisione',
+      required: false,
     },
   ],
-  id_alumno: { type: String, required: false }, // Para migrar sin required
-  dni: { type: String, required: true }, // Para migrar sin required
+  alumnoId: { type: Number, required: false },
+  dni: { type: String, required: false }, // Para migrar sin required
   tipoDni: { type: String, default: 'DNI', uppercase: true },
   nombreCompleto: { type: String, required: true },
-  fechaNacimiento: { type: String, required: true }, // Para migrar sin required
+  fechaNacimiento: { type: String, required: false }, // Para migrar sin required
   sexo: { type: String, default: 'MASCULINO', uppercase: true },
   nacionalidad: { type: String, required: true },
   telefono: { type: String },
   celular: { type: String },
-  email: { type: String, required: true },
-  fechaIngreso: { type: String, required: true },
-  procedenciaColegioPrimario: { type: String, required: true }, // Para migrar sin required
+  email: { type: String, required: false },
+  fechaIngreso: { type: String, required: false },
+  procedenciaColegioPrimario: { type: String, required: false },
   procedenciaColegioSecundario: { type: String },
   fechaDeBaja: { type: String },
   motivoDeBaja: { type: String },

@@ -9,11 +9,13 @@ import comisionModel from './comision.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import IComision from './comision.interface';
 import comisionOriginalModel from './comisionOriginal.model';
+import alumnoModel from '../alumnos/alumno.model';
 class ComisionController implements Controller {
   public path = '/comisiones';
   public router = Router();
   private comision = comisionModel;
   private comisionOriginal = comisionOriginalModel;
+  private alumno = alumnoModel;
 
   constructor() {
     this.initializeRoutes();
@@ -21,7 +23,9 @@ class ComisionController implements Controller {
 
   private initializeRoutes() {
     console.log('ComisionController/initializeRoutes');
-    this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.get(`${this.path}/migrar`, this.migrar2);
+    this.router.get(`${this.path}/migraralumnos`, this.migrarAlumnos);
+    this.router.get(`${this.path}/originales`, this.verComisionesOriginales);
     this.router.get(`${this.path}`, this.getAllComisions);
     this.router.get(
       `${this.path}/habilitados`,
@@ -52,6 +56,14 @@ class ComisionController implements Controller {
   }
   private getAllComisions = async (request: Request, response: Response) => {
     const comisiones = await this.comision.find().sort('_id'); //.populate('author', '-password') populate con imagen
+
+    response.send(comisiones);
+  };
+  private verComisionesOriginales = async (
+    request: Request,
+    response: Response
+  ) => {
+    const comisiones = await this.comisionOriginal.find().sort('_id'); //.populate('author', '-password') populate con imagen
 
     response.send(comisiones);
   };
@@ -105,8 +117,7 @@ class ComisionController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-
-  private migrar = async (
+  private migrar2 = async (
     request: Request,
     response: Response,
     next: NextFunction
@@ -114,27 +125,15 @@ class ComisionController implements Controller {
     try {
       const comisiones: any = await this.comisionOriginal.find();
       console.log('comisiones', comisiones);
-      // {},
-      // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
 
-      // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
-      // console.log(
-      //   'comisiones',
-      //   comisiones[100].dni,
-      //   comisiones[100].telefonos,
-      //   comisiones[100].procedencia_colegio_primario
-      // );
-
-      // console.log(
-      //   'comisiones2',comisiones,
-
-      // );
       const comisionesRefactorizados: IComision[] = comisiones.map(
         (x: any, index: number) => {
-          console.log('.TipoComision', x.TipoComision);
+          if (!x.Tcurso) {
+            console.log('x.Division', x);
+          }
           const unaComision: IComision & any = {
             // _id: x._id,
-            alumnoId: x.id_alumno,
+            alumnoId: x.id_alumnos,
             comisionNro: 100 + index,
             comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
             cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
@@ -159,6 +158,115 @@ class ComisionController implements Controller {
         response.send({
           savedComisions,
         });
+      } catch (e) {
+        console.log('ERROR', e);
+        next(
+          new HttpException(500, 'Ocurrió un error al guardar las comisiones')
+        );
+      }
+    } catch (e2) {
+      console.log('ERROR', e2);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+
+  private migrarAlumnos = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const comisiones: any = await this.comision.find();
+      console.log('comisiones', comisiones.length);
+      // {},
+      // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
+
+      // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
+      // console.log(
+      //   'comisiones',
+      //   comisiones[100].dni,
+      //   comisiones[100].telefonos,
+      //   comisiones[100].procedencia_colegio_primario
+      // );
+
+      // console.log(
+      //   'comisiones2',comisiones,
+
+      // );
+      console.log('==================================> 1');
+      // const comisionesRefactorizados: IComision[] = comisiones.map(
+      //   (x: any, index: number) => {
+
+      //     const unaComision: IComision & any = {
+      //       // _id: x._id,
+      //       alumnoId: x.id_alumnos,
+      //       comisionNro: 100 + index,
+      //       comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
+      //       cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
+      //       curso: x.Tcurso ? Number(x.Tcurso) : null,
+      //       division: x.Division ? Number(x.Division) : null,
+      //       condicion: x.Condicion
+      //         ? x.Condicion.toUpperCase()
+      //         : 'SIN REGISTRAR',
+
+      //       fechaCreacion: new Date(),
+      //       activo: true,
+      //     };
+
+      //     return unaComision;
+      //   }
+      // );
+
+      try {
+        // const savedComisions = await this.comision.insertMany(
+        //   comisionesRefactorizados
+        // );
+        // console.log(
+        //   '==================================> 2',
+        //   comisionesRefactorizados.length
+        // );
+        try {
+          const savedComisions = await Promise.all(
+            comisiones.map(async (x: IComision & any) => {
+              const unaComision = {
+                _id: x._id,
+                comisionNro: x.comisionNro,
+                comision: x.comision,
+                cicloLectivo: x.cicloLectivo,
+                curso: x.curso,
+                division: x.division,
+                condicion: x.condicion,
+              };
+              // const alu = await this.alumno.findOne({ alumnoId: 1 });
+              // console.log('aluy,', alu);
+              // return unaComision;
+              return await this.alumno.findOneAndUpdate(
+                { alumnoId: x.alumnoId },
+                {
+                  $push: {
+                    comisiones: unaComision,
+                  },
+
+                }
+                //,{ upsert: true }
+              );
+            })
+          );
+          console.log(
+            '==================================> 3',
+            savedComisions.length
+          );
+
+          response.send({
+            savedComisions,
+          });
+        } catch (error) {
+          console.log('Datos', error);
+          new HttpException(
+            500,
+            'Ocurrió un error al guardar las comisiones 1'
+          );
+        }
       } catch (e) {
         console.log('ERROR', e);
         next(

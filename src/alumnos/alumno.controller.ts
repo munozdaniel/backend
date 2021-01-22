@@ -90,7 +90,7 @@ class AlumnoController implements Controller {
       //   alumnos[100].telefonos,
       //   alumnos[100].procedencia_colegio_primario
       // );
-      console.log('Datos', alumnos);
+      console.log('Datos', alumnos.length);
 
       // console.log(
       //   'alumnos2',alumnos,
@@ -168,11 +168,12 @@ class AlumnoController implements Controller {
             }
           }
           // Recupero las comisiones para guardarla
-          if (!dniMod) {
-            console.log('dniMod', x);
-          }
+          // if (!dniMod) {
+          //   console.log('dniMod', x);
+          // }
 
           const retorno: any = {
+            alumnoId:x.id_alumno,
             alumnoNro: index + 100,
             adultos,
             dni: dniMod ? dniMod : 'SIN REGISTRAR',
@@ -227,6 +228,7 @@ class AlumnoController implements Controller {
         );
         response.send({
           savedAlumnos,
+          cantidad:savedAlumnos.length,
         });
       } catch (e) {
         console.log('ERROR', e);

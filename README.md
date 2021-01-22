@@ -50,3 +50,5 @@ db.createUser(
 ## migrar alumnos 
 alumnos/migrar
 asignaturas/migrar
+comisiones/migrar
+comisiones/migraralumnos
