@@ -10,7 +10,7 @@ interface IComision extends mongoose.Document {
   division:number;
   condicion:string;
 
-  fechaCreacion: Date;
+  fechaCreacion?: Date;
   fechaModificacion?: Date;
   activo: boolean;
 }

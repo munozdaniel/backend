@@ -9,19 +9,29 @@ export const comisionSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
   comisionNro: { type: Number },
   // _id: { type: String },
-  comision: { type: String, required: true, uppercase: true },
+  comision: {
+    type: String,
+    required: true,
+    uppercase: true,
+    default: 'SIN REGISTRAR',
+  },
   // alumnoId: { type: String, required: true },
-  alumno: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'Alumno',
-      required: false,
-    },
-  ],
-  cicloLectivo: { type: Number, required: true },// 
-  curso: { type: Number, required: false, default:0,  min:0 },
-  division: { type: Number, required: false, default:0, min:0 },
-  condicion: { type: String, required: true, uppercase: true },
+  // alumno: [
+  //   {
+  //     type: Schema.Types.ObjectId,
+  //     ref: 'Alumno',
+  //     required: false,
+  //   },
+  // ],
+  cicloLectivo: { type: Number, required: true }, //
+  curso: { type: Number, required: false, default: 0, min: 0 },
+  division: { type: Number, required: false, default: 0, min: 0 },
+  condicion: {
+    type: String,
+    required: true,
+    uppercase: true,
+    default: 'SIN REGISTRAR',
+  },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },

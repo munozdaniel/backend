@@ -2,7 +2,7 @@ import * as mongoose from 'mongoose';
 import IComisionOriginal from './comisionOriginal.interface';
 
 export const comisionesOriginalSchema = new mongoose.Schema({
-  _id: { type: Number},
+  // _id: { type: Number},
   id_comisiones: { type: Number },
   comision: { type: String },
   id_alumnos: { type: Number },

@@ -11,12 +11,14 @@ import escapeStringRegexp from 'escape-string-regexp';
 import IAlumno from './alumno.interface';
 import alumnoOriginalModel from './alumnoOriginal.model';
 import comisionModel from '../comisiones/comision.model';
+import comisionesOriginalModel from '../comisiones/comisionOriginal.model';
 class AlumnoController implements Controller {
   public path = '/alumnos';
   public router = Router();
   private alumno = alumnoModel;
   private alumnoOriginal = alumnoOriginalModel;
   private comision = comisionModel;
+  private comisionOriginal = comisionesOriginalModel;
 
   constructor() {
     this.initializeRoutes();
@@ -27,7 +29,7 @@ class AlumnoController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
     this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
-    this.router.get(`${this.path}/ficha`, this.getFichaAlumnos);
+    this.router.post(`${this.path}/ficha`, this.getFichaAlumnos);
 
     // Using the  route.all in such a way applies the middleware only to the route
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /alumnos.
@@ -56,11 +58,17 @@ class AlumnoController implements Controller {
     console.log('getFichaAlumnos');
 
     try {
-      // const { cicloLectivo, division, curso } = request.body;
+      const { cicloLectivo, division, curso } = request.body;
+      console.log(
+        'cicloLectivo, division, curso',
+        cicloLectivo,
+        division,
+        curso
+      );
       const alumnos = await this.alumno
         // .find()
-        // .find({ comisiones: { $elemMatch: { cicloLectivo: 2019 } } })
-        .find({ 'comisiones.cicloLectivo': 2019 })
+        .find({ comisiones: { $elemMatch: { cicloLectivo, division, curso } } })
+        // .find({ 'comisiones.cicloLectivo': 2019 })
         // .find( {
         //   comisiones: { $all: [
         //                  { "$elemMatch" : { cicloLectivo: 2020, division: { $gt: 0} } },
@@ -68,9 +76,9 @@ class AlumnoController implements Controller {
         // })
         // .find({ comisiones: { $in: [{ 'comisiones.cicloLectivo': 2020 }] } })
         // .find({
-        //   'comisiones.cicloLectivo': 2020, //cicloLectivo,
-        //   // 'comisiones.division': 1, //division,
-        //   // 'comisiones.curso': 1, //curso,
+        // 'comisiones.cicloLectivo': cicloLectivo, //cicloLectivo,
+        // 'comisiones.division': division, //division,
+        // 'comisiones.curso': curso, //curso,
         // })
         // .sort({ _id: -1 })
         // .populate({
@@ -78,7 +86,7 @@ class AlumnoController implements Controller {
         //   model: 'Comisione',
         //   select: 'cicloLectivo division curso',
         // });
-      .populate( 'comisiones');
+        .populate('comisiones');
       console.log('alumnos', alumnos);
       if (alumnos) {
         response.send(alumnos);
@@ -138,8 +146,8 @@ class AlumnoController implements Controller {
       //   'alumnos2',alumnos,
 
       // );
-      const alumnosRefactorizados: IAlumno[] = alumnos.map(
-        (x: any, index: number) => {
+      const alumnosRefactorizados: IAlumno[] = await Promise.all(
+        alumnos.map(async (x: any, index: number) => {
           const padre = {
             tipoAdulto: 'PADRE',
             activo: true,
@@ -213,8 +221,32 @@ class AlumnoController implements Controller {
           // if (!dniMod) {
           //   console.log('dniMod', x);
           // }
+          let comisiones: any = [];
+          try {
+            const comisionesOriginales = await this.comisionOriginal.find({
+              id_alumnos: x.id_alumno,
+            });
+            comisiones = comisionesOriginales.map((x) => ({
+              // _id: x._id,
+              // alumnoId: x.id_alumnos,
+              comisionNro: 100 + index,
+              comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
+              cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
+              curso: x.Tcurso ? Number(x.Tcurso) : null,
+              division: x.Division ? Number(x.Division) : null,
+              condicion: x.Condicion
+                ? x.Condicion.toUpperCase()
+                : 'SIN REGISTRAR',
 
+              fechaCreacion: new Date(),
+              activo: true,
+            }));
+          } catch (ero) {
+            console.log('ero', ero);
+          }
+          console.log('comisiones', comisiones);
           const retorno: any = {
+            comisiones,
             alumnoId: x.id_alumno,
             alumnoNro: index + 100,
             adultos,
@@ -261,10 +293,11 @@ class AlumnoController implements Controller {
           };
 
           return retorno;
-        }
+        })
       );
 
       try {
+        console.log('alumnosRefactorizados', alumnosRefactorizados);
         const savedAlumnos = await this.alumno.insertMany(
           alumnosRefactorizados
         );
@@ -273,11 +306,12 @@ class AlumnoController implements Controller {
           cantidad: savedAlumnos.length,
         });
       } catch (e) {
-        console.log('ERROR', e);
-        next(new HttpException(400, 'Parametros Incorrectos'));
+        // [ 'errors', '_message', 'message', 'name' ]
+        console.log('[ERROR 1]', e.errors);
+        next(new HttpException(500, 'Problemas al insertar los registros'));
       }
     } catch (e2) {
-      console.log('ERROR', e2);
+      console.log('[ERROR 2]', e2);
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };

@@ -264,7 +264,7 @@ class ComisionController implements Controller {
         try {
           const savedComisions = await Promise.all(
             comisiones.map(async (x: IComision & any) => {
-              const unaComision = {
+              const unaComision:any = {
                 _id: x._id,
                 comisionNro: x.comisionNro,
                 comision: x.comision,
@@ -272,6 +272,7 @@ class ComisionController implements Controller {
                 curso: x.curso,
                 division: x.division,
                 condicion: x.condicion,
+                activo:true
                //  alumno: x.alumno,
               };
               // const alu = await this.alumno.findOne({ alumnoId: 1 });
