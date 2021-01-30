@@ -27,6 +27,7 @@ class AlumnoController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
     this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
+    this.router.get(`${this.path}/ficha`, this.getFichaAlumnos);
 
     // Using the  route.all in such a way applies the middleware only to the route
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /alumnos.
@@ -47,6 +48,48 @@ class AlumnoController implements Controller {
       );
   }
 
+  private getFichaAlumnos = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    console.log('getFichaAlumnos');
+
+    try {
+      // const { cicloLectivo, division, curso } = request.body;
+      const alumnos = await this.alumno
+        // .find()
+        // .find({ comisiones: { $elemMatch: { cicloLectivo: 2019 } } })
+        .find({ 'comisiones.cicloLectivo': 2019 })
+        // .find( {
+        //   comisiones: { $all: [
+        //                  { "$elemMatch" : { cicloLectivo: 2020, division: { $gt: 0} } },
+        //                ] }
+        // })
+        // .find({ comisiones: { $in: [{ 'comisiones.cicloLectivo': 2020 }] } })
+        // .find({
+        //   'comisiones.cicloLectivo': 2020, //cicloLectivo,
+        //   // 'comisiones.division': 1, //division,
+        //   // 'comisiones.curso': 1, //curso,
+        // })
+        // .sort({ _id: -1 })
+        // .populate({
+        //   path: 'comisiones',
+        //   model: 'Comisione',
+        //   select: 'cicloLectivo division curso',
+        // });
+      .populate( 'comisiones');
+      console.log('alumnos', alumnos);
+      if (alumnos) {
+        response.send(alumnos);
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
   private getAllAlumnos = async (request: Request, response: Response) => {
     const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
 
@@ -58,9 +101,8 @@ class AlumnoController implements Controller {
     next: NextFunction
   ) => {
     const id = request.params.id;
-    console.log('id', id);
     try {
-      const alumno = await this.alumno.findById(id);
+      const alumno = await this.alumno.findById(id).populate('comisiones');
       console.log(alumno);
       if (alumno) {
         response.send(alumno);
@@ -173,7 +215,7 @@ class AlumnoController implements Controller {
           // }
 
           const retorno: any = {
-            alumnoId:x.id_alumno,
+            alumnoId: x.id_alumno,
             alumnoNro: index + 100,
             adultos,
             dni: dniMod ? dniMod : 'SIN REGISTRAR',
@@ -228,7 +270,7 @@ class AlumnoController implements Controller {
         );
         response.send({
           savedAlumnos,
-          cantidad:savedAlumnos.length,
+          cantidad: savedAlumnos.length,
         });
       } catch (e) {
         console.log('ERROR', e);

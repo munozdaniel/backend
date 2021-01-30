@@ -23,8 +23,12 @@ class ComisionController implements Controller {
 
   private initializeRoutes() {
     console.log('ComisionController/initializeRoutes');
-    this.router.get(`${this.path}/migrar`, this.migrar2);
+    this.router.get(`${this.path}/migrar`, this.migrarComisiones);
     this.router.get(`${this.path}/migraralumnos`, this.migrarAlumnos);
+    this.router.post(
+      `${this.path}/ficha-alumnos`,
+      this.buscarComisionesPorCicloLectivo
+    );
     this.router.get(`${this.path}/originales`, this.verComisionesOriginales);
     this.router.get(`${this.path}`, this.getAllComisions);
     this.router.get(
@@ -54,8 +58,33 @@ class ComisionController implements Controller {
         this.createComision
       );
   }
+  private buscarComisionesPorCicloLectivo = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { cicloLectivo, division, curso } = request.body;
+      const comisiones = await this.comision
+        .find({ cicloLectivo, division, curso })
+        .sort('_id')
+        .populate('alumno'); //.populate('author', '-password') populate con imagen
+
+      if (comisiones) {
+        response.send(comisiones);
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
   private getAllComisions = async (request: Request, response: Response) => {
-    const comisiones = await this.comision.find().sort('_id'); //.populate('author', '-password') populate con imagen
+    const comisiones = await this.comision
+      .find()
+      .sort('_id')
+      .populate('alumno'); //.populate('author', '-password') populate con imagen
 
     response.send(comisiones);
   };
@@ -117,7 +146,7 @@ class ComisionController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private migrar2 = async (
+  private migrarComisiones = async (
     request: Request,
     response: Response,
     next: NextFunction
@@ -126,14 +155,21 @@ class ComisionController implements Controller {
       const comisiones: any = await this.comisionOriginal.find();
       console.log('comisiones', comisiones);
 
-      const comisionesRefactorizados: IComision[] = comisiones.map(
-        (x: any, index: number) => {
+      const comisionesRefactorizados: IComision[] = await Promise.all(
+        comisiones.map(async (x: any, index: number) => {
           if (!x.Tcurso) {
             console.log('x.Division', x);
           }
+          let alo = null;
+          try {
+            alo = await this.alumno.find({ alumnoId: x.id_alumnos });
+          } catch (ero) {
+            console.log('ero', ero);
+          }
           const unaComision: IComision & any = {
             // _id: x._id,
-            alumnoId: x.id_alumnos,
+            // alumnoId: x.id_alumnos,
+            alumno: alo,
             comisionNro: 100 + index,
             comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
             cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
@@ -148,7 +184,7 @@ class ComisionController implements Controller {
           };
 
           return unaComision;
-        }
+        })
       );
 
       try {
@@ -176,7 +212,7 @@ class ComisionController implements Controller {
     next: NextFunction
   ) => {
     try {
-      const comisiones: any = await this.comision.find();
+      const comisiones: any = await this.comision.find().populate('alumno');
       console.log('comisiones', comisiones.length);
       // {},
       // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
@@ -236,17 +272,17 @@ class ComisionController implements Controller {
                 curso: x.curso,
                 division: x.division,
                 condicion: x.condicion,
+               //  alumno: x.alumno,
               };
               // const alu = await this.alumno.findOne({ alumnoId: 1 });
-              // console.log('aluy,', alu);
+              //  console.log('aluy,', x.alumno);
               // return unaComision;
               return await this.alumno.findOneAndUpdate(
-                { alumnoId: x.alumnoId },
+                { _id: x.alumno },
                 {
                   $push: {
                     comisiones: unaComision,
                   },
-
                 }
                 //,{ upsert: true }
               );
