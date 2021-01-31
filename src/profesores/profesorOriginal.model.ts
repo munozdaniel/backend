@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import IComisionOriginal from './profesorOriginal.interface';
+import IProfesorOriginal from './profesorOriginal.interface';
 
 export const profesoresOriginalSchema = new mongoose.Schema({
   _id: { type: String },
@@ -12,7 +12,7 @@ export const profesoresOriginalSchema = new mongoose.Schema({
 });
 
 // Modelo
-const profesoresOriginalModel = mongoose.model<IComisionOriginal>(
+const profesoresOriginalModel = mongoose.model<IProfesorOriginal>(
   'Profesoresoriginal',
   profesoresOriginalSchema
 );

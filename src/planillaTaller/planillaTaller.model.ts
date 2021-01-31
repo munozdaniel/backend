@@ -16,14 +16,15 @@ export const planillaTallerSchema = new mongoose.Schema({
     ref: 'Asignatura',
     required: false,
   },
-  curso: { type: Number },
-  division: { type: Number },
-  comision: { type: String },
-  cicloLectivo: { type: Number },
-  fechaInicio: { type: String },
+  planillaTallerId: { type: Number, required: false },
+  curso: { type: Number, required: true },
+  division: { type: Number, required: true },
+  comision: { type: String, required: true }, // req false solo para migrar
+  cicloLectivo: { type: Number, required: true },
+  fechaInicio: { type: String, required: true }, // req false solo para migrar
+  fechaFinalizacion: { type: String, required: true }, // req false solo para migrar
   observacion: { type: String },
-  fechaFinalizacion: { type: String },
-  bimestre: { type: String },
+  bimestre: { type: String, required: true },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },

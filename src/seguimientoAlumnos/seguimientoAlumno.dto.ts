@@ -11,10 +11,10 @@ import {
 } from 'class-validator';
 
 class CrearProfesorDto {
-  @IsNumberString()
-  idAlumno: number | string;
-  @IsNumberString()
-  idPlanillaDeTaller: number | string;
+  @IsString()
+  idAlumno: string;
+  @IsString()
+  idPlanillaDeTaller: string;
   @IsOptional()
   @IsDateString()
   fecha: string;
@@ -40,15 +40,18 @@ class CrearProfesorDto {
       message: 'El ciclo lectivo debe ser numerico',
     }
   )
-  @Min(2000,{message:'El ciclo lectivo no puede ser menor a 2000'})
+  @Min(2000, { message: 'El ciclo lectivo no puede ser menor a 2000' })
   cicloLectivo: number;
-  @IsString({ message: 'La descripción de como fue resuelto no ha sido ingresado' })
+  @IsString({
+    message: 'La descripción de como fue resuelto no ha sido ingresado',
+  })
   @IsOptional()
   @MinLength(5, {
     message: 'La descripción de como fue resuelto es muy corta',
   })
   @MaxLength(100, {
-    message: 'La descripción de como fue resuelto no puede superar los 100 caracteres',
+    message:
+      'La descripción de como fue resuelto no puede superar los 100 caracteres',
   })
   resuelto: string;
   @IsString({ message: 'La observacion 2 no ha sido ingresada' })
@@ -64,7 +67,8 @@ class CrearProfesorDto {
     message: 'La observacion del jefe de taller es muy corta',
   })
   @MaxLength(100, {
-    message: 'La observacion del jefe de taller no puede superar los 100 caracteres',
+    message:
+      'La observacion del jefe de taller no puede superar los 100 caracteres',
   })
   observacionJefe: string;
 

@@ -1,8 +1,8 @@
 import * as mongoose from 'mongoose';
 interface IPlanillaTaller extends mongoose.Document {
   _id: string;
-  // planillaTallerId: string;
-  
+  planillaTallerId: number;
+
   asignaturaId: string;
   profesorId: number;
   curso: number;

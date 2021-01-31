@@ -1,19 +1,24 @@
 import * as mongoose from 'mongoose';
-import IComisionOriginal from './profesorOriginal.interface';
+import ISeguimientoAlumnoOriginal from './seguimientoAlumnoOriginal.interface';
 
-export const profesoresOriginalSchema = new mongoose.Schema({
-  _id: { type: String },
-  nombre_y_apellido: { type: String },
-  telefono: { type: String },
-  mail: { type: String },
-  formacion: { type: String },
-  tipo_de_titulacion: { type: String },
+export const seguimientoAlumnoOriginalSchema = new mongoose.Schema({
+  id_seguimiento: { type: Number},
+  id_alumno: { type: Number},
+  fecha: { type: String },
+  tipo_seguimiento: { type: String },
+  observacion: { type: String },
+  ciclo_lectivo: { type: Number},
+  IdPlanillaDeTaller: { type: Number},
+  Resuelto: { type: String },
+  Observacion2: { type: String },
+  ObservacionJefe: { type: String },
+
 });
 
 // Modelo
-const profesoresOriginalModel = mongoose.model<IComisionOriginal>(
-  'Profesoresoriginal',
-  profesoresOriginalSchema
+const seguimientoAlumnoOriginalModel = mongoose.model<ISeguimientoAlumnoOriginal>(
+  'seguimiento_de_alumno',
+  seguimientoAlumnoOriginalSchema
 );
 
-export default profesoresOriginalModel;
+export default seguimientoAlumnoOriginalModel;

@@ -3,26 +3,28 @@ import ISeguimientoAlumno from './seguimientoAlumno.interface';
 import mongoosePaginate from 'mongoose-paginate';
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 import AutoincrementService from '../services/AutoincrementService';
+const Schema = mongoose.Schema;
 export const seguimientoAlumnoSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
   seguimientoAlumnoNro: { type: Number },
   //
-  idAlumno: { type: String },
-  idPlanillaDeTaller: { type: String },
+  alumnoId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Alumno',
+    required: false,
+  },
+  planillaTallerId: {
+    type: Schema.Types.ObjectId,
+    ref: 'PlanillaTaller',
+    required: false,
+  },
   fecha: { type: String },
   tipoSeguimiento: { type: String },
-  observacion: { type: String },
   cicloLectivo: { type: Number },
-  resuelto: { type: String },
+  resuelto: { type: Boolean },
+  observacion: { type: String },
   observacion2: { type: String },
   observacionJefe: { type: String },
-
-  nombreCompleto: { type: String },
-  telefono: { type: String },
-  celular: { type: String },
-  email: { type: String },
-  formacion: { type: String },
-  titulo: { type: String },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },

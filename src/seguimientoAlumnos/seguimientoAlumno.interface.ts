@@ -1,12 +1,13 @@
 import * as mongoose from 'mongoose';
 interface ISeguimientoAlumno extends mongoose.Document {
-  idAlumno: number | string;
-  idPlanillaDeTaller: number | string;
+  seguimientoAlumnoNro: number;
+  alumnoId: string;
+  planillaTallerId: string;
   fecha: string;
   tipoSeguimiento: string;
-  observacion: string;
   cicloLectivo: number;
-  resuelto: string;
+  resuelto: boolean;
+  observacion: string;
   observacion2: string;
   observacionJefe: string;
 

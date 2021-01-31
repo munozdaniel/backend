@@ -57,7 +57,7 @@ asignaturas/migrar
 comisiones/migrar // no hace falta se hacen en alumnos/migrar
 comisiones/migraralumnos // no hace falta se hacen en alumnos/migrar
 planilla-taller/migrar
-
+seguimiento-alumnos/migrar
 Tablas originales
 
 alumnooriginals <<mod>>

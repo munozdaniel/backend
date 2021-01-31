@@ -57,6 +57,7 @@ class PlanillaTallerController implements Controller {
             console.log('ero2', ero);
           }
           const unaPlanillaTaller: IPlanillaTaller & any = {
+            planillaTallerId:x.id_planilla_de_taller,
             asignaturaId: asig,
             profesorId: prof,
             curso: x.Tcurso,
@@ -66,7 +67,7 @@ class PlanillaTallerController implements Controller {
             fechaInicio: x.FechaInicio,
             observacion: x.Observacion,
             fechaFinalizacion: x.FechaFinalizacion,
-            bimestre: x.Bimestre,
+            bimestre: x.Bimestre?x.Bimestre:'SIN REGISTRAR',
 
             fechaCreacion: new Date(),
             activo: true,
