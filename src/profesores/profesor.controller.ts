@@ -82,7 +82,6 @@ class ProfesorController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
- 
 
   private migrar = async (
     request: Request,
@@ -111,6 +110,7 @@ class ProfesorController implements Controller {
         (x: any, index: number) => {
           const unaProfesor: IProfesor & any = {
             // _id: x._id,
+            id_profesores: x.id_profesores,
             profesorNro: 100 + index,
             nombreCompleto: x.nombre_y_apellido,
             telefono: x.telefono,
@@ -118,7 +118,6 @@ class ProfesorController implements Controller {
             email: x.mail,
             formacion: x.formacion,
             titulo: x.tipo_de_titulacion,
-
             fechaCreacion: new Date(),
             activo: true,
           };

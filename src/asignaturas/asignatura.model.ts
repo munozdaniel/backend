@@ -6,35 +6,35 @@ import AutoincrementService from '../services/AutoincrementService';
 
 export const asignaturaSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
-  asignaturaNro:{ type: Number },
-  detalle: {type:String, required:true},
-  tipoAsignatura: {type:String, required:true},
-  tipoCiclo: {type:String, required:true},
-  tipoFormacion: {type:String, required:true},
-  curso:{type:Number,required:true},
-  meses:{type:Number,required:true},
-  horasCatedraAnuales:{type:Number,required:true},
-  horasCatedraSemanales:{type:Number,required:true},
+  asignaturaNro: { type: Number },
+  IdAsignarutas: { type: Number, required: false }, // id se usa solo para migrar
+  detalle: { type: String, required: true },
+  tipoAsignatura: { type: String, required: true },
+  tipoCiclo: { type: String, required: true },
+  tipoFormacion: { type: String, required: true },
+  curso: { type: Number, required: true },
+  meses: { type: Number, required: true },
+  horasCatedraAnuales: { type: Number, required: true },
+  horasCatedraSemanales: { type: Number, required: true },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
-
-
-  
 });
 
 // Modelo
 asignaturaSchema.plugin(mongoosePaginate);
-const asignaturaModel = mongoose.model<IAsignatura>('Asignatura', asignaturaSchema);
+const asignaturaModel = mongoose.model<IAsignatura>(
+  'Asignatura',
+  asignaturaSchema
+);
 asignaturaModel.paginate();
 // Hooks
 asignaturaSchema.plugin(AutoincrementService.getAutoIncrement(), {
   inc_field: 'asignaturaNro',
-  start_seq:100
+  start_seq: 100,
 });
 // asignaturaSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Asignatura', field: 'asignaturaNro' });
-
 
 // asignaturaSchema.pre('save', function (this: IAsignatura, next: any) {
 //   const now = new Date();

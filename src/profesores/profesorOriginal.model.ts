@@ -3,6 +3,7 @@ import IComisionOriginal from './profesorOriginal.interface';
 
 export const profesoresOriginalSchema = new mongoose.Schema({
   _id: { type: String },
+  id_profesores: { type: Number },
   nombre_y_apellido: { type: String },
   telefono: { type: String },
   mail: { type: String },

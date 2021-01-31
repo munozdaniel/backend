@@ -8,6 +8,7 @@ import AlumnoController from './alumnos/alumno.controller';
 import AsignaturaController from './asignaturas/asignatura.controller';
 import ProfesorController from './profesores/profesor.controller';
 import ComisionController from './comisiones/comision.controller';
+import PlanillaTallerController from './planillaTaller/planillaTaller.controller';
 
 validateEnv();
 
@@ -20,7 +21,8 @@ const app = new App([
   new AlumnoController(),
   new AsignaturaController(),
   new ComisionController(),
-  new ProfesorController()
+  new ProfesorController(),
+  new PlanillaTallerController()
 ]);
 
 app.listen();

@@ -31,24 +31,46 @@ npm run test
 ```
 
 # Cargar BD
+
 ## Insertar Marcas
+
 http://127.0.0.1:5000/marcas/insertarMagia
+
 ## Insertar Pesos (kg)
+
 http://127.0.0.1:5000/pesos/insertarMagia
 
-
-
 ## Crear usuario
+
 db.createUser(
-{	user: "adminEscuela",
-	pwd: "123456",
+{ user: "adminEscuela",
+pwd: "123456",
 
-	roles:[{role: "userAdmin" , db:"escuela"}]})
-
+    roles:[{role: "userAdmin" , db:"escuela"}]})
 
 # PASOS MIGRACION
-## migrar alumnos 
+
+## migrar alumnos
+
 alumnos/migrar
 asignaturas/migrar
-comisiones/migrar
-comisiones/migraralumnos
+comisiones/migrar // no hace falta se hacen en alumnos/migrar
+comisiones/migraralumnos // no hace falta se hacen en alumnos/migrar
+planilla-taller/migrar
+
+Tablas originales
+
+alumnooriginals <<mod>>
+alumnos_por_comisiones
+alumnos_por_taller
+asignaturaoriginals <<mod>>
+asignaturas_por_profesor
+asistencia_dias
+calendario_por_ciclo_lectivo
+planilla_de_asistencia_por_alumnos
+planilla_de_calificaciones_por_alumno
+planilla_de_tallers (planilla_de_taller) <<mod>>
+planilla_temario_por_dia
+planillaaportesdetaller
+profesoresoriginals <<mod>>
+seguimiento_de_alumnos

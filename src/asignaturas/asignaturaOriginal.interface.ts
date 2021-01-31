@@ -1,7 +1,7 @@
  import * as mongoose from 'mongoose';
 interface IAsignaturaOriginal extends mongoose.Document {
   _id:string;
-  idAsignarutas:number;
+  IdAsignarutas:number;
   DetalleAsignatura:string;
   TipoAsignatura:string;
   TipoCiclo:string;

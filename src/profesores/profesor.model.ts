@@ -7,7 +7,7 @@ import AutoincrementService from '../services/AutoincrementService';
 export const profesorSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
   profesorNro: { type: Number },
-// _id: { type: String },
+  id_profesores: { type: Number, required: false }, // id se usa solo para migrar
   nombreCompleto: { type: String },
   telefono: { type: String },
   celular: { type: String },

@@ -110,7 +110,7 @@ class AsignaturaController implements Controller {
       // );
       const asignaturasRefactorizados: IAsignatura[] = asignaturas.map(
         (x: any, index: number) => {
-          console.log('.TipoAsignatura', x.TipoAsignatura);
+          console.log('.TipoAsignatura', x.IdAsignarutas);
           const unaAsignatura: IAsignatura & any = {
             // _id: x._id,
             asignaturaNro: 100 + index,
@@ -129,6 +129,7 @@ class AsignaturaController implements Controller {
 
             fechaCreacion: new Date(),
             activo: true,
+            IdAsignarutas: x.IdAsignarutas,
           };
 
           return unaAsignatura;

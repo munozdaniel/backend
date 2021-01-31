@@ -12,6 +12,8 @@ interface IProfesor extends mongoose.Document {
   fechaCreacion: Date;
   fechaModificacion?: Date;
   activo: boolean;
+
+  id_profesores?: number; // solo para migrar
 }
 
 export default IProfesor;
