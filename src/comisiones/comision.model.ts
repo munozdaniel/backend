@@ -26,12 +26,12 @@ export const comisionSchema = new mongoose.Schema({
   cicloLectivo: { type: Number, required: true }, //
   curso: { type: Number, required: false, default: 0, min: 0 },
   division: { type: Number, required: false, default: 0, min: 0 },
-  condicion: {
-    type: String,
-    required: true,
-    uppercase: true,
-    default: 'SIN REGISTRAR',
-  },
+  // condicion: {
+  //   type: String,
+  //   required: true,
+  //   uppercase: true,
+  //   default: 'SIN REGISTRAR',
+  // },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },

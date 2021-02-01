@@ -3,13 +3,14 @@ import IAlumno from './alumno.interface';
 import mongoosePaginate from 'mongoose-paginate';
 import { adultoSchema } from '../adulto/adulto.model';
 import AutoincrementService from '../services/AutoincrementService';
-import { comisionSchema } from '../comisiones/comision.model';
-const Schema = mongoose.Schema;
+import { estadoComisionSchema } from './estadoComisiones/estadoComision.model';
+// const Schema = mongoose.Schema;
 
 export const alumnoSchema = new mongoose.Schema({
   alumnoNro: { type: Number, default: 100, required: true },
   adultos: [adultoSchema],
-  comisiones:[comisionSchema],
+  estadoComisiones:[estadoComisionSchema],
+  // comisiones:[comisionSchema],
   // comisiones: [
   //   {
   //     type: Schema.Types.ObjectId,

@@ -221,32 +221,39 @@ class AlumnoController implements Controller {
           // if (!dniMod) {
           //   console.log('dniMod', x);
           // }
-          let comisiones: any = [];
+          let estadoComision: any = [];
           try {
+            // busco la comision migrada
+            // inserto esa comision y la condicion
             const comisionesOriginales = await this.comisionOriginal.find({
               id_alumnos: x.id_alumno,
             });
-            comisiones = comisionesOriginales.map((x) => ({
-              // _id: x._id,
-              // alumnoId: x.id_alumnos,
-              comisionNro: 100 + index,
-              comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
-              cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
-              curso: x.Tcurso ? Number(x.Tcurso) : null,
-              division: x.Division ? Number(x.Division) : null,
-              condicion: x.Condicion
-                ? x.Condicion.toUpperCase()
-                : 'SIN REGISTRAR',
+            estadoComision = await Promise.all(
+              comisionesOriginales.map(async (x) => {
+                const unaComision = await this.comision.findOne({
+                  division: x.Division,
+                  comision: x.comision,
+                  curso: x.Tcurso,
+                  cicloLectivo: x.ciclo_lectivo,
+                }); // Comision de la coleccion migrada; Deberia haber una  sola coincidencia
+          console.log('unaComision', unaComision);
+          return {
+                  estadoComisionNro: 100 + index,
+                  comision: {...unaComision, comision:unaComision.comision?unaComision.comision:'SIN REGISTRAR'},
+                  condicion: x.Condicion
+                    ? x.Condicion.toUpperCase()
+                    : 'SIN REGISTRAR',
 
-              fechaCreacion: new Date(),
-              activo: true,
-            }));
+                  fechaCreacion: new Date(),
+                  activo: true,
+                };
+              })
+            );
           } catch (ero) {
             console.log('ero', ero);
           }
-          console.log('comisiones', comisiones);
           const retorno: any = {
-            comisiones,
+            estadoComisiones:estadoComision,
             alumnoId: x.id_alumno,
             alumnoNro: index + 100,
             adultos,
@@ -297,7 +304,6 @@ class AlumnoController implements Controller {
       );
 
       try {
-        console.log('alumnosRefactorizados', alumnosRefactorizados);
         const savedAlumnos = await this.alumno.insertMany(
           alumnosRefactorizados
         );

@@ -50,6 +50,9 @@ pwd: "123456",
 
 # PASOS MIGRACION
 
+## migrar nuevo analisis
+localhost:8083/api/comisiones/migrar-unicas
+localhost:8083/api/alumnos/migrar
 ## migrar alumnos
 
 alumnos/migrar

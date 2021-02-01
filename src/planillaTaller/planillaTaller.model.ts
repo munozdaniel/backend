@@ -16,7 +16,7 @@ export const planillaTallerSchema = new mongoose.Schema({
     ref: 'Asignatura',
     required: false,
   },
-  planillaTallerId: { type: Number, required: false },
+  planillaTallerId: { type: Number, required: false }, // solo par a migrar
   curso: { type: Number, required: true },
   division: { type: Number, required: true },
   comision: { type: String, required: true }, // req false solo para migrar

@@ -8,7 +8,7 @@ interface IComision extends mongoose.Document {
   cicloLectivo: number;
   curso:number;
   division:number;
-  condicion:string;
+  // condicion:string;
 
   fechaCreacion?: Date;
   fechaModificacion?: Date;

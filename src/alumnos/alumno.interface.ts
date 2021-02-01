@@ -1,11 +1,13 @@
 import IAdulto from '../adulto/adulto.interface';
 import * as mongoose from 'mongoose';
 import IComision from '../comisiones/comision.interface';
+import IEstadoComision from './estadoComisiones/estadoComision.interface';
 interface IAlumno extends mongoose.Document {
   // _id: string;
   alumnoNro?:number;
   adultos:IAdulto[];
-  comisiones?:IComision[];
+  estadoComision:IEstadoComision[];
+  // comisiones?:IComision[];
   tipoDni: string;
   dni: string;
   nombreCompleto: string;

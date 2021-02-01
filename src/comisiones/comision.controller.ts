@@ -10,11 +10,13 @@ import escapeStringRegexp from 'escape-string-regexp';
 import IComision from './comision.interface';
 import comisionOriginalModel from './comisionOriginal.model';
 import alumnoModel from '../alumnos/alumno.model';
+import comisionesUnicaModel from './comisionUnica.model';
 class ComisionController implements Controller {
   public path = '/comisiones';
   public router = Router();
   private comision = comisionModel;
   private comisionOriginal = comisionOriginalModel;
+  private comisionSql = comisionesUnicaModel;
   private alumno = alumnoModel;
 
   constructor() {
@@ -23,6 +25,7 @@ class ComisionController implements Controller {
 
   private initializeRoutes() {
     console.log('ComisionController/initializeRoutes');
+    this.router.get(`${this.path}/migrar-unicas`, this.migrarComisionesUnicas);
     this.router.get(`${this.path}/migrar`, this.migrarComisiones);
     this.router.get(`${this.path}/migraralumnos`, this.migrarAlumnos);
     this.router.post(
@@ -143,6 +146,56 @@ class ComisionController implements Controller {
       }
     } catch (e) {
       console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+  private migrarComisionesUnicas = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const comisiones: any = await this.comisionSql.find();
+      console.log('comisiones', comisiones);
+
+      const comisionesRefactorizados: IComision[] = await Promise.all(
+        comisiones.map(async (x: any, index: number) => {
+        
+          const unaComision: IComision & any = {
+            // _id: x._id,
+            // alumnoId: x.id_alumnos,
+            comisionNro: 100 + index,
+            comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
+            cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
+            curso: x.Tcurso ? Number(x.Tcurso) : null,
+            division: x.Division ? Number(x.Division) : null,
+            // condicion: x.Condicion
+            //   ? x.Condicion.toUpperCase()
+            //   : 'SIN REGISTRAR',
+
+            fechaCreacion: new Date(),
+            activo: true,
+          };
+
+          return unaComision;
+        })
+      );
+
+      try {
+        const savedComisions = await this.comision.insertMany(
+          comisionesRefactorizados
+        );
+        response.send({
+          savedComisions,
+        });
+      } catch (e) {
+        console.log('ERROR', e);
+        next(
+          new HttpException(500, 'Ocurrió un error al guardar las comisiones')
+        );
+      }
+    } catch (e2) {
+      console.log('ERROR', e2);
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
