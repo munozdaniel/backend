@@ -11,6 +11,8 @@ import ComisionController from "./comisiones/comision.controller";
 import PlanillaTallerController from "./planillaTaller/planillaTaller.controller";
 import SeguimientoAlumnoController from "./seguimientoAlumnos/seguimientoAlumno.controller";
 import TemaController from "./temas/tema.controller";
+import AsistenciaController from "./asistencias/asistencia.controller";
+import CalificacionController from "./calificaciones/calificacion.controller";
 
 validateEnv();
 
@@ -27,6 +29,8 @@ const app = new App([
   new PlanillaTallerController(),
   new SeguimientoAlumnoController(),
   new TemaController(),
+  new AsistenciaController(),
+  new CalificacionController(),
 ]);
 
 app.listen();
