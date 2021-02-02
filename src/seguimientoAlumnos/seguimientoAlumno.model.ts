@@ -5,17 +5,15 @@ import mongoosePaginate from 'mongoose-paginate';
 import AutoincrementService from '../services/AutoincrementService';
 const Schema = mongoose.Schema;
 export const seguimientoAlumnoSchema = new mongoose.Schema({
-  // _id: {type:String, required:true},
   seguimientoAlumnoNro: { type: Number },
-  //
-  alumnoId: {
+  alumno: {
     type: Schema.Types.ObjectId,
     ref: 'Alumno',
     required: false,
   },
-  planillaTallerId: {
+  planillaTaller: {
     type: Schema.Types.ObjectId,
-    ref: 'PlanillaTaller',
+    ref: 'PlanillaTallere',
     required: false,
   },
   fecha: { type: String },

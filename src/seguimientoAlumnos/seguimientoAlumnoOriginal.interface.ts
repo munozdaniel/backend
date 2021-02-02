@@ -1,7 +1,7 @@
  import * as mongoose from 'mongoose';
 interface ISeguimientoAlumnoOriginal extends mongoose.Document {
   _id: number;
-  id_seguimiento: number;
+  id_seguimiento: number; // para migrarc
   id_alumno: number;
   fecha: string;
   tipo_seguimiento: string;

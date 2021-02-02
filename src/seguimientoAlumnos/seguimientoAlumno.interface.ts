@@ -1,9 +1,13 @@
+import IAlumno from 'alumnos/alumno.interface';
 import * as mongoose from 'mongoose';
+import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
 interface ISeguimientoAlumno extends mongoose.Document {
+  _id:string;
+  id_seguimiento: number; // para migrar
   seguimientoAlumnoNro: number;
-  alumnoId: string;
-  planillaTallerId: string;
-  fecha: string;
+  alumno: IAlumno;
+  planillaTaller: IPlanillaTaller;
+  fecha: Date;
   tipoSeguimiento: string;
   cicloLectivo: number;
   resuelto: boolean;
