@@ -1,28 +1,33 @@
-import * as mongoose from 'mongoose';
-import IPlanillaTaller from './planillaTaller.interface';
-import mongoosePaginate from 'mongoose-paginate';
+import * as mongoose from "mongoose";
+import IPlanillaTaller from "./planillaTaller.interface";
+import mongoosePaginate from "mongoose-paginate";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from '../services/AutoincrementService';
+import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const planillaTallerSchema = new mongoose.Schema({
   asignaturaId: {
     type: Schema.Types.ObjectId,
-    ref: 'Asignatura',
+    ref: "Asignatura",
     required: false,
   },
   profesorId: {
     type: Schema.Types.ObjectId,
-    ref: 'Asignatura',
+    ref: "Profesore",
     required: false,
   },
+  comision: {
+    type: Schema.Types.ObjectId,
+    ref: "Comisione",
+    required: true,
+  },
   planillaTallerId: { type: Number, required: false }, // solo par a migrar
-  curso: { type: Number, required: true },
-  division: { type: Number, required: true },
-  comision: { type: String, required: true }, // req false solo para migrar
-  cicloLectivo: { type: Number, required: true },
-  fechaInicio: { type: String, required: true }, // req false solo para migrar
-  fechaFinalizacion: { type: String, required: true }, // req false solo para migrar
+  // curso: { type: Number, required: true },
+  // division: { type: Number, required: true },
+  // comision: { type: String, required: true }, // req false solo para migrar
+  // cicloLectivo: { type: Number, required: true },
+  fechaInicio: { type: Date, required: false }, // req false solo para migrar
+  fechaFinalizacion: { type: Date, required: false }, // req false solo para migrar
   observacion: { type: String },
   bimestre: { type: String, required: true },
 
@@ -34,13 +39,13 @@ export const planillaTallerSchema = new mongoose.Schema({
 // Modelo
 planillaTallerSchema.plugin(mongoosePaginate);
 const planillaTallerModel = mongoose.model<IPlanillaTaller>(
-  'PlanillaTaller',
+  "PlanillaTallere",
   planillaTallerSchema
 );
 planillaTallerModel.paginate();
 // Hooks
 planillaTallerSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: 'planillaTallerNro',
+  inc_field: "planillaTallerNro",
   start_seq: 100,
 });
 // planillaTallerSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'PlanillaTaller', field: 'planillaTallerNro' });
@@ -52,7 +57,7 @@ planillaTallerSchema.plugin(AutoincrementService.getAutoIncrement(), {
 //   }
 //   next();
 // });
-planillaTallerSchema.pre('update', function (this: IPlanillaTaller, next: any) {
+planillaTallerSchema.pre("update", function (this: IPlanillaTaller, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

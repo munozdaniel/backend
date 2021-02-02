@@ -5,61 +5,30 @@ import {
   IsDateString,
   MaxLength,
   MinLength,
+  IsNumber,
+  Min,
 } from 'class-validator';
 
-class CrearAsignaturaDto {
-  @IsString({ message: 'El nombre completo no ha sido ingresado' })
-  @MinLength(7, {
-    message: 'El nombre completo  es muy corto',
+class CrearComisionDto {
+  @IsString({ message: 'La comision no ha sido ingresada' })
+  @MinLength(1, {
+    message: 'La comision es muy corto',
   })
-  @MaxLength(100, {
-    message: 'El nombre completo no puede superar los 100 caracteres',
+  @MaxLength(2, {
+    message: 'La comision no puede superar los 100 caracteres',
   })
-  nombreCompleto:string;
-  @IsOptional()
-  @IsString({message:'El telefono no fue ingresado'})
-  @MinLength(4, {
-    message: 'El telefono debe contener al menos 4 caracteres',
-  })
-  @MaxLength(100, {
-    message: 'El telefono debe contener 100 caracteres máximo',
-  })
-  @IsOptional()
-  public telefono: string;
-  @IsString()
-  @MinLength(4, {
-    message: 'El celular debe contener al menos 4 caracteres',
-  })
-  @MaxLength(100, {
-    message: 'El celular debe contener 100 caracteres máximo',
-  })
-  @IsOptional()
-  public celular: string;
-  @IsString()
-  @MinLength(4, {
-    message: 'El email debe contener al menos 4 caracteres',
-  })
-  @MaxLength(70, {
-    message: 'El email debe contener 70 caracteres máximo',
-  })
-  public email: string;
-  @IsString({ message: 'La formación no ha sido ingresado' })
-  @MinLength(7, {
-    message: 'La formación es muy corto',
-  })
-  @MaxLength(100, {
-    message: 'La formación no puede superar los 100 caracteres',
-  })
-  formacion:string;
-  @IsString({ message: 'El titulo no ha sido ingresado' })
-  @MinLength(7, {
-    message: 'El titulo es muy corto',
-  })
-  @MaxLength(100, {
-    message: 'El titulo no puede superar los 100 caracteres',
-  })
-  titulo:string;
+  comision: string;
+  @IsNumber()
+  @Min(0, { message: 'El ciclo lectivo tiene que ser mayor a 0' })
+  cicloLectivo: number;
+  @IsNumber()
+  @Min(0, { message: 'El curso tiene que ser mayor a 0' })
 
+  curso: number;
+  @IsNumber()
+  @Min(0, { message: 'La division tiene que ser mayor a 0' })
+
+  division: number;
 
   @IsOptional()
   @IsDateString()
@@ -72,4 +41,4 @@ class CrearAsignaturaDto {
   activo: boolean;
 }
 
-export default CrearAsignaturaDto;
+export default CrearComisionDto;

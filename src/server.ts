@@ -1,15 +1,15 @@
-import 'dotenv/config';
-import App from './app';
+import "dotenv/config";
+import App from "./app";
 // import AuthenticationController from './authentication/authentication.controller';
 
-import validateEnv from './utils/validateEnv';
-import UsuarioController from './usuario/usuario.controller';
-import AlumnoController from './alumnos/alumno.controller';
-import AsignaturaController from './asignaturas/asignatura.controller';
-import ProfesorController from './profesores/profesor.controller';
-import ComisionController from './comisiones/comision.controller';
-import PlanillaTallerController from './planillaTaller/planillaTaller.controller';
-import SeguimientoAlumnoController from './seguimientoAlumnos/seguimientoAlumno.controller';
+import validateEnv from "./utils/validateEnv";
+import UsuarioController from "./usuario/usuario.controller";
+import AlumnoController from "./alumnos/alumno.controller";
+import AsignaturaController from "./asignaturas/asignatura.controller";
+import ProfesorController from "./profesores/profesor.controller";
+import ComisionController from "./comisiones/comision.controller";
+import PlanillaTallerController from "./planillaTaller/planillaTaller.controller";
+import SeguimientoAlumnoController from "./seguimientoAlumnos/seguimientoAlumno.controller";
 
 validateEnv();
 
@@ -24,7 +24,7 @@ const app = new App([
   new ComisionController(),
   new ProfesorController(),
   new PlanillaTallerController(),
-  new SeguimientoAlumnoController()
+  new SeguimientoAlumnoController(),
 ]);
 
 app.listen();
