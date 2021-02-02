@@ -10,6 +10,7 @@ import ProfesorController from "./profesores/profesor.controller";
 import ComisionController from "./comisiones/comision.controller";
 import PlanillaTallerController from "./planillaTaller/planillaTaller.controller";
 import SeguimientoAlumnoController from "./seguimientoAlumnos/seguimientoAlumno.controller";
+import TemaController from "./temas/tema.controller";
 
 validateEnv();
 
@@ -25,6 +26,7 @@ const app = new App([
   new ProfesorController(),
   new PlanillaTallerController(),
   new SeguimientoAlumnoController(),
+  new TemaController(),
 ]);
 
 app.listen();

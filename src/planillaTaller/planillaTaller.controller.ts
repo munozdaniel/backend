@@ -103,7 +103,10 @@ class PlanillaTallerController implements Controller {
               }
             } else {
               // registros que no van a ser guardados
-              console.log("Estas son las comisiones que no estan bien cargadas y que no puedo encontrar", x);
+              console.log(
+                "Estas son las comisiones que no estan bien cargadas y que no puedo encontrar",
+                x
+              );
 
               return null;
             }
@@ -113,6 +116,7 @@ class PlanillaTallerController implements Controller {
 
           // console.log('unaComision', unaComision);
           const unaPlanillaTaller: IPlanillaTaller & any = {
+            planillaTallerNro: 100 + index,
             planillaTallerId: x.id_planilla_de_taller,
             asignaturaId: asig,
             profesorId: prof,

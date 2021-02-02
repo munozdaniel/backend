@@ -1,3 +1,4 @@
+import IAsignatura from "../asignaturas/asignatura.interface";
 import {
   IsString,
   IsOptional,
@@ -5,60 +6,38 @@ import {
   IsDateString,
   MaxLength,
   MinLength,
-} from 'class-validator';
+  ValidateNested,
+} from "class-validator";
+import IComision from "../comisiones/comision.interface";
+import IProfesor from "../profesores/profesor.interface";
 
 class CrearPlanillaTallerDto {
-  @IsString({ message: 'El nombre completo no ha sido ingresado' })
+  @ValidateNested()
+  asignaturaId: IAsignatura;
+  @ValidateNested()
+  profesorId: IProfesor;
+  @ValidateNested()
+  comision: IComision;
+  @IsDateString()
+  fechaInicio: Date;
+  @IsDateString()
+  fechaFinalizacion: Date;
+  @IsString({ message: "La observación no ha sido ingresado" })
   @MinLength(7, {
-    message: 'El nombre completo  es muy corto',
+    message: "La observación es muy corto",
   })
   @MaxLength(100, {
-    message: 'El nombre completo no puede superar los 100 caracteres',
+    message: "La observación no puede superar los 100 caracteres",
   })
-  nombreCompleto:string;
-  @IsOptional()
-  @IsString({message:'El telefono no fue ingresado'})
+  observacion: string;
+  @IsString({ message: "El bimestre no ha sido ingresado" })
   @MinLength(4, {
-    message: 'El telefono debe contener al menos 4 caracteres',
+    message: "El bimestre es muy corto",
   })
   @MaxLength(100, {
-    message: 'El telefono debe contener 100 caracteres máximo',
+    message: "El bimestre no puede superar los 100 caracteres",
   })
-  @IsOptional()
-  public telefono: string;
-  @IsString()
-  @MinLength(4, {
-    message: 'El celular debe contener al menos 4 caracteres',
-  })
-  @MaxLength(100, {
-    message: 'El celular debe contener 100 caracteres máximo',
-  })
-  @IsOptional()
-  public celular: string;
-  @IsString()
-  @MinLength(4, {
-    message: 'El email debe contener al menos 4 caracteres',
-  })
-  @MaxLength(70, {
-    message: 'El email debe contener 70 caracteres máximo',
-  })
-  public email: string;
-  @IsString({ message: 'La formación no ha sido ingresado' })
-  @MinLength(7, {
-    message: 'La formación es muy corto',
-  })
-  @MaxLength(100, {
-    message: 'La formación no puede superar los 100 caracteres',
-  })
-  formacion:string;
-  @IsString({ message: 'El titulo no ha sido ingresado' })
-  @MinLength(7, {
-    message: 'El titulo es muy corto',
-  })
-  @MaxLength(100, {
-    message: 'El titulo no puede superar los 100 caracteres',
-  })
-  titulo:string;
+  bimestre: string;
 
 
   @IsOptional()

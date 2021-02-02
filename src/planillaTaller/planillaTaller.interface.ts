@@ -4,6 +4,7 @@ import * as mongoose from "mongoose";
 import IProfesor from "../profesores/profesor.interface";
 interface IPlanillaTaller extends mongoose.Document {
   _id: string;
+  planillaTallerNro:number;
   planillaTallerId: number; // para migrar
   asignaturaId: IAsignatura;
   profesorId: IProfesor;
