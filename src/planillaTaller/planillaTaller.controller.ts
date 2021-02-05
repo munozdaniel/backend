@@ -66,16 +66,27 @@ class PlanillaTallerController implements Controller {
         campo = parametros.sortField;
         break;
     }
+    // SORT ---------------
     const sort = parametros.sortField
       ? { [campo]: parametros.sortOrder }
       : null;
-    console.log("====>m ", sort);
-    const aggregate = this.planillaTaller.aggregate([
+    // OPCIONES ---------------
+    const opciones: any = [
       {
         $lookup: {
           from: "comisiones", //otherCollection
           localField: "comision",
           foreignField: "_id",
+          // let: { curso: "$curso", com: "$comision", div: "$division" },
+          // pipeline: [
+          //   {
+          //     $addFields: {
+          //       comisionCompleta: {
+          //         $concat: ["0", "$$curso", "/", "$$com", "/", "0", "$$div"],
+          //       },
+          //     },
+          //   },
+          // ],
           as: "comision",
         },
       },
@@ -98,7 +109,92 @@ class PlanillaTallerController implements Controller {
         },
       },
       { $unwind: "$asignatura" }, // desestructura cada asignatura en un registro
-    ]);
+      {
+        $addFields: {
+          fechaInicioString: {
+            $dateToString: { format: "%d/%m/%Y", date: "$fechaInicio" },
+          },
+        },
+      },
+    ];
+    // FILTER AGGREGATE ---------------
+    let match: any = [];
+    let project: any = [];
+
+    if (parametros.filter !== "") {
+      match.push({
+        "asignatura.detalle": { $regex: parametros.filter, $options: "i" },
+      });
+      match.push({
+        "profesor.nombreCompleto": { $regex: parametros.filter, $options: "i" },
+      });
+      match.push({ bimestre: { $regex: parametros.filter, $options: "i" } });
+      //  match.push({
+      //     "comision.cicloLectivo": {
+      //       $eq: Number(parametros.filter),
+      //     },
+      //   });
+      // match.push({
+      //   // $regexFindAll: {
+      //   //   input: { $toString: "$comision.cicloLectivo" },
+      //   //   regex: parametros.filter,
+      //   // },
+      //   // {
+      //   "comision.cicloLectivo": {
+      //     // input: { $toString: "$comision.cicloLectivo" },
+      //     $regex: Number(parametros.filter),
+      //     // $options: "m",
+      //   },
+      // });
+      match.push({
+        comisionCompleta: {
+          $regex: parametros.filter,
+          $options: "i",
+        },
+      });
+
+      match.push({ observacion: { $regex: parametros.filter, $options: "i" } });
+
+      match.push({
+        fechaInicioString: {
+          // input: { $toString: "$comision.cicloLectivo" },
+          $regex: parametros.filter,
+          $options: "g",
+        },
+      });
+
+      // Tiene su propio campo
+      match.push({
+        cicloLectivo: {
+          // input: { $toString: "$comision.cicloLectivo" },
+          $regex: parametros.filter,
+          $options: "g",
+        },
+      });
+      console.log("match", match);
+      opciones.push({
+        $addFields: {
+          // fechaInicioString: {
+          //   $dateToString: { format: "%d/%m/%Y", date: "$fechaInicio" },
+          // },
+          cicloLectivo: { $toString: "$comision.cicloLectivo" }, // Se crea este campo para realizar los filtros por strign
+          comisionCompleta: {
+            $concat: [
+              "0",
+              { $toString: "$comision.curso" },
+              " / ",
+              { $toString: "$comision.comision" },
+              " / ",
+              "0",
+              { $toString: "$comision.division" },
+            ],
+          },
+        },
+      });
+      opciones.push({ $match: { $or: match } });
+    }
+    console.log("opciones", opciones);
+    const aggregate = this.planillaTaller.aggregate(opciones);
     this.planillaTaller.aggregatePaginate(
       aggregate,
       {
