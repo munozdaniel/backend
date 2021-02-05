@@ -1,7 +1,6 @@
 import * as mongoose from 'mongoose';
 import IAsignaturaOriginal from './asignaturaOriginal.interface';
-import mongoosePaginate from 'mongoose-paginate';
-
+ 
 export const asignaturaOriginalSchema = new mongoose.Schema({
   // _id: { type: String },
   IdAsignarutas: { type: Number },

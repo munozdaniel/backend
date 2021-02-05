@@ -14,6 +14,7 @@ import asignaturaModel from "../asignaturas/asignatura.model";
 import profesorModel from "../profesores/profesor.model";
 import comisionModel from "../comisiones/comision.model";
 import CrearComisionDto from "../comisiones/comision.dto";
+import { IQueryPaginator } from "../utils/interfaces/iQueryPaginator";
 class PlanillaTallerController implements Controller {
   public path = "/planilla-taller";
   public router = Router();
@@ -32,6 +33,7 @@ class PlanillaTallerController implements Controller {
     console.log("PlanillaTallerController/initializeRoutes");
     this.router.get(`${this.path}/migrar`, this.migrarPlanillaTalleres);
     this.router.get(`${this.path}/test`, this.test);
+    this.router.get(`${this.path}/paginar`, this.paginar);
   }
   private test = async (
     request: Request,
@@ -41,6 +43,85 @@ class PlanillaTallerController implements Controller {
     response.send({
       test: "savedPlanillaTallers",
     });
+  };
+  private paginar = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    const parametros: IQueryPaginator = request.query;
+    console.log("parametros, ", parametros);
+    let campo = null;
+    switch (parametros.sortField) {
+      case "cicloLectivo":
+        campo = "comision.cicloLectivo";
+        break;
+      case "asignatura":
+        campo = "asignatura.detalle";
+        break;
+      case "profesor":
+        campo = "profesor.nombreCompleto";
+        break;
+      default:
+        campo = parametros.sortField;
+        break;
+    }
+    const sort = parametros.sortField
+      ? { [campo]: parametros.sortOrder }
+      : null;
+    console.log("====>m ", sort);
+    const aggregate = this.planillaTaller.aggregate([
+      {
+        $lookup: {
+          from: "comisiones", //otherCollection
+          localField: "comision",
+          foreignField: "_id",
+          as: "comision",
+        },
+      },
+      { $unwind: "$comision" },
+      {
+        $lookup: {
+          from: "profesores", //otherCollection
+          localField: "profesor",
+          foreignField: "_id",
+          as: "profesor",
+        },
+      },
+      { $unwind: "$profesor" },
+      {
+        $lookup: {
+          from: "asignaturas", //otherCollection
+          localField: "asignatura",
+          foreignField: "_id",
+          as: "asignatura", // nombre resultante de la union (uso el mismo)
+        },
+      },
+      { $unwind: "$asignatura" }, // desestructura cada asignatura en un registro
+    ]);
+    this.planillaTaller.aggregatePaginate(
+      aggregate,
+      {
+        // populate: ["asignatura", "profesor", "comision"],
+        page: Number(parametros.pageNumber),
+        limit: Number(parametros.pageSize),
+        sort, // sort: {
+        //   planillaTallerId: parametros.sortOrder === "asc" ? 1 : -1,
+        // },
+      },
+      (err: any, result: any) => {
+        if (err) {
+          console.log("[ERROR]", err);
+        }
+        console.log("result", result);
+        // result.docs
+        // result.total
+        // result.limit - 10
+        // result.page - 3
+        // result.pages
+        response.send(result);
+      }
+    );
   };
   private migrarPlanillaTalleres = async (
     request: Request,
@@ -118,8 +199,8 @@ class PlanillaTallerController implements Controller {
           const unaPlanillaTaller: IPlanillaTaller & any = {
             planillaTallerNro: 100 + index,
             planillaTallerId: x.id_planilla_de_taller,
-            asignaturaId: asig,
-            profesorId: prof,
+            asignatura: asig,
+            profesor: prof,
             comision: unaComision,
 
             // curso: x.Tcurso,

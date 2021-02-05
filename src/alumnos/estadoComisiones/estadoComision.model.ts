@@ -1,21 +1,21 @@
-import * as mongoose from 'mongoose';
-import IEstadoComision from './estadoComision.interface';
-import mongoosePaginate from 'mongoose-paginate';
-import AutoincrementService from '../../services/AutoincrementService';
+import * as mongoose from "mongoose";
+import IEstadoComision from "./estadoComision.interface";
+import mongoosePaginate from "mongoose-paginate-v2";
+import AutoincrementService from "../../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const estadoComisionSchema = new mongoose.Schema({
   estadoComisionNro: { type: Number, default: 100, required: true },
   comision: {
     type: Schema.Types.ObjectId,
-    ref: 'Comision',
+    ref: "Comision",
     required: true,
   },
   condicion: {
     type: String,
     required: true,
     uppercase: true,
-    default: 'SIN REGISTRAR',
+    default: "SIN REGISTRAR",
   },
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
@@ -24,14 +24,15 @@ export const estadoComisionSchema = new mongoose.Schema({
 
 // Modelo
 estadoComisionSchema.plugin(mongoosePaginate);
-const estadoComisionModel = mongoose.model<IEstadoComision>(
-  'EstadoComisione',
+// <IEstadoComision>
+const estadoComisionModel = mongoose.model(
+  "EstadoComisione",
   estadoComisionSchema
 );
-estadoComisionModel.paginate();
+// estadoComisionModel.paginate();
 // Hooks
 estadoComisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: 'estadoComisionNro',
+  inc_field: "estadoComisionNro",
   start_seq: 100,
 });
 
@@ -42,7 +43,7 @@ estadoComisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
 //   }
 //   next();
 // });
-estadoComisionSchema.pre('update', function (this: IEstadoComision, next: any) {
+estadoComisionSchema.pre("update", function (this: IEstadoComision, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

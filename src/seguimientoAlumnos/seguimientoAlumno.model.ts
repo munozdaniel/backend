@@ -1,19 +1,19 @@
-import * as mongoose from 'mongoose';
-import ISeguimientoAlumno from './seguimientoAlumno.interface';
-import mongoosePaginate from 'mongoose-paginate';
+import * as mongoose from "mongoose";
+import ISeguimientoAlumno from "./seguimientoAlumno.interface";
+import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from '../services/AutoincrementService';
+import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 export const seguimientoAlumnoSchema = new mongoose.Schema({
   seguimientoAlumnoNro: { type: Number },
   alumno: {
     type: Schema.Types.ObjectId,
-    ref: 'Alumno',
+    ref: "Alumno",
     required: false,
   },
   planillaTaller: {
     type: Schema.Types.ObjectId,
-    ref: 'PlanillaTallere',
+    ref: "PlanillaTallere",
     required: false,
   },
   fecha: { type: String },
@@ -31,14 +31,15 @@ export const seguimientoAlumnoSchema = new mongoose.Schema({
 
 // Modelo
 seguimientoAlumnoSchema.plugin(mongoosePaginate);
-const seguimientoAlumnoModel = mongoose.model<ISeguimientoAlumno>(
-  'SeguimientoAlumno',
+// <ISeguimientoAlumno>
+const seguimientoAlumnoModel = mongoose.model(
+  "SeguimientoAlumno",
   seguimientoAlumnoSchema
 );
-seguimientoAlumnoModel.paginate();
+// seguimientoAlumnoModel.paginate();
 // Hooks
 seguimientoAlumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: 'seguimientoAlumnoNro',
+  inc_field: "seguimientoAlumnoNro",
   start_seq: 100,
 }),
   // seguimientoAlumnoSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'SeguimientoAlumno', field: 'seguimientoAlumnoNro' }),
@@ -51,7 +52,7 @@ seguimientoAlumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
   //   next(),
   // }),
   seguimientoAlumnoSchema.pre(
-    'update',
+    "update",
     function (this: ISeguimientoAlumno, next: any) {
       const now = new Date();
       this.fechaModificacion = now;

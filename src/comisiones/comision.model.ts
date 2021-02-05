@@ -1,8 +1,8 @@
-import * as mongoose from 'mongoose';
-import IAsignatura from './comision.interface';
-import mongoosePaginate from 'mongoose-paginate';
+import * as mongoose from "mongoose";
+import IAsignatura from "./comision.interface";
+import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from '../services/AutoincrementService';
+import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const comisionSchema = new mongoose.Schema({
@@ -13,7 +13,7 @@ export const comisionSchema = new mongoose.Schema({
     type: String,
     required: true,
     uppercase: true,
-    default: 'SIN REGISTRAR',
+    default: "SIN REGISTRAR",
   },
   // alumnoId: { type: String, required: true },
   // alumno: [
@@ -40,11 +40,11 @@ export const comisionSchema = new mongoose.Schema({
 
 // Modelo
 comisionSchema.plugin(mongoosePaginate);
-const comisionModel = mongoose.model<IAsignatura>('Comisione', comisionSchema);
-comisionModel.paginate();
+const comisionModel = mongoose.model("Comisione", comisionSchema);
+// comisionModel.paginate();
 // Hooks
 comisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: 'comisionNro',
+  inc_field: "comisionNro",
   start_seq: 100,
 });
 // comisionSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Asignatura', field: 'comisionNro' });
@@ -56,7 +56,7 @@ comisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
 //   }
 //   next();
 // });
-comisionSchema.pre('update', function (this: IAsignatura, next: any) {
+comisionSchema.pre("update", function (this: IAsignatura, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

@@ -1,15 +1,15 @@
-import * as mongoose from 'mongoose';
-import IAlumno from './alumno.interface';
-import mongoosePaginate from 'mongoose-paginate';
-import { adultoSchema } from '../adulto/adulto.model';
-import AutoincrementService from '../services/AutoincrementService';
-import { estadoComisionSchema } from './estadoComisiones/estadoComision.model';
+import * as mongoose from "mongoose";
+import IAlumno from "./alumno.interface";
+import { adultoSchema } from "../adulto/adulto.model";
+import AutoincrementService from "../services/AutoincrementService";
+import { estadoComisionSchema } from "./estadoComisiones/estadoComision.model";
 // const Schema = mongoose.Schema;
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 export const alumnoSchema = new mongoose.Schema({
   alumnoNro: { type: Number, default: 100, required: true },
   adultos: [adultoSchema],
-  estadoComisiones:[estadoComisionSchema],
+  estadoComisiones: [estadoComisionSchema],
   // comisiones:[comisionSchema],
   // comisiones: [
   //   {
@@ -20,10 +20,10 @@ export const alumnoSchema = new mongoose.Schema({
   // ],
   alumnoId: { type: Number, required: false },
   dni: { type: String, required: false }, // Para migrar sin required
-  tipoDni: { type: String, default: 'DNI', uppercase: true },
+  tipoDni: { type: String, default: "DNI", uppercase: true },
   nombreCompleto: { type: String, required: true },
   fechaNacimiento: { type: String, required: false }, // Para migrar sin required
-  sexo: { type: String, default: 'MASCULINO', uppercase: true },
+  sexo: { type: String, default: "MASCULINO", uppercase: true },
   nacionalidad: { type: String, required: true },
   telefono: { type: String },
   celular: { type: String },
@@ -51,11 +51,12 @@ export const alumnoSchema = new mongoose.Schema({
 
 // Modelo
 alumnoSchema.plugin(mongoosePaginate);
-const alumnoModel = mongoose.model<IAlumno>('Alumno', alumnoSchema);
-alumnoModel.paginate();
+const alumnoModel = mongoose.model("Alumno", alumnoSchema);
+//  alumnoModel.paginate();
+
 // Hooks
 alumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: 'alumnoNro',
+  inc_field: "alumnoNro",
   start_seq: 100,
 });
 
@@ -66,7 +67,7 @@ alumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
 //   }
 //   next();
 // });
-alumnoSchema.pre('update', function (this: IAlumno, next: any) {
+alumnoSchema.pre("update", function (this: IAlumno, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

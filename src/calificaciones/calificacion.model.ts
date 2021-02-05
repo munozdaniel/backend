@@ -1,6 +1,6 @@
 import * as mongoose from "mongoose";
 import ICalificacion from "./calificacion.interface";
-import mongoosePaginate from "mongoose-paginate";
+import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
@@ -35,11 +35,12 @@ export const calificacionSchema = new mongoose.Schema({
 
 // Modelo
 calificacionSchema.plugin(mongoosePaginate);
-const calificacionModel = mongoose.model<ICalificacion>(
+// <ICalificacion>
+const calificacionModel = mongoose.model(
   "Calificacione",
   calificacionSchema
 );
-calificacionModel.paginate();
+// calificacionModel.paginate();
 // Hooks
 calificacionSchema.plugin(AutoincrementService.getAutoIncrement(), {
   inc_field: "calificacionNro",

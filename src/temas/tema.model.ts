@@ -1,6 +1,6 @@
 import * as mongoose from "mongoose";
 import ITema from "./tema.interface";
-import mongoosePaginate from "mongoose-paginate";
+import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
@@ -12,13 +12,13 @@ export const temaSchema = new mongoose.Schema({
     required: true,
   },
   fecha: { type: Date },
-  temaDelDia: { type: String},
-  tipoDesarrollo: { type: String},
-  temasProximaClase: { type: String},
-  nroClase: { type: Number},
-  unidad: { type: Number},
-  caracterClase: { type: String},
-  observacionJefe: { type: String},
+  temaDelDia: { type: String },
+  tipoDesarrollo: { type: String },
+  temasProximaClase: { type: String },
+  nroClase: { type: Number },
+  unidad: { type: Number },
+  caracterClase: { type: String },
+  observacionJefe: { type: String },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
@@ -27,11 +27,9 @@ export const temaSchema = new mongoose.Schema({
 
 // Modelo
 temaSchema.plugin(mongoosePaginate);
-const temaModel = mongoose.model<ITema>(
-  "Tema",
-  temaSchema
-);
-temaModel.paginate();
+// <ITema>
+const temaModel = mongoose.model("Tema", temaSchema);
+// temaModel.paginate();
 // Hooks
 temaSchema.plugin(AutoincrementService.getAutoIncrement(), {
   inc_field: "temaNro",

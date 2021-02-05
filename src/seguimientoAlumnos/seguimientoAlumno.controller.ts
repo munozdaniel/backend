@@ -26,7 +26,34 @@ class SeguimientoAlumnoController implements Controller {
   private initializeRoutes() {
     console.log("SeguimientoAlumnoController/initializeRoutes");
     this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.post(`${this.path}/resueltos`, this.resueltos);
   }
+  private resueltos = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { resuelto } = request.body;
+      let filtro = null;
+      if (typeof resuelto === "boolean") {
+        filtro = { resuelto };
+      }
+      const seguimientos = await this.seguimientoAlumno
+        .find(filtro)
+        .sort("_id")
+        .populate("alumno");
+
+      if (seguimientos) {
+        response.send(seguimientos);
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (error) {
+      console.log("[ERROR]", error);
+      next(new HttpException(400, "Parametros Incorrectos"));
+    }
+  };
   private migrar = async (
     request: Request,
     response: Response,
@@ -34,7 +61,6 @@ class SeguimientoAlumnoController implements Controller {
   ) => {
     try {
       const seguimientosOriginales: any = await this.seguimientoAlumnoOriginal.find();
-      console.log("seguimientosOriginales>", seguimientosOriginales);
 
       const seguimientoRefactorizados: ISeguimientoAlumno[] = await Promise.all(
         seguimientosOriginales.map(async (x: any, index: number) => {

@@ -1,7 +1,6 @@
 import * as mongoose from 'mongoose';
 import IAlumnoOriginal from './alumnoOriginal.interface';
-import mongoosePaginate from 'mongoose-paginate';
-
+ 
 export const alumnoOriginalSchema = new mongoose.Schema({
   _id:{ type:String},
   id_alumno:{ type:Number},

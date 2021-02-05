@@ -1,8 +1,8 @@
-import * as mongoose from 'mongoose';
-import IAsignatura from './asignatura.interface';
-import mongoosePaginate from 'mongoose-paginate';
+import * as mongoose from "mongoose";
+import IAsignatura from "./asignatura.interface";
+import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from '../services/AutoincrementService';
+import AutoincrementService from "../services/AutoincrementService";
 
 export const asignaturaSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
@@ -24,14 +24,15 @@ export const asignaturaSchema = new mongoose.Schema({
 
 // Modelo
 asignaturaSchema.plugin(mongoosePaginate);
-const asignaturaModel = mongoose.model<IAsignatura>(
-  'Asignatura',
+// <IAsignatura>
+const asignaturaModel = mongoose.model(
+  "Asignatura",
   asignaturaSchema
 );
-asignaturaModel.paginate();
+// asignaturaModel.paginate();
 // Hooks
 asignaturaSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: 'asignaturaNro',
+  inc_field: "asignaturaNro",
   start_seq: 100,
 });
 // asignaturaSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Asignatura', field: 'asignaturaNro' });
@@ -43,7 +44,7 @@ asignaturaSchema.plugin(AutoincrementService.getAutoIncrement(), {
 //   }
 //   next();
 // });
-asignaturaSchema.pre('update', function (this: IAsignatura, next: any) {
+asignaturaSchema.pre("update", function (this: IAsignatura, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

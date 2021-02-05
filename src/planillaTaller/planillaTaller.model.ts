@@ -1,18 +1,20 @@
 import * as mongoose from "mongoose";
 import IPlanillaTaller from "./planillaTaller.interface";
-import mongoosePaginate from "mongoose-paginate";
+// import mongoosePaginate from "mongoose-paginate-v2";
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
+
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const planillaTallerSchema = new mongoose.Schema({
   planillaTallerNro: { type: Number },
-  asignaturaId: {
+  asignatura: {
     type: Schema.Types.ObjectId,
     ref: "Asignatura",
     required: false,
   },
-  profesorId: {
+  profesor: {
     type: Schema.Types.ObjectId,
     ref: "Profesore",
     required: false,
@@ -38,12 +40,14 @@ export const planillaTallerSchema = new mongoose.Schema({
 });
 
 // Modelo
-planillaTallerSchema.plugin(mongoosePaginate);
-const planillaTallerModel = mongoose.model<IPlanillaTaller>(
+// planillaTallerSchema.plugin(mongoosePaginate);
+planillaTallerSchema.plugin(aggregatePaginate);
+// <IPlanillaTaller>
+const planillaTallerModel = mongoose.model(
   "PlanillaTallere",
   planillaTallerSchema
 );
-planillaTallerModel.paginate();
+// planillaTallerModel.paginate();
 // Hooks
 planillaTallerSchema.plugin(AutoincrementService.getAutoIncrement(), {
   inc_field: "planillaTallerNro",
