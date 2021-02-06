@@ -29,9 +29,10 @@ class ComisionController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrarComisiones);
     // this.router.get(`${this.path}/migraralumnos`, this.migrarAlumnos);
     this.router.post(
-      `${this.path}/ficha-alumnos`,
-      this.buscarComisionesPorCicloLectivo
+      `${this.path}/parametros`,
+      this.buscarComisionesPorCicloLectivo // se usa en parametros y ficha-alumnos
     );
+
     this.router.get(`${this.path}/originales`, this.verComisionesOriginales);
     this.router.get(`${this.path}`, this.getAllComisions);
     this.router.get(
@@ -61,22 +62,35 @@ class ComisionController implements Controller {
         this.createComision
       );
   }
+
   private buscarComisionesPorCicloLectivo = async (
     request: Request,
     response: Response,
     next: NextFunction
   ) => {
     try {
-      const { cicloLectivo, division, curso } = request.body;
-      const comisiones = await this.comision
-        .find({ cicloLectivo, division, curso })
-        .sort("_id")
-        .populate("alumno"); //.populate('author', '-password') populate con imagen
-
-      if (comisiones) {
-        response.send(comisiones);
+      console.log("request.body", request.body);
+      const comision: IComision = request.body.comision;
+      const unaComision = await this.comision.findOne({
+        cicloLectivo: comision.cicloLectivo,
+        comision: comision.comision,
+        division: Number(comision.division),
+        curso: Number(comision.curso),
+        activo: comision.activo,
+      });
+      // .populate(" alumno"); //.populate('author', '-password') populate con imagen
+      console.log("comisiones", unaComision);
+      if (unaComision) {
+        response.send(unaComision);
       } else {
-        next(new NotFoundException());
+        comision.fechaCreacion = new Date();
+        const comisionData: CreateComisionDto = comision as any;
+        const createdComision = new this.comision({
+          ...comisionData,
+        });
+        const savedComision = await createdComision.save();
+        // await savedComision.populate('author', '-password').execPopulate();
+        response.send(savedComision);
       }
     } catch (e) {
       console.log("[ERROR]", e);

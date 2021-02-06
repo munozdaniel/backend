@@ -15,6 +15,7 @@ import profesorModel from "../profesores/profesor.model";
 import comisionModel from "../comisiones/comision.model";
 import CrearComisionDto from "../comisiones/comision.dto";
 import { IQueryPaginator } from "../utils/interfaces/iQueryPaginator";
+import CrearPlanillaTallerDto from "./planillaTaller.dto";
 class PlanillaTallerController implements Controller {
   public path = "/planilla-taller";
   public router = Router();
@@ -34,6 +35,7 @@ class PlanillaTallerController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrarPlanillaTalleres);
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/paginar`, this.paginar);
+    this.router.put(`${this.path}`, this.agregar);
   }
   private test = async (
     request: Request,
@@ -43,6 +45,27 @@ class PlanillaTallerController implements Controller {
     response.send({
       test: "savedPlanillaTallers",
     });
+  };
+  private agregar = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    // Agregar datos
+    console.log("request.body", request.body);
+    const planillaData: CrearPlanillaTallerDto = request.body;
+    const createdPlanilla = new this.planillaTaller({
+      ...planillaData,
+      // author: request.user ? request.user._id : null,
+    });
+    try {
+      const savedComision = await createdPlanilla.save();
+      // await savedComision.populate('author', '-password').execPopulate();
+      response.send(savedComision);
+    } catch (e) {
+      console.log("[ERROR]", e);
+      next(new HttpException(400, "Parametros Incorrectos"));
+    }
   };
   private paginar = async (
     request: Request,
