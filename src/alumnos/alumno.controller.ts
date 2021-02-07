@@ -1,3 +1,4 @@
+import * as mongoose from "mongoose";
 import HttpException from "../exceptions/HttpException";
 import { Request, Response, NextFunction, Router } from "express";
 import NotFoundException from "../exceptions/NotFoundException";
@@ -12,6 +13,7 @@ import IAlumno from "./alumno.interface";
 import alumnoOriginalModel from "./alumnoOriginal.model";
 import comisionModel from "../comisiones/comision.model";
 import comisionesOriginalModel from "../comisiones/comisionOriginal.model";
+const ObjectId = require("mongoose").Types.ObjectId;
 class AlumnoController implements Controller {
   public path = "/alumnos";
   public router = Router();
@@ -58,35 +60,64 @@ class AlumnoController implements Controller {
     console.log("getFichaAlumnos");
 
     try {
-      const { cicloLectivo, division, curso } = request.body;
+      let { cicloLectivo, division, curso } = request.body;
       console.log(
         "cicloLectivo, division, curso",
         cicloLectivo,
         division,
         curso
       );
-      const alumnos = await this.alumno
-        // .find()
-        .find({ comisiones: { $elemMatch: { cicloLectivo, division, curso } } })
-        // .find({ 'comisiones.cicloLectivo': 2019 })
-        // .find( {
-        //   comisiones: { $all: [
-        //                  { "$elemMatch" : { cicloLectivo: 2020, division: { $gt: 0} } },
-        //                ] }
-        // })
-        // .find({ comisiones: { $in: [{ 'comisiones.cicloLectivo': 2020 }] } })
-        // .find({
-        // 'comisiones.cicloLectivo': cicloLectivo, //cicloLectivo,
-        // 'comisiones.division': division, //division,
-        // 'comisiones.curso': curso, //curso,
-        // })
-        // .sort({ _id: -1 })
-        // .populate({
-        //   path: 'comisiones',
-        //   model: 'Comisione',
-        //   select: 'cicloLectivo division curso',
-        // });
-        .populate("comisiones");
+      cicloLectivo = 2019;
+      division = 3;
+      curso = 1;
+      const opciones = [
+        // { $match: { _id: ObjectId("60175c184700d11d1c6f3192") } },
+        { $unwind: "$estadoComisiones" },
+        {
+          $lookup: {
+            from: "comisiones",
+            localField: "estadoComisiones.comision",
+            foreignField: "_id",
+            as: "eComisiones",
+          },
+        },
+        {
+          $unwind: {
+            path: "$eComisiones",
+            // preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $match: {
+            $and: [
+              { "eComisiones.cicloLectivo": 2019 },
+              { "eComisiones.curso": 1 },
+              { "eComisiones.division": 5 },
+            ],
+          },
+        },
+      ];
+      const alumnos = await this.alumno.aggregate(opciones);
+      // .find()
+      // .find({ 'comisiones.cicloLectivo': 2019 })
+      // .find( {
+      //   comisiones: { $all: [
+      //                  { "$elemMatch" : { cicloLectivo: 2020, division: { $gt: 0} } },
+      //                ] }
+      // })
+      // .find({ comisiones: { $in: [{ 'comisiones.cicloLectivo': 2020 }] } })
+      // .find({
+      //   "comisiones.cicloLectivo": cicloLectivo, //cicloLectivo,
+      //   "comisiones.division": division, //division,
+      //   "comisiones.curso": curso, //curso,
+      // })
+      // .sort({ _id: -1 })
+      // .populate({
+      //   path: 'comisiones',
+      //   model: 'Comisione',
+      //   select: 'cicloLectivo division curso',
+      // });
+      // .populate("estadoComisiones");
       console.log("alumnos", alumnos);
       if (alumnos) {
         response.send(alumnos);

@@ -25,10 +25,7 @@ export const asignaturaSchema = new mongoose.Schema({
 // Modelo
 asignaturaSchema.plugin(mongoosePaginate);
 // <IAsignatura>
-const asignaturaModel = mongoose.model(
-  "Asignatura",
-  asignaturaSchema
-);
+const asignaturaModel = mongoose.model("Asignatura", asignaturaSchema);
 // asignaturaModel.paginate();
 // Hooks
 asignaturaSchema.plugin(AutoincrementService.getAutoIncrement(), {

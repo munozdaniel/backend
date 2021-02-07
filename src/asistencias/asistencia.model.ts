@@ -30,10 +30,7 @@ export const asistenciaSchema = new mongoose.Schema({
 // Modelo
 asistenciaSchema.plugin(mongoosePaginate);
 // <IAsistencia>
-const asistenciaModel = mongoose.model(
-  "Asistencia",
-  asistenciaSchema
-);
+const asistenciaModel = mongoose.model("Asistencia", asistenciaSchema);
 // asistenciaModel.paginate();
 // Hooks
 asistenciaSchema.plugin(AutoincrementService.getAutoIncrement(), {

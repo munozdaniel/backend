@@ -60,6 +60,7 @@ class PlanillaTallerController implements Controller {
     });
     try {
       const savedComision = await createdPlanilla.save();
+      console.log("guardado", savedComision, savedComision.planillaTallerNro);
       // await savedComision.populate('author', '-password').execPopulate();
       response.send(savedComision);
     } catch (e) {

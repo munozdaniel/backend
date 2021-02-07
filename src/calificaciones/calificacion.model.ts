@@ -6,6 +6,7 @@ import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const calificacionSchema = new mongoose.Schema({
+  calificacionNro: Number,
   planillaTaller: {
     type: Schema.Types.ObjectId,
     ref: "PlanillaTallere",
@@ -36,10 +37,7 @@ export const calificacionSchema = new mongoose.Schema({
 // Modelo
 calificacionSchema.plugin(mongoosePaginate);
 // <ICalificacion>
-const calificacionModel = mongoose.model(
-  "Calificacione",
-  calificacionSchema
-);
+const calificacionModel = mongoose.model("Calificacione", calificacionSchema);
 // calificacionModel.paginate();
 // Hooks
 calificacionSchema.plugin(AutoincrementService.getAutoIncrement(), {

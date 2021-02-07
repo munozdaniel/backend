@@ -2,13 +2,14 @@ import * as mongoose from "mongoose";
 import IPlanillaTaller from "./planillaTaller.interface";
 // import mongoosePaginate from "mongoose-paginate-v2";
 import aggregatePaginate from "mongoose-aggregate-paginate-v2";
+import AutoincrementService from "../services/AutoincrementService";
 
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
+// const AutoIncrement = require("mongoose-sequence")(mongoose);
 
 export const planillaTallerSchema = new mongoose.Schema({
-  planillaTallerNro: { type: Number },
+  // planillaTallerNro: { type: Number },
   asignatura: {
     type: Schema.Types.ObjectId,
     ref: "Asignatura",

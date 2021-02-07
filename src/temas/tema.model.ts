@@ -6,6 +6,7 @@ import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const temaSchema = new mongoose.Schema({
+  temaNro: Number,
   planillaTaller: {
     type: Schema.Types.ObjectId,
     ref: "PlanillaTallere",
