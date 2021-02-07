@@ -15,6 +15,8 @@ export const comisionSchema = new mongoose.Schema({
     uppercase: true,
     default: "SIN REGISTRAR",
   },
+  test: {
+    type: String,},
   // alumnoId: { type: String, required: true },
   // alumno: [
   //   {

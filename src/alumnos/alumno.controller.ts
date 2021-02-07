@@ -13,6 +13,7 @@ import IAlumno from "./alumno.interface";
 import alumnoOriginalModel from "./alumnoOriginal.model";
 import comisionModel from "../comisiones/comision.model";
 import comisionesOriginalModel from "../comisiones/comisionOriginal.model";
+import estadoComisionModel from "./estadoComisiones/estadoComision.model";
 const ObjectId = require("mongoose").Types.ObjectId;
 class AlumnoController implements Controller {
   public path = "/alumnos";
@@ -20,6 +21,7 @@ class AlumnoController implements Controller {
   private alumno = alumnoModel;
   private alumnoOriginal = alumnoOriginalModel;
   private comision = comisionModel;
+  private estadoComision = estadoComisionModel;
   private comisionOriginal = comisionesOriginalModel;
 
   constructor() {
@@ -252,28 +254,38 @@ class AlumnoController implements Controller {
           // if (!dniMod) {
           //   console.log('dniMod', x);
           // }
-          let estadoComision: any = [];
+          let estadoComisiones: any = [];
           try {
             // busco la comision migrada
             // inserto esa comision y la condicion
             const comisionesOriginales = await this.comisionOriginal.find({
               id_alumnos: x.id_alumno,
             });
-            estadoComision = await Promise.all(
-              comisionesOriginales.map(async (x) => {
-                const unaComision = await this.comision.findOne({
+            estadoComisiones = await Promise.all(
+              comisionesOriginales.map(async (x, index2) => {
+                // Crear comision
+                const comisionData = {
+                  comisionNro: 100 + index2,
                   division: x.Division,
                   comision: x.comision,
                   curso: x.Tcurso,
                   cicloLectivo: x.ciclo_lectivo,
-                }); // Comision de la coleccion migrada; Deberia haber una  sola coincidencia
-                console.log("unaComision", unaComision);
-                return {
-                  estadoComisionNro: 100 + index,
+                  fechaCreacion: new Date(),
+                  activo: true,
+                };
+                const createdComision = new this.comision({
+                  ...comisionData,
+                  // author: request.user ? request.user._id : null,
+                });
+                const savedComision = await createdComision.save();
+
+                // crear estadocomision
+                const createdEstadoComision = new this.estadoComision({
+                  estadoComisionNro: 100 + index2,
                   comision: {
-                    ...unaComision,
-                    comision: unaComision.comision
-                      ? unaComision.comision
+                    ...savedComision,
+                    comision: savedComision.comision
+                      ? savedComision.comision
                       : "SIN REGISTRAR",
                   },
                   condicion: x.Condicion
@@ -282,14 +294,17 @@ class AlumnoController implements Controller {
 
                   fechaCreacion: new Date(),
                   activo: true,
-                };
+                });
+                const savedEstadoComision = await createdEstadoComision.save();
+
+                return savedEstadoComision;
               })
             );
           } catch (ero) {
             console.log("ero", ero);
           }
           const retorno: any = {
-            estadoComisiones: estadoComision,
+            estadoComisiones: estadoComisiones,
             alumnoId: x.id_alumno,
             alumnoNro: index + 100,
             adultos,

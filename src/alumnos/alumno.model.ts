@@ -2,22 +2,21 @@ import * as mongoose from "mongoose";
 import IAlumno from "./alumno.interface";
 import { adultoSchema } from "../adulto/adulto.model";
 import AutoincrementService from "../services/AutoincrementService";
-import { estadoComisionSchema } from "./estadoComisiones/estadoComision.model";
-// const Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 const mongoosePaginate = require("mongoose-paginate-v2");
 
 export const alumnoSchema = new mongoose.Schema({
-  alumnoNro: { type: Number, default: 100, required: true },
+  alumnoNro: { type: Number },
   adultos: [adultoSchema],
-  estadoComisiones: [estadoComisionSchema],
+  // estadoComisiones: [estadoComisionSchema],
   // comisiones:[comisionSchema],
-  // comisiones: [
-  //   {
-  //     type: Schema.Types.ObjectId,
-  //     ref: 'Comisione',
-  //     required: false,
-  //   },
-  // ],
+  estadoComisiones: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "EstadoComisione",
+      required: false,
+    },
+  ],
   alumnoId: { type: Number, required: false },
   dni: { type: String, required: false }, // Para migrar sin required
   tipoDni: { type: String, default: "DNI", uppercase: true },
@@ -56,8 +55,10 @@ const alumnoModel = mongoose.model("Alumno", alumnoSchema);
 
 // Hooks
 alumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: "alumnoNro",
   start_seq: 100,
+  id: "autoincrementar",
+  inc_field: "alumnoNro",
+  disable_hooks: true,
 });
 
 // alumnoSchema.pre('save', function (this: IAlumno, next: any) {
