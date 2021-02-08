@@ -1,19 +1,19 @@
-import * as mongoose from "mongoose";
-import ISeguimientoAlumno from "./seguimientoAlumno.interface";
-import mongoosePaginate from "mongoose-paginate-v2";
-// import AutoincrementFieldService from '../services/AutoincrementFieldService';
-// import AutoincrementService from "../services/AutoincrementService";
+import * as mongoose from 'mongoose';
+import ISeguimientoAlumno from './seguimientoAlumno.interface';
+import mongoosePaginate from 'mongoose-paginate-v2';
+import { autoIncrement } from 'mongoose-plugin-autoinc';
+
 const Schema = mongoose.Schema;
 export const seguimientoAlumnoSchema = new mongoose.Schema({
-  seguimientoAlumnoNro: { type: Number },
+  seguimientoAlumnoNro: { type: Number, unique: true, required: false },
   alumno: {
     type: Schema.Types.ObjectId,
-    ref: "Alumno",
+    ref: 'Alumno',
     required: false,
   },
   planillaTaller: {
     type: Schema.Types.ObjectId,
-    ref: "PlanillaTallere",
+    ref: 'PlanillaTallere',
     required: false,
   },
   fecha: { type: String },
@@ -32,31 +32,29 @@ export const seguimientoAlumnoSchema = new mongoose.Schema({
 // Modelo
 seguimientoAlumnoSchema.plugin(mongoosePaginate);
 // <ISeguimientoAlumno>
-const seguimientoAlumnoModel = mongoose.model(
-  "SeguimientoAlumno",
-  seguimientoAlumnoSchema
-);
+seguimientoAlumnoSchema.plugin(autoIncrement, {
+  model: 'SeguimientoAlumno',
+  field: 'seguimientoAlumnoNro',
+});
+const seguimientoAlumnoModel = mongoose.model('SeguimientoAlumno', seguimientoAlumnoSchema);
 // seguimientoAlumnoModel.paginate();
 // Hooks
 // seguimientoAlumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
 //   inc_field: "seguimientoAlumnoNro",
 //   start_seq: 100,
 // }),
-  // seguimientoAlumnoSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'SeguimientoAlumno', field: 'seguimientoAlumnoNro' }),
+// seguimientoAlumnoSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'SeguimientoAlumno', field: 'seguimientoAlumnoNro' }),
 
-  // seguimientoAlumnoSchema.pre('save', function (this: ISeguimientoAlumno, next: any) {
-  //   const now = new Date(),
-  //   if (!this.fechaCreacion) {
-  //     this.fechaCreacion = now,
-  //   }
-  //   next(),
-  // }),
-  seguimientoAlumnoSchema.pre(
-    "update",
-    function (this: ISeguimientoAlumno, next: any) {
-      const now = new Date();
-      this.fechaModificacion = now;
-      next();
-    }
-  );
+// seguimientoAlumnoSchema.pre('save', function (this: ISeguimientoAlumno, next: any) {
+//   const now = new Date(),
+//   if (!this.fechaCreacion) {
+//     this.fechaCreacion = now,
+//   }
+//   next(),
+// }),
+seguimientoAlumnoSchema.pre('update', function (this: ISeguimientoAlumno, next: any) {
+  const now = new Date();
+  this.fechaModificacion = now;
+  next();
+});
 export default seguimientoAlumnoModel;

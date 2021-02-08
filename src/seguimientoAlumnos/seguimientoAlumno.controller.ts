@@ -1,18 +1,18 @@
-import HttpException from "../exceptions/HttpException";
-import { Request, Response, NextFunction, Router } from "express";
-import NotFoundException from "../exceptions/NotFoundException";
-import Controller from "../interfaces/controller.interface";
-import validationMiddleware from "../middleware/validation.middleware";
-import CreateSeguimientoAlumnoDto from "./seguimientoAlumno.dto";
-import SeguimientoAlumno from "./seguimientoAlumno.interface";
-import seguimientoAlumnoModel from "./seguimientoAlumno.model";
-import escapeStringRegexp from "escape-string-regexp";
-import ISeguimientoAlumno from "./seguimientoAlumno.interface";
-import seguimientoAlumnoOriginalModel from "./seguimientoAlumnoOriginal.model";
-import planillaTallerModel from "../planillaTaller/planillaTaller.model";
-import alumnoModel from "../alumnos/alumno.model";
+import HttpException from '../exceptions/HttpException';
+import { Request, Response, NextFunction, Router } from 'express';
+import NotFoundException from '../exceptions/NotFoundException';
+import Controller from '../interfaces/controller.interface';
+import validationMiddleware from '../middleware/validation.middleware';
+import CreateSeguimientoAlumnoDto from './seguimientoAlumno.dto';
+import SeguimientoAlumno from './seguimientoAlumno.interface';
+import seguimientoAlumnoModel from './seguimientoAlumno.model';
+import escapeStringRegexp from 'escape-string-regexp';
+import ISeguimientoAlumno from './seguimientoAlumno.interface';
+import seguimientoAlumnoOriginalModel from './seguimientoAlumnoOriginal.model';
+import planillaTallerModel from '../planillaTaller/planillaTaller.model';
+import alumnoModel from '../alumnos/alumno.model';
 class SeguimientoAlumnoController implements Controller {
-  public path = "/seguimiento-alumnos";
+  public path = '/seguimiento-alumnos';
   public router = Router();
   private seguimientoAlumno = seguimientoAlumnoModel;
   private planillaTaller = planillaTallerModel;
@@ -24,25 +24,18 @@ class SeguimientoAlumnoController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log("SeguimientoAlumnoController/initializeRoutes");
+    console.log('SeguimientoAlumnoController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.post(`${this.path}/resueltos`, this.resueltos);
   }
-  private resueltos = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private resueltos = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const { resuelto } = request.body;
       let filtro = null;
-      if (typeof resuelto === "boolean") {
+      if (typeof resuelto === 'boolean') {
         filtro = { resuelto };
       }
-      const seguimientos = await this.seguimientoAlumno
-        .find(filtro)
-        .sort("_id")
-        .populate("alumno");
+      const seguimientos = await this.seguimientoAlumno.find(filtro).sort('_id').populate('alumno');
 
       if (seguimientos) {
         response.send(seguimientos);
@@ -50,15 +43,11 @@ class SeguimientoAlumnoController implements Controller {
         next(new NotFoundException());
       }
     } catch (error) {
-      console.log("[ERROR]", error);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', error);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private migrar = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const seguimientosOriginales: any = await this.seguimientoAlumnoOriginal.find();
 
@@ -71,23 +60,23 @@ class SeguimientoAlumnoController implements Controller {
               planillaTallerId: x.IdPlanillaDeTaller,
             });
           } catch (ero) {
-            console.log("ero", ero);
+            console.log('ero', ero);
           }
           try {
             alumno = await this.alumno.findOne({
               alumnoId: x.id_alumno,
             });
           } catch (ero) {
-            console.log("ero", ero);
+            console.log('ero', ero);
           }
           const unSeguimientoAlumno: ISeguimientoAlumno & any = {
-            seguimientoAlumnoNro: index + 100,
+            seguimientoAlumnoNro: index,
             alumno: alumno,
             planillaTaller: planillataller,
             fecha: x.fecha,
             tipoSeguimiento: x.tipo_seguimiento,
             cicloLectivo: x.ciclo_lectivo,
-            resuelto: x.Resuelto === "SI" ? true : false,
+            resuelto: x.Resuelto === 'SI' ? true : false,
             observacion: x.observacion,
             observacion2: x.Observacion,
             observacionJefe: x.ObservacionJefe,
@@ -101,25 +90,18 @@ class SeguimientoAlumnoController implements Controller {
       );
 
       try {
-        console.log("seguimientoRefactorizados", seguimientoRefactorizados);
-        const savedPlanillaTallers = await this.seguimientoAlumno.insertMany(
-          seguimientoRefactorizados
-        );
+        console.log('seguimientoRefactorizados', seguimientoRefactorizados);
+        const savedPlanillaTallers = await this.seguimientoAlumno.insertMany(seguimientoRefactorizados);
         response.send({
           savedPlanillaTallers,
         });
       } catch (e) {
-        console.log("ERROR", e);
-        next(
-          new HttpException(
-            500,
-            "Ocurrió un error al guardar las planillasTalleres"
-          )
-        );
+        console.log('ERROR', e);
+        next(new HttpException(500, 'Ocurrió un error al guardar las planillasTalleres'));
       }
     } catch (e2) {
-      console.log("ERROR", e2);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('ERROR', e2);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 }
