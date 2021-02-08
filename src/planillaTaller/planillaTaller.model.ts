@@ -1,28 +1,25 @@
-import * as mongoose from "mongoose";
-import IPlanillaTaller from "./planillaTaller.interface";
-// import mongoosePaginate from "mongoose-paginate-v2";
-import aggregatePaginate from "mongoose-aggregate-paginate-v2";
-// import AutoincrementService from "../services/AutoincrementService";
+import * as mongoose from 'mongoose';
+import IPlanillaTaller from './planillaTaller.interface';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import { autoIncrement } from 'mongoose-plugin-autoinc';
 
-// import AutoincrementFieldService from '../services/AutoincrementFieldService';
 const Schema = mongoose.Schema;
-// const AutoIncrement = require("mongoose-sequence")(mongoose);
 
 export const planillaTallerSchema = new mongoose.Schema({
-  // planillaTallerNro: { type: Number },
+  planillaTallerNro: { type: Number, unique: true, required: false },
   asignatura: {
     type: Schema.Types.ObjectId,
-    ref: "Asignatura",
+    ref: 'Asignatura',
     required: false,
   },
   profesor: {
     type: Schema.Types.ObjectId,
-    ref: "Profesore",
+    ref: 'Profesore',
     required: false,
   },
   comision: {
     type: Schema.Types.ObjectId,
-    ref: "Comisione",
+    ref: 'Comisione',
     required: true,
   },
   planillaTallerId: { type: Number, required: false }, // solo par a migrar
@@ -44,26 +41,13 @@ export const planillaTallerSchema = new mongoose.Schema({
 // planillaTallerSchema.plugin(mongoosePaginate);
 planillaTallerSchema.plugin(aggregatePaginate);
 // <IPlanillaTaller>
-const planillaTallerModel = mongoose.model(
-  "PlanillaTallere",
-  planillaTallerSchema
-);
-// planillaTallerModel.paginate();
-// Hooks
-// planillaTallerSchema.plugin(AutoincrementService.getAutoIncrement(), {
-//   inc_field: "planillaTallerNro",
-//   start_seq: 100,
-// });
-// planillaTallerSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'PlanillaTaller', field: 'planillaTallerNro' });
+planillaTallerSchema.plugin(autoIncrement, {
+  model: 'PlanillaTallere',
+  field: 'planillaTallerNro',
+});
+const planillaTallerModel = mongoose.model('PlanillaTallere', planillaTallerSchema);
 
-// planillaTallerSchema.pre('save', function (this: IPlanillaTaller, next: any) {
-//   const now = new Date();
-//   if (!this.fechaCreacion) {
-//     this.fechaCreacion = now;
-//   }
-//   next();
-// });
-planillaTallerSchema.pre("update", function (this: IPlanillaTaller, next: any) {
+planillaTallerSchema.pre('update', function (this: IPlanillaTaller, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

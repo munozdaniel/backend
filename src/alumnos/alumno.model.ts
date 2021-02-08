@@ -6,7 +6,7 @@ const Schema = mongoose.Schema;
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 export const alumnoSchema = new mongoose.Schema({
-  alumnoNro: { type: Number },
+  alumnoNro: { type: Number, unique: true, required: false },
   adultos: [adultoSchema],
   // estadoComisiones: [estadoComisionSchema],
   // comisiones:[comisionSchema],
