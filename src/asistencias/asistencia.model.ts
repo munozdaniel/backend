@@ -4,9 +4,10 @@ import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 // import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
+import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 export const asistenciaSchema = new mongoose.Schema({
-  asistenciaNro: { type: Number },
+  asistenciaNro: { type: Number, unique: true, required: false },
   planillaTaller: {
     type: Schema.Types.ObjectId,
     ref: "PlanillaTallere",
@@ -30,6 +31,10 @@ export const asistenciaSchema = new mongoose.Schema({
 // Modelo
 asistenciaSchema.plugin(mongoosePaginate);
 // <IAsistencia>
+asistenciaSchema.plugin(autoIncrement, {
+  model: 'Asistencia',
+  field: 'asistenciaNro',
+});
 const asistenciaModel = mongoose.model("Asistencia", asistenciaSchema);
 // asistenciaModel.paginate();
 // Hooks
