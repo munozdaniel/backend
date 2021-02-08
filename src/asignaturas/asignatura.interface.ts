@@ -2,7 +2,7 @@ import IAdulto from '../adulto/adulto.interface';
 import * as mongoose from 'mongoose';
 interface IAsignatura extends mongoose.Document {
   _id: string;
-  numero: number;
+  asignaturaNro: number;
   detalle: string;
   tipoAsignatura: string;
   tipoCiclo: string;

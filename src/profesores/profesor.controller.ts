@@ -1,16 +1,16 @@
-import HttpException from "../exceptions/HttpException";
-import { Request, Response, NextFunction, Router } from "express";
-import NotFoundException from "../exceptions/NotFoundException";
-import Controller from "../interfaces/controller.interface";
-import validationMiddleware from "../middleware/validation.middleware";
-import CreateProfesorDto from "./profesor.dto";
-import Profesor from "./profesor.interface";
-import profesorModel, { profesorSchema } from "./profesor.model";
-import escapeStringRegexp from "escape-string-regexp";
-import IProfesor from "./profesor.interface";
-import profesorOriginalModel from "./profesorOriginal.model";
+import HttpException from '../exceptions/HttpException';
+import { Request, Response, NextFunction, Router } from 'express';
+import NotFoundException from '../exceptions/NotFoundException';
+import Controller from '../interfaces/controller.interface';
+import validationMiddleware from '../middleware/validation.middleware';
+import CreateProfesorDto from './profesor.dto';
+import Profesor from './profesor.interface';
+import profesorModel, { profesorSchema } from './profesor.model';
+import escapeStringRegexp from 'escape-string-regexp';
+import IProfesor from './profesor.interface';
+import profesorOriginalModel from './profesorOriginal.model';
 class ProfesorController implements Controller {
-  public path = "/profesores";
+  public path = '/profesores';
   public router = Router();
   private profesor: any;
   private profesorOriginal = profesorOriginalModel;
@@ -21,14 +21,11 @@ class ProfesorController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log("ProfesorController/initializeRoutes");
+    console.log('ProfesorController/initializeRoutes');
     this.router.get(`${this.path}/test2`, this.getAllProfesors);
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/migrar`, this.migrar);
-    this.router.get(
-      `${this.path}/habilitados`,
-      this.getAllProfesoresHabilitadas
-    );
+    this.router.get(`${this.path}/habilitados`, this.getAllProfesoresHabilitadas);
     this.router.get(`${this.path}/:id`, this.getProfesorById);
     // this.router.get(`${this.path}/paginado`, this.getAllProfesorsPag);
 
@@ -36,11 +33,7 @@ class ProfesorController implements Controller {
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /profesores.
     this.router
       .all(`${this.path}/*`)
-      .patch(
-        `${this.path}/:id`,
-        validationMiddleware(CreateProfesorDto, true),
-        this.modifyProfesor
-      )
+      .patch(`${this.path}/:id`, validationMiddleware(CreateProfesorDto, true), this.modifyProfesor)
       .get(`${this.path}/:id`, this.obtenerProfesorPorId)
       .delete(`${this.path}/:id`, this.deleteProfesor)
       .put(`${this.path}/deshabilitar/:id`, this.deshabilitarProfesor)
@@ -53,54 +46,47 @@ class ProfesorController implements Controller {
       );
   }
   private test = async (request: Request, response: Response) => {
-    console.log("test");
+    console.log('test');
     const profesorData: any = {
       activo: true,
-      nombreCompleto: "Orlando Sotelo",
-      telefono: "123123",
+      nombreCompleto: 'Orlando Sotelo',
+      telefono: '123123',
       celular: null,
-      email: "",
-      formacion: "",
-      titulo: "",
+      email: '',
+      formacion: '',
+      titulo: '',
       fechaCreacion: new Date(),
     };
-    console.log("profesorData", profesorData);
+    console.log('profesorData', profesorData);
 
     try {
       const createdProfesor = new this.profesor({
         ...profesorData,
         // author: request.user ? request.user._id : null,
       });
-      console.log("createdProfesor", createdProfesor);
+      console.log('createdProfesor', createdProfesor);
       const savedProfesor = await createdProfesor.save();
       // await savedProfesor.populate('author', '-password').execPopulate();
-      console.log("savedProfesor", savedProfesor);
+      console.log('savedProfesor', savedProfesor);
       response.send(savedProfesor);
     } catch (error) {
-      console.log("ERROR", error);
+      console.log('ERROR', error);
       response.send(error.message);
     }
   };
   private getAllProfesors = async (request: Request, response: Response) => {
-    const profesores = await this.profesor.find().sort("_id"); //.populate('author', '-password') populate con imagen
+    const profesores = await this.profesor.find().sort('_id'); //.populate('author', '-password') populate con imagen
 
     response.send(profesores);
   };
-  private getAllProfesoresHabilitadas = async (
-    request: Request,
-    response: Response
-  ) => {
-    const profesores = await this.profesor.find({ activo: true }).sort("_id"); //.populate('author', '-password') populate con imagen
+  private getAllProfesoresHabilitadas = async (request: Request, response: Response) => {
+    const profesores = await this.profesor.find({ activo: true }).sort('_id'); //.populate('author', '-password') populate con imagen
 
     response.send(profesores);
   };
-  private obtenerProfesorPorId = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private obtenerProfesorPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log("id", id);
+    console.log('id', id);
     try {
       const profesor = await this.profesor.findById(id);
       console.log(profesor);
@@ -110,19 +96,15 @@ class ProfesorController implements Controller {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 
-  private migrar = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const profesores: any = await this.profesorOriginal.find();
-      console.log("profesores", profesores);
+      console.log('profesores', profesores);
       // {},
       // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
 
@@ -138,69 +120,55 @@ class ProfesorController implements Controller {
       //   'profesores2',profesores,
 
       // );
-      const profesoresRefactorizados: IProfesor[] = profesores.map(
-        (x: any, index: number) => {
-          const unaProfesor: IProfesor & any = {
-            // _id: x._id,
-            id_profesores: x.id_profesores,
-            profesorNro: 100 + index,
-            nombreCompleto: x.nombre_y_apellido,
-            telefono: x.telefono,
-            celular: null,
-            email: x.mail,
-            formacion: x.formacion,
-            titulo: x.tipo_de_titulacion,
-            fechaCreacion: new Date(),
-            activo: true,
-          };
+      const profesoresRefactorizados: IProfesor[] = profesores.map((x: any, index: number) => {
+        const unaProfesor: IProfesor & any = {
+          // _id: x._id,
+          id_profesores: x.id_profesores,
+          // profesorNro: 100 + index,
+          nombreCompleto: x.nombre_y_apellido,
+          telefono: x.telefono,
+          celular: null,
+          email: x.mail,
+          formacion: x.formacion,
+          titulo: x.tipo_de_titulacion,
+          fechaCreacion: new Date(),
+          activo: true,
+        };
 
-          return unaProfesor;
-        }
-      );
+        return unaProfesor;
+      });
 
       try {
-        const savedProfesors = await this.profesor.insertMany(
-          profesoresRefactorizados
-        );
+        const savedProfesors = await this.profesor.insertMany(profesoresRefactorizados);
         response.send({
           savedProfesors,
         });
       } catch (e) {
-        console.log("ERROR", e);
-        next(
-          new HttpException(500, "Ocurrió un error al guardar las profesores")
-        );
+        console.log('ERROR', e);
+        next(new HttpException(500, 'Ocurrió un error al guardar las profesores'));
       }
     } catch (e2) {
-      console.log("ERROR", e2);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('ERROR', e2);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 
-  private getProfesorById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private getProfesorById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
-      const profesor = await this.profesor.findById(id).populate("imagenes");
+      const profesor = await this.profesor.findById(id).populate('imagenes');
       if (profesor) {
         response.send(profesor);
       } else {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 
-  private modifyProfesor = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private modifyProfesor = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const profesorData: Profesor = request.body;
     try {
@@ -214,16 +182,12 @@ class ProfesorController implements Controller {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 
-  private createProfesor = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private createProfesor = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar datos
     const profesorData: CreateProfesorDto = request.body;
     const createdProfesor = new this.profesor({
@@ -234,14 +198,10 @@ class ProfesorController implements Controller {
     // await savedProfesor.populate('author', '-password').execPopulate();
     response.send(savedProfesor);
   };
-  private createProfesorComplete = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private createProfesorComplete = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar foto
-    console.log("datos archio", request.file.filename);
-    console.log("datos body", request.body);
+    console.log('datos archio', request.file.filename);
+    console.log('datos body', request.body);
     // Agregar datos
     const profesorData: CreateProfesorDto = request.body;
     const createdProfesor = new this.profesor({
@@ -257,12 +217,8 @@ class ProfesorController implements Controller {
     // await savedProfesor.populate('author', '-password').execPopulate();
     response.send(savedProfesor);
   };
-  private deleteProfesor = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
-    console.log("deleteProfesor");
+  private deleteProfesor = async (request: Request, response: Response, next: NextFunction) => {
+    console.log('deleteProfesor');
     const id = request.params.id;
     try {
       const successResponse = await this.profesor.findByIdAndDelete(id);
@@ -270,22 +226,18 @@ class ProfesorController implements Controller {
         response.send({
           status: 200,
           success: true,
-          message: "Operación Exitosa",
+          message: 'Operación Exitosa',
         });
       } else {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private deshabilitarProfesor = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
-    console.log("deshabilitar asigntaru");
+  private deshabilitarProfesor = async (request: Request, response: Response, next: NextFunction) => {
+    console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
       const successResponse = await this.profesor.findByIdAndUpdate(id, {
@@ -295,22 +247,18 @@ class ProfesorController implements Controller {
         response.send({
           status: 200,
           success: true,
-          message: "Operación Exitosa",
+          message: 'Operación Exitosa',
         });
       } else {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private habilitarProfesor = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
-    console.log("deshabilitar asigntaru");
+  private habilitarProfesor = async (request: Request, response: Response, next: NextFunction) => {
+    console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
       const successResponse = await this.profesor.findByIdAndUpdate(id, {
@@ -320,14 +268,14 @@ class ProfesorController implements Controller {
         response.send({
           status: 200,
           success: true,
-          message: "Operación Exitosa",
+          message: 'Operación Exitosa',
         });
       } else {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 }

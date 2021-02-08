@@ -1,8 +1,7 @@
-import * as mongoose from "mongoose";
-import IAsignatura from "./asignatura.interface";
-import mongoosePaginate from "mongoose-paginate-v2";
-// import AutoincrementFieldService from '../services/AutoincrementFieldService';
-// import AutoincrementService from "../services/AutoincrementService";
+import * as mongoose from 'mongoose';
+import IAsignatura from './asignatura.interface';
+import mongoosePaginate from 'mongoose-paginate-v2';
+import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 export const asignaturaSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
@@ -25,23 +24,13 @@ export const asignaturaSchema = new mongoose.Schema({
 // Modelo
 asignaturaSchema.plugin(mongoosePaginate);
 // <IAsignatura>
-const asignaturaModel = mongoose.model("Asignatura", asignaturaSchema);
-// asignaturaModel.paginate();
-// Hooks
-// asignaturaSchema.plugin(AutoincrementService.getAutoIncrement(), {
-//   inc_field: "asignaturaNro",
-//   start_seq: 100,
-// });
-// asignaturaSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Asignatura', field: 'asignaturaNro' });
+asignaturaSchema.plugin(autoIncrement, {
+  model: 'Asignatura',
+  field: 'asignaturaNro',
+});
+const asignaturaModel = mongoose.model('Asignatura', asignaturaSchema);
 
-// asignaturaSchema.pre('save', function (this: IAsignatura, next: any) {
-//   const now = new Date();
-//   if (!this.fechaCreacion) {
-//     this.fechaCreacion = now;
-//   }
-//   next();
-// });
-asignaturaSchema.pre("update", function (this: IAsignatura, next: any) {
+asignaturaSchema.pre('update', function (this: IAsignatura, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

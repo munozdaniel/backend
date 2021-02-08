@@ -22,6 +22,7 @@ class AsignaturaController implements Controller {
   private initializeRoutes() {
     console.log('AsignaturaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}`, this.getAllAsignaturas);
     this.router.get(`${this.path}/habilitados`, this.getAllAsignaturasHabilitadas);
     // this.router.get(`${this.path}/paginado`, this.getAllAsignaturasPag);
@@ -42,6 +43,37 @@ class AsignaturaController implements Controller {
         this.createAsignatura
       );
   }
+  private test = async (request: Request, response: Response) => {
+    console.log('test');
+    const asignaturaData: any = {
+      detalle: 'detalle',
+      tipoAsignatura: 'ALGO',
+      tipoCiclo: 'ALGO',
+      tipoFormacion: 'ALGO',
+      curso: 1,
+      meses: 4,
+      horasCatedraAnuales: 4,
+      horasCatedraSemanales: 2,
+      activo: true,
+      fechaCreacion: new Date(),
+    };
+    console.log('asignaturaData', asignaturaData);
+
+    try {
+      const createdAsignatura = new this.asignatura({
+        ...asignaturaData,
+        // author: request.user ? request.user._id : null,
+      });
+      console.log('createdAsignatura', createdAsignatura);
+      const saved = await createdAsignatura.save();
+      // await savedProfesor.populate('author', '-password').execPopulate();
+      console.log('saved', saved);
+      response.send(saved);
+    } catch (error) {
+      console.log('ERROR', error);
+      response.send(error.message);
+    }
+  };
   private getAllAsignaturas = async (request: Request, response: Response) => {
     const asignaturas = await this.asignatura.find().sort('_id'); //.populate('author', '-password') populate con imagen
 
@@ -89,10 +121,9 @@ class AsignaturaController implements Controller {
 
       // );
       const asignaturasRefactorizados: IAsignatura[] = asignaturas.map((x: any, index: number) => {
-        console.log('.TipoAsignatura', x.IdAsignarutas);
         const unaAsignatura: IAsignatura & any = {
           // _id: x._id,
-          asignaturaNro: 100 + index,
+          // asignaturaNro: 100 + index,
           detalle: x.DetalleAsignatura,
           tipoAsignatura: x.TipoAsignatura,
           tipoCiclo: x.TipoCiclo.toUpperCase(),
