@@ -1,25 +1,25 @@
-import * as mongoose from "mongoose";
-import ICalificacion from "./calificacion.interface";
-import mongoosePaginate from "mongoose-paginate-v2";
-// import AutoincrementFieldService from '../services/AutoincrementFieldService';
-// import AutoincrementService from "../services/AutoincrementService";
+import * as mongoose from 'mongoose';
+import ICalificacion from './calificacion.interface';
+import mongoosePaginate from 'mongoose-paginate-v2';
+import { autoIncrement } from 'mongoose-plugin-autoinc';
+
 const Schema = mongoose.Schema;
 
 export const calificacionSchema = new mongoose.Schema({
-  calificacionNro: Number,
+  calificacionNro: { type: Number, unique: true, required: false },
   planillaTaller: {
     type: Schema.Types.ObjectId,
-    ref: "PlanillaTallere",
+    ref: 'PlanillaTallere',
     required: true,
   },
   alumno: {
     type: Schema.Types.ObjectId,
-    ref: "Alumno",
+    ref: 'Alumno',
     required: true,
   },
   profesor: {
     type: Schema.Types.ObjectId,
-    ref: "Profesore",
+    ref: 'Profesore',
     required: true,
   },
   id_calificaciones: { type: Number, required: true }, // para migrar
@@ -37,23 +37,13 @@ export const calificacionSchema = new mongoose.Schema({
 // Modelo
 calificacionSchema.plugin(mongoosePaginate);
 // <ICalificacion>
-const calificacionModel = mongoose.model("Calificacione", calificacionSchema);
-// calificacionModel.paginate();
-// Hooks
-// calificacionSchema.plugin(AutoincrementService.getAutoIncrement(), {
-//   inc_field: "calificacionNro",
-//   start_seq: 100,
-// });
-// calificacionSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Calificacion', field: 'calificacionNro' });
+calificacionSchema.plugin(autoIncrement, {
+  model: 'Calificacione',
+  field: 'calificacionNro',
+});
+const calificacionModel = mongoose.model('Calificacione', calificacionSchema);
 
-// calificacionSchema.pre('save', function (this: ICalificacion, next: any) {
-//   const now = new Date();
-//   if (!this.fechaCreacion) {
-//     this.fechaCreacion = now;
-//   }
-//   next();
-// });
-calificacionSchema.pre("update", function (this: ICalificacion, next: any) {
+calificacionSchema.pre('update', function (this: ICalificacion, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();
