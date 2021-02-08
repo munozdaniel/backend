@@ -1,7 +1,6 @@
-import IAdulto from "../adulto/adulto.interface";
-import * as mongoose from "mongoose";
-import IComision from "../comisiones/comision.interface";
-import IEstadoComision from "./estadoComisiones/estadoComision.interface";
+import IAdulto from '../adulto/adulto.interface';
+import * as mongoose from 'mongoose';
+import IEstadoComision from './estadoComisiones/estadoComision.interface';
 interface IAlumno extends mongoose.Document {
   // _id: string;
   alumnoNro: number;
@@ -13,7 +12,7 @@ interface IAlumno extends mongoose.Document {
   dni: string;
   nombreCompleto: string;
   fechaNacimiento: string;
-  sexo: "Masculino" | "Femenino" | "Otros";
+  sexo: 'Masculino' | 'Femenino' | 'Otros';
   nacionalidad: string;
   observacionTelefono?: string;
   telefono?: string;

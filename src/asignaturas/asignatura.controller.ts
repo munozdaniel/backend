@@ -23,21 +23,14 @@ class AsignaturaController implements Controller {
     console.log('AsignaturaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}`, this.getAllAsignaturas);
-    this.router.get(
-      `${this.path}/habilitados`,
-      this.getAllAsignaturasHabilitadas
-    );
+    this.router.get(`${this.path}/habilitados`, this.getAllAsignaturasHabilitadas);
     // this.router.get(`${this.path}/paginado`, this.getAllAsignaturasPag);
 
     // Using the  route.all in such a way applies the middleware only to the route
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /asignaturas.
     this.router
       .all(`${this.path}/*`)
-      .patch(
-        `${this.path}/:id`,
-        validationMiddleware(CreateAsignaturaDto, true),
-        this.modifyAsignatura
-      )
+      .patch(`${this.path}/:id`, validationMiddleware(CreateAsignaturaDto, true), this.modifyAsignatura)
       .get(`${this.path}/:id`, this.obtenerAsignaturaPorId)
       .delete(`${this.path}/:id`, this.deleteAsignatura)
       .put(`${this.path}/deshabilitar/:id`, this.deshabilitarAsignatura)
@@ -54,21 +47,12 @@ class AsignaturaController implements Controller {
 
     response.send(asignaturas);
   };
-  private getAllAsignaturasHabilitadas = async (
-    request: Request,
-    response: Response
-  ) => {
-    const asignaturas = await this.asignatura
-      .find({ activo: true })
-      .sort('_id'); //.populate('author', '-password') populate con imagen
+  private getAllAsignaturasHabilitadas = async (request: Request, response: Response) => {
+    const asignaturas = await this.asignatura.find({ activo: true }).sort('_id'); //.populate('author', '-password') populate con imagen
 
     response.send(asignaturas);
   };
-  private obtenerAsignaturaPorId = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private obtenerAsignaturaPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     console.log('id', id);
     try {
@@ -85,11 +69,7 @@ class AsignaturaController implements Controller {
     }
   };
 
-  private migrar = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const asignaturas: any = await this.asignaturaOriginal.find();
       console.log('asignaturas', asignaturas);
@@ -108,46 +88,36 @@ class AsignaturaController implements Controller {
       //   'asignaturas2',asignaturas,
 
       // );
-      const asignaturasRefactorizados: IAsignatura[] = asignaturas.map(
-        (x: any, index: number) => {
-          console.log('.TipoAsignatura', x.IdAsignarutas);
-          const unaAsignatura: IAsignatura & any = {
-            // _id: x._id,
-            asignaturaNro: 100 + index,
-            detalle: x.DetalleAsignatura,
-            tipoAsignatura: x.TipoAsignatura,
-            tipoCiclo: x.TipoCiclo.toUpperCase(),
-            tipoFormacion: x.Tipodeformacion,
-            curso: Number(x.Tcurso),
-            meses: Number(x.Meses),
-            horasCatedraAnuales: x.HorasCatedraAnuales
-              ? x.HorasCatedraAnuales
-              : 0,
-            horasCatedraSemanales: x.HorasCatedraSemanales
-              ? x.HorasCatedraSemanales
-              : 0,
+      const asignaturasRefactorizados: IAsignatura[] = asignaturas.map((x: any, index: number) => {
+        console.log('.TipoAsignatura', x.IdAsignarutas);
+        const unaAsignatura: IAsignatura & any = {
+          // _id: x._id,
+          asignaturaNro: 100 + index,
+          detalle: x.DetalleAsignatura,
+          tipoAsignatura: x.TipoAsignatura,
+          tipoCiclo: x.TipoCiclo.toUpperCase(),
+          tipoFormacion: x.Tipodeformacion,
+          curso: Number(x.Tcurso),
+          meses: Number(x.Meses),
+          horasCatedraAnuales: x.HorasCatedraAnuales ? x.HorasCatedraAnuales : 0,
+          horasCatedraSemanales: x.HorasCatedraSemanales ? x.HorasCatedraSemanales : 0,
 
-            fechaCreacion: new Date(),
-            activo: true,
-            IdAsignarutas: x.IdAsignarutas,
-          };
+          fechaCreacion: new Date(),
+          activo: true,
+          IdAsignarutas: x.IdAsignarutas,
+        };
 
-          return unaAsignatura;
-        }
-      );
+        return unaAsignatura;
+      });
 
       try {
-        const savedAsignaturas = await this.asignatura.insertMany(
-          asignaturasRefactorizados
-        );
+        const savedAsignaturas = await this.asignatura.insertMany(asignaturasRefactorizados);
         response.send({
           savedAsignaturas,
         });
       } catch (e) {
         console.log('ERROR', e);
-        next(
-          new HttpException(500, 'Ocurrió un error al guardar las asignaturas')
-        );
+        next(new HttpException(500, 'Ocurrió un error al guardar las asignaturas'));
       }
     } catch (e2) {
       console.log('ERROR', e2);
@@ -155,16 +125,10 @@ class AsignaturaController implements Controller {
     }
   };
 
-  private getAsignaturaById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private getAsignaturaById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
-      const asignatura = await this.asignatura
-        .findById(id)
-        .populate('imagenes');
+      const asignatura = await this.asignatura.findById(id).populate('imagenes');
       if (asignatura) {
         response.send(asignatura);
       } else {
@@ -176,21 +140,13 @@ class AsignaturaController implements Controller {
     }
   };
 
-  private modifyAsignatura = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private modifyAsignatura = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const asignaturaData: Asignatura = request.body;
     try {
-      const asignatura = await this.asignatura.findByIdAndUpdate(
-        id,
-        asignaturaData,
-        {
-          new: true,
-        }
-      );
+      const asignatura = await this.asignatura.findByIdAndUpdate(id, asignaturaData, {
+        new: true,
+      });
 
       if (asignatura) {
         response.send(asignatura);
@@ -203,11 +159,7 @@ class AsignaturaController implements Controller {
     }
   };
 
-  private createAsignatura = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private createAsignatura = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar datos
     const asignaturaData: CreateAsignaturaDto = request.body;
     const createdAsignatura = new this.asignatura({
@@ -218,11 +170,7 @@ class AsignaturaController implements Controller {
     // await savedAsignatura.populate('author', '-password').execPopulate();
     response.send(savedAsignatura);
   };
-  private createAsignaturaComplete = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private createAsignaturaComplete = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar foto
     console.log('datos archio', request.file.filename);
     console.log('datos body', request.body);
@@ -241,11 +189,7 @@ class AsignaturaController implements Controller {
     // await savedAsignatura.populate('author', '-password').execPopulate();
     response.send(savedAsignatura);
   };
-  private deleteAsignatura = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private deleteAsignatura = async (request: Request, response: Response, next: NextFunction) => {
     console.log('deleteAsignatura');
     const id = request.params.id;
     try {
@@ -264,11 +208,7 @@ class AsignaturaController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private deshabilitarAsignatura = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private deshabilitarAsignatura = async (request: Request, response: Response, next: NextFunction) => {
     console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
@@ -289,11 +229,7 @@ class AsignaturaController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private habilitarAsignatura = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private habilitarAsignatura = async (request: Request, response: Response, next: NextFunction) => {
     console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {

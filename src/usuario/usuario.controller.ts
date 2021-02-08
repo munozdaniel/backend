@@ -23,14 +23,8 @@ class UsuarioController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`${this.path}/test`, this.test);
-    this.router.get(
-      `${this.path}/:id`,
-      this.obtenerUsuarioPorId
-    );
-    this.router.get(
-      `${this.path}/completo/:id`,
-      this.obtenerUsuarioPorIdCompleto
-    );
+    this.router.get(`${this.path}/:id`, this.obtenerUsuarioPorId);
+    this.router.get(`${this.path}/completo/:id`, this.obtenerUsuarioPorIdCompleto);
     this.router.post(
       `${this.path}/change-password`,
       // passport.authenticate('jwt', { session: false }),
@@ -39,50 +33,29 @@ class UsuarioController implements Controller {
   }
   // -----
   // ---------
-  private cambiarPassword = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private cambiarPassword = async (request: Request, response: Response, next: NextFunction) => {
     console.log('cambiarPassword', request.body);
     const { usuarioId, actual, password } = request.body;
     const usuarioEncontrado: any = await this.usuario.findById(usuarioId);
     // const usuarioPassportModel: any = usuarioModel;
-    usuarioEncontrado.changePassword(
-      actual,
-      password,
-      async (err: any, user: any) => {
-        console.log(err,'<<<<<<<');
-        if (err || !user) {
-          return response
-            .status(400)
-            .json({ error: 'Ocurrió un error al actualizar la contraseña' });
-        }
-        try {
-          await this.enviarEmailConNuevoPassword(usuarioEncontrado, password);
-          response.status(200).send({ usuario: user });
-        } catch (error) {
-          console.log('[ERROR]', error);
-          next(new HttpException(400, 'No se pudo enviar el correo'));
-        }
+    usuarioEncontrado.changePassword(actual, password, async (err: any, user: any) => {
+      console.log(err, '<<<<<<<');
+      if (err || !user) {
+        return response.status(400).json({ error: 'Ocurrió un error al actualizar la contraseña' });
       }
-    );
+      try {
+        await this.enviarEmailConNuevoPassword(usuarioEncontrado, password);
+        response.status(200).send({ usuario: user });
+      } catch (error) {
+        console.log('[ERROR]', error);
+        next(new HttpException(400, 'No se pudo enviar el correo'));
+      }
+    });
   };
   // -----
   private async enviarEmailConNuevoPassword(user: any, contrasena: string) {
-    const {
-      CLIENT_ID_OAUTH2,
-      CLIENT_SECRET_OAUTH2,
-      REDIRECT_URI_OAUTH2,
-      REFRESH_TOKEN_OAUTH2,
-      CORREO,
-      URL_FRONT,
-    } = process.env;
-    const oAuth2Client = new google.auth.OAuth2(
-      CLIENT_ID_OAUTH2,
-      CLIENT_SECRET_OAUTH2,
-      REDIRECT_URI_OAUTH2
-    );
+    const { CLIENT_ID_OAUTH2, CLIENT_SECRET_OAUTH2, REDIRECT_URI_OAUTH2, REFRESH_TOKEN_OAUTH2, CORREO, URL_FRONT } = process.env;
+    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID_OAUTH2, CLIENT_SECRET_OAUTH2, REDIRECT_URI_OAUTH2);
     oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN_OAUTH2 });
     try {
       const accessToken: any = await oAuth2Client.getAccessToken();
@@ -125,27 +98,24 @@ class UsuarioController implements Controller {
         attachments: [
           {
             filename: 'logo.png',
-            path:  __dirname +'/../public/logo/logo.png',
+            path: __dirname + '/../public/logo/logo.png',
             cid: 'unique@cid', //same cid value as in the html img src
           },
         ],
       };
       // send mail with defined transport object
-      const resultado = await transporter.sendMail(
-        mailOptions,
-        (err, info: SMTPTransport.SentMessageInfo) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          console.log('Message sent: %s', info.messageId);
-          // Preview only available when sending through an Ethereal account
-          console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-
-          // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@blurdybloop.com>
-          // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+      const resultado = await transporter.sendMail(mailOptions, (err, info: SMTPTransport.SentMessageInfo) => {
+        if (err) {
+          console.log(err);
+          return;
         }
-      );
+        console.log('Message sent: %s', info.messageId);
+        // Preview only available when sending through an Ethereal account
+        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+
+        // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@blurdybloop.com>
+        // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+      });
       // retornar valores
       return resultado;
     } catch (error) {
@@ -155,18 +125,10 @@ class UsuarioController implements Controller {
   }
   // -----
 
-  private test = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private test = async (request: Request, response: Response, next: NextFunction) => {
     response.send({ success: true, code: 200, message: 'YEahh baby' });
   };
-  private obtenerUsuarioPorId = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private obtenerUsuarioPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const userQuery: any = await this.usuario.findById(id);
     if (request.query.withPosts === 'true') {
@@ -180,11 +142,7 @@ class UsuarioController implements Controller {
     }
   };
 
-  private obtenerUsuarioPorIdCompleto = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private obtenerUsuarioPorIdCompleto = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const userQuery = this.usuario.findById(id);
     if (request.query.withPosts === 'true') {

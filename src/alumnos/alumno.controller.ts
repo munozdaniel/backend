@@ -1,22 +1,22 @@
-import * as mongoose from "mongoose";
-import HttpException from "../exceptions/HttpException";
-import { Request, Response, NextFunction, Router } from "express";
-import NotFoundException from "../exceptions/NotFoundException";
-import Controller from "../interfaces/controller.interface";
-import validationMiddleware from "../middleware/validation.middleware";
-import CreateAlumnoDto from "./alumno.dto";
-import Alumno from "./alumno.interface";
-import alumnoModel from "./alumno.model";
-import { IQueryAlumnoPag } from "../utils/interfaces/iQueryAlumnoPag";
-import escapeStringRegexp from "escape-string-regexp";
-import IAlumno from "./alumno.interface";
-import alumnoOriginalModel from "./alumnoOriginal.model";
-import comisionModel from "../comisiones/comision.model";
-import comisionesOriginalModel from "../comisiones/comisionOriginal.model";
-import estadoComisionModel from "./estadoComisiones/estadoComision.model";
-const ObjectId = require("mongoose").Types.ObjectId;
+import * as mongoose from 'mongoose';
+import HttpException from '../exceptions/HttpException';
+import { Request, Response, NextFunction, Router } from 'express';
+import NotFoundException from '../exceptions/NotFoundException';
+import Controller from '../interfaces/controller.interface';
+import validationMiddleware from '../middleware/validation.middleware';
+import CreateAlumnoDto from './alumno.dto';
+import Alumno from './alumno.interface';
+import alumnoModel from './alumno.model';
+import { IQueryAlumnoPag } from '../utils/interfaces/iQueryAlumnoPag';
+import escapeStringRegexp from 'escape-string-regexp';
+import IAlumno from './alumno.interface';
+import alumnoOriginalModel from './alumnoOriginal.model';
+import comisionModel from '../comisiones/comision.model';
+import comisionesOriginalModel from '../comisiones/comisionOriginal.model';
+import estadoComisionModel from './estadoComisiones/estadoComision.model';
+const ObjectId = require('mongoose').Types.ObjectId;
 class AlumnoController implements Controller {
-  public path = "/alumnos";
+  public path = '/alumnos';
   public router = Router();
   private alumno = alumnoModel;
   private alumnoOriginal = alumnoOriginalModel;
@@ -29,7 +29,7 @@ class AlumnoController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log("AlumnoController/initializeRoutes");
+    console.log('AlumnoController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
     // this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
@@ -39,11 +39,7 @@ class AlumnoController implements Controller {
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /alumnos.
     this.router
       .all(`${this.path}/*`)
-      .patch(
-        `${this.path}/:id`,
-        validationMiddleware(CreateAlumnoDto, true),
-        this.modifyAlumno
-      )
+      .patch(`${this.path}/:id`, validationMiddleware(CreateAlumnoDto, true), this.modifyAlumno)
       .get(`${this.path}/:id`, this.obtenerAlumnoPorId)
       .delete(`${this.path}/:id`, this.deleteAlumno)
       .put(
@@ -54,48 +50,35 @@ class AlumnoController implements Controller {
       );
   }
 
-  private getFichaAlumnos = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
-    console.log("getFichaAlumnos");
+  private getFichaAlumnos = async (request: Request, response: Response, next: NextFunction) => {
+    console.log('getFichaAlumnos');
 
     try {
       let { cicloLectivo, division, curso } = request.body;
-      console.log(
-        "cicloLectivo, division, curso",
-        cicloLectivo,
-        division,
-        curso
-      );
+      console.log('cicloLectivo, division, curso', cicloLectivo, division, curso);
       cicloLectivo = 2019;
       division = 3;
       curso = 1;
       const opciones = [
         // { $match: { _id: ObjectId("60175c184700d11d1c6f3192") } },
-        { $unwind: "$estadoComisiones" },
+        { $unwind: '$estadoComisiones' },
         {
           $lookup: {
-            from: "comisiones",
-            localField: "estadoComisiones.comision",
-            foreignField: "_id",
-            as: "eComisiones",
+            from: 'comisiones',
+            localField: 'estadoComisiones.comision',
+            foreignField: '_id',
+            as: 'eComisiones',
           },
         },
         {
           $unwind: {
-            path: "$eComisiones",
+            path: '$eComisiones',
             // preserveNullAndEmptyArrays: false,
           },
         },
         {
           $match: {
-            $and: [
-              { "eComisiones.cicloLectivo": 2019 },
-              { "eComisiones.curso": 1 },
-              { "eComisiones.division": 5 },
-            ],
+            $and: [{ 'eComisiones.cicloLectivo': 2019 }, { 'eComisiones.curso': 1 }, { 'eComisiones.division': 5 }],
           },
         },
       ];
@@ -120,15 +103,15 @@ class AlumnoController implements Controller {
       //   select: 'cicloLectivo division curso',
       // });
       // .populate("estadoComisiones");
-      console.log("alumnos", alumnos);
+      console.log('alumnos', alumnos);
       if (alumnos) {
         response.send(alumnos);
       } else {
         next(new NotFoundException());
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
   private getAllAlumnos = async (request: Request, response: Response) => {
@@ -136,14 +119,10 @@ class AlumnoController implements Controller {
 
     response.send(alumnos);
   };
-  private obtenerAlumnoPorId = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private obtenerAlumnoPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
-      const alumno = await this.alumno.findById(id).populate("comisiones");
+      const alumno = await this.alumno.findById(id).populate('comisiones');
       console.log(alumno);
       if (alumno) {
         response.send(alumno);
@@ -151,16 +130,12 @@ class AlumnoController implements Controller {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 
-  private migrar = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const alumnos: any = await this.alumnoOriginal.find();
       // {},
@@ -173,7 +148,7 @@ class AlumnoController implements Controller {
       //   alumnos[100].telefonos,
       //   alumnos[100].procedencia_colegio_primario
       // );
-      console.log("Datos", alumnos.length);
+      console.log('Datos', alumnos.length);
 
       // console.log(
       //   'alumnos2',alumnos,
@@ -182,7 +157,7 @@ class AlumnoController implements Controller {
       const alumnosRefactorizados: IAlumno[] = await Promise.all(
         alumnos.map(async (x: any, index: number) => {
           const padre = {
-            tipoAdulto: "PADRE",
+            tipoAdulto: 'PADRE',
             activo: true,
             fechaCreacion: new Date(),
             nombreCompleto: x.nombre_y_apellido_padre,
@@ -190,7 +165,7 @@ class AlumnoController implements Controller {
             email: x.mail_padre,
           };
           const madre = {
-            tipoAdulto: "MADRE",
+            tipoAdulto: 'MADRE',
             activo: true,
             fechaCreacion: new Date(),
             nombreCompleto: x.nombre_y_apellido_madre,
@@ -198,7 +173,7 @@ class AlumnoController implements Controller {
             email: x.mail_madre,
           };
           const tutor1 = {
-            tipoAdulto: "TUTOR",
+            tipoAdulto: 'TUTOR',
             activo: true,
             fechaCreacion: new Date(),
             nombreCompleto: x.nombre_y_apellido_tutor1,
@@ -206,7 +181,7 @@ class AlumnoController implements Controller {
             email: x.mail_tutor1,
           };
           const tutor2 = {
-            tipoAdulto: "TUTOR",
+            tipoAdulto: 'TUTOR',
             activo: true,
             fechaCreacion: new Date(),
             nombreCompleto: x.nombre_y_apellido_tutor2,
@@ -218,7 +193,7 @@ class AlumnoController implements Controller {
           let celular = null;
           let obsTelefono = null;
           if (x.telefonos && x.telefonos.toString().length > 0) {
-            const tel = x.telefonos.replace(" ", "").split("-");
+            const tel = x.telefonos.replace(' ', '').split('-');
             if (tel && tel.length == 2) {
               // 29951760044-2995176036
               if (tel[0].length > 2) {
@@ -230,7 +205,7 @@ class AlumnoController implements Controller {
                 telefono = tel[0] + tel[1];
               }
             } else {
-              const tel = x.telefonos.replace(" ", "").split("/");
+              const tel = x.telefonos.replace(' ', '').split('/');
               if (tel[0] && tel[1]) {
                 telefono = tel[0].trim().toUpperCase();
                 celular = tel[1].trim().toUpperCase();
@@ -242,7 +217,7 @@ class AlumnoController implements Controller {
           let dniMod = null;
           let tipoDniMod = null;
           if (x.dni) {
-            const d = x.dni.split("-");
+            const d = x.dni.split('-');
             if (d && d.length > 1) {
               dniMod = d[0].trim();
               tipoDniMod = d[1].trim();
@@ -284,13 +259,9 @@ class AlumnoController implements Controller {
                   estadoComisionNro: 100 + index2,
                   comision: {
                     ...savedComision,
-                    comision: savedComision.comision
-                      ? savedComision.comision
-                      : "SIN REGISTRAR",
+                    comision: savedComision.comision ? savedComision.comision : 'SIN REGISTRAR',
                   },
-                  condicion: x.Condicion
-                    ? x.Condicion.toUpperCase()
-                    : "SIN REGISTRAR",
+                  condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
 
                   fechaCreacion: new Date(),
                   activo: true,
@@ -301,45 +272,37 @@ class AlumnoController implements Controller {
               })
             );
           } catch (ero) {
-            console.log("ero", ero);
+            console.log('ero', ero);
           }
           const retorno: any = {
             estadoComisiones: estadoComisiones,
             alumnoId: x.id_alumno,
             alumnoNro: index + 100,
             adultos,
-            dni: dniMod ? dniMod : "SIN REGISTRAR",
+            dni: dniMod ? dniMod : 'SIN REGISTRAR',
             tipoDni: tipoDniMod,
             nombreCompleto: x.ApellidoyNombre,
             fechaNacimiento: x.fecha_nacimiento,
-            observaciones: "",
-            observacionTelefono: "",
+            observaciones: '',
+            observacionTelefono: '',
             sexo:
               x.sexo.trim().length === 0
-                ? "SIN ESPECIFICAR"
-                : x.sexo.toUpperCase() === "MASCULINO" ||
-                  x.sexo.toUpperCase() === "M"
-                ? "MASCULINO"
-                : "FEMENINO",
-            nacionalidad: x.nacionalidad
-              ? x.nacionalidad.toUpperCase()
-              : "ARGENTINA",
+                ? 'SIN ESPECIFICAR'
+                : x.sexo.toUpperCase() === 'MASCULINO' || x.sexo.toUpperCase() === 'M'
+                ? 'MASCULINO'
+                : 'FEMENINO',
+            nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : 'ARGENTINA',
             telefono,
             celular,
-            email: x.mail ? x.mail : "SIN REGISTRAR",
-            fechaIngreso: x.fecha_ingreso ? x.fecha_ingreso : "SIN REGISTRAR",
-            procedenciaColegioPrimario: x.procedencia_colegio_primario
-              ? x.procedencia_colegio_primario
-              : "SIN REGISTRAR",
-            procedenciaColegioSecundario: x.procedencia_colegio_secundario
-              ? x.procedencia_colegio_secundario
-              : "SIN REGISTRAR",
+            email: x.mail ? x.mail : 'SIN REGISTRAR',
+            fechaIngreso: x.fecha_ingreso ? x.fecha_ingreso : 'SIN REGISTRAR',
+            procedenciaColegioPrimario: x.procedencia_colegio_primario ? x.procedencia_colegio_primario : 'SIN REGISTRAR',
+            procedenciaColegioSecundario: x.procedencia_colegio_secundario ? x.procedencia_colegio_secundario : 'SIN REGISTRAR',
             fechaDeBaja: x.fecha_de_baja,
             motivoDeBaja: x.motivo_de_baja ? x.motivo_de_baja : null,
-            domicilio: x.domicilio ? x.domicilio : "SIN REGISTRAR",
+            domicilio: x.domicilio ? x.domicilio : 'SIN REGISTRAR',
 
-            cantidadIntegranteGrupoFamiliar:
-              x.cantidad_integrantes_grupo_familiar,
+            cantidadIntegranteGrupoFamiliar: x.cantidad_integrantes_grupo_familiar,
             seguimientoEtap: x.SeguimientoETAP,
 
             nombreCompletoTae: x.NombreyApellidoTae,
@@ -355,21 +318,19 @@ class AlumnoController implements Controller {
       );
 
       try {
-        const savedAlumnos = await this.alumno.insertMany(
-          alumnosRefactorizados
-        );
+        const savedAlumnos = await this.alumno.insertMany(alumnosRefactorizados);
         response.send({
           savedAlumnos,
           cantidad: savedAlumnos.length,
         });
       } catch (e) {
         // [ 'errors', '_message', 'message', 'name' ]
-        console.log("[ERROR 1]", e.errors);
-        next(new HttpException(500, "Problemas al insertar los registros"));
+        console.log('[ERROR 1]', e.errors);
+        next(new HttpException(500, 'Problemas al insertar los registros'));
       }
     } catch (e2) {
-      console.log("[ERROR 2]", e2);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR 2]', e2);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
   // private getAllAlumnosPag = async (request: Request, response: Response) => {
@@ -415,30 +376,22 @@ class AlumnoController implements Controller {
   //   //   const alumnos = await this.alumno.find().populate('imagenes'); //.populate('author', '-password') populate con imagen
   // };
 
-  private getAlumnoById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private getAlumnoById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
-      const alumno = await this.alumno.findById(id).populate("imagenes");
+      const alumno = await this.alumno.findById(id).populate('imagenes');
       if (alumno) {
         response.send(alumno);
       } else {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 
-  private modifyAlumno = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private modifyAlumno = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const alumnoData: Alumno = request.body;
     try {
@@ -452,16 +405,12 @@ class AlumnoController implements Controller {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 
-  private createAlumno = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private createAlumno = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar datos
     const alumnoData: CreateAlumnoDto = request.body;
     const createdAlumno = new this.alumno({
@@ -472,14 +421,10 @@ class AlumnoController implements Controller {
     // await savedAlumno.populate('author', '-password').execPopulate();
     response.send(savedAlumno);
   };
-  private createAlumnoComplete = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private createAlumnoComplete = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar foto
-    console.log("datos archio", request.file.filename);
-    console.log("datos body", request.body);
+    console.log('datos archio', request.file.filename);
+    console.log('datos body', request.body);
     // Agregar datos
     const alumnoData: CreateAlumnoDto = request.body;
     const createdAlumno = new this.alumno({
@@ -495,12 +440,8 @@ class AlumnoController implements Controller {
     // await savedAlumno.populate('author', '-password').execPopulate();
     response.send(savedAlumno);
   };
-  private deleteAlumno = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
-    console.log("deleteAlumno");
+  private deleteAlumno = async (request: Request, response: Response, next: NextFunction) => {
+    console.log('deleteAlumno');
     const id = request.params.id;
     try {
       const successResponse = await this.alumno.findByIdAndDelete(id);
@@ -508,14 +449,14 @@ class AlumnoController implements Controller {
         response.send({
           status: 200,
           success: true,
-          message: "Operación Exitosa",
+          message: 'Operación Exitosa',
         });
       } else {
         next(new NotFoundException(id));
       }
     } catch (e) {
-      console.log("[ERROR]", e);
-      next(new HttpException(400, "Parametros Incorrectos"));
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
 }

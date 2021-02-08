@@ -1,4 +1,4 @@
- import * as mongoose from 'mongoose';
+import * as mongoose from 'mongoose';
 interface IAlumnoOriginal extends mongoose.Document {
   dni: string;
   ApellidoyNombre: string;

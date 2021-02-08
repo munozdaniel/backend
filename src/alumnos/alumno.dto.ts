@@ -13,7 +13,7 @@ import {
 } from 'class-validator';
 
 class CrearAlumnoDto {
-  @IsString({message:'El dni no ha sido ingresado'})
+  @IsString({ message: 'El dni no ha sido ingresado' })
   @MinLength(7, {
     message: 'El dni es muy corto',
   })
@@ -48,7 +48,6 @@ class CrearAlumnoDto {
     message: 'Debe ingresar al menos un elemento en la lista de adultos',
   })
   adultos: IAdulto[];
-
 
   @IsString()
   @MinLength(3, {
@@ -85,7 +84,7 @@ class CrearAlumnoDto {
   })
   public nacionalidad: string;
   @IsOptional()
-  @IsString({message:'El telefono no fue ingresado'})
+  @IsString({ message: 'El telefono no fue ingresado' })
   @MinLength(4, {
     message: 'El telefono debe contener al menos 4 caracteres',
   })
@@ -118,18 +117,15 @@ class CrearAlumnoDto {
     message: 'La procedencia del colegio primario al menos 4 caracteres',
   })
   @MaxLength(50, {
-    message:
-      'La procedencia del colegio primario debe contener 50 caracteres máximo',
+    message: 'La procedencia del colegio primario debe contener 50 caracteres máximo',
   })
   public procedenciaColegioPrimario: string;
   @IsString()
   @MinLength(4, {
-    message:
-      'La procedencia del colegio secundario debe contener al menos 4 caracteres',
+    message: 'La procedencia del colegio secundario debe contener al menos 4 caracteres',
   })
   @MaxLength(50, {
-    message:
-      'La procedencia del colegio secundario debe contener 50 caracteres máximo',
+    message: 'La procedencia del colegio secundario debe contener 50 caracteres máximo',
   })
   @IsOptional()
   public procedenciaColegioSecundario: string;
@@ -156,8 +152,7 @@ class CrearAlumnoDto {
   @IsNumber(
     { allowNaN: false },
     {
-      message:
-        'La cantidad de integrantes del grupo familiar debe ser numerico',
+      message: 'La cantidad de integrantes del grupo familiar debe ser numerico',
     }
   )
   public cantidadIntegranteGrupoFamiliar: number;
@@ -178,13 +173,13 @@ class CrearAlumnoDto {
     message: 'El nombre del TAE debe contener 100 caracteres máximo. ',
   })
   public nombreCompletoTae: string;
-  @IsString({ message: 'El email del TAE no ha sido ingresado'})
+  @IsString({ message: 'El email del TAE no ha sido ingresado' })
   @IsOptional()
   @MinLength(4, {
     message: 'El email del TAE debe contener al menos 4 caracteres. ',
   })
   @MaxLength(70, {
-    message: 'El email del TAE debe contener 70 caracteres máximo. ' ,
+    message: 'El email del TAE debe contener 70 caracteres máximo. ',
   })
   public emailTae: string;
   @IsOptional()

@@ -1,9 +1,9 @@
-import * as mongoose from "mongoose";
-import IAlumno from "./alumno.interface";
-import { adultoSchema } from "../adulto/adulto.model";
+import * as mongoose from 'mongoose';
+import IAlumno from './alumno.interface';
+import { adultoSchema } from '../adulto/adulto.model';
 // import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
-const mongoosePaginate = require("mongoose-paginate-v2");
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 export const alumnoSchema = new mongoose.Schema({
   alumnoNro: { type: Number },
@@ -13,16 +13,16 @@ export const alumnoSchema = new mongoose.Schema({
   estadoComisiones: [
     {
       type: Schema.Types.ObjectId,
-      ref: "EstadoComisione",
+      ref: 'EstadoComisione',
       required: false,
     },
   ],
   alumnoId: { type: Number, required: false },
   dni: { type: String, required: false }, // Para migrar sin required
-  tipoDni: { type: String, default: "DNI", uppercase: true },
+  tipoDni: { type: String, default: 'DNI', uppercase: true },
   nombreCompleto: { type: String, required: true },
   fechaNacimiento: { type: String, required: false }, // Para migrar sin required
-  sexo: { type: String, default: "MASCULINO", uppercase: true },
+  sexo: { type: String, default: 'MASCULINO', uppercase: true },
   nacionalidad: { type: String, required: true },
   telefono: { type: String },
   celular: { type: String },
@@ -50,7 +50,7 @@ export const alumnoSchema = new mongoose.Schema({
 
 // Modelo
 alumnoSchema.plugin(mongoosePaginate);
-const alumnoModel = mongoose.model("Alumno", alumnoSchema);
+const alumnoModel = mongoose.model('Alumno', alumnoSchema);
 //  alumnoModel.paginate();
 
 // Hooks
@@ -68,7 +68,7 @@ const alumnoModel = mongoose.model("Alumno", alumnoSchema);
 //   }
 //   next();
 // });
-alumnoSchema.pre("update", function (this: IAlumno, next: any) {
+alumnoSchema.pre('update', function (this: IAlumno, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

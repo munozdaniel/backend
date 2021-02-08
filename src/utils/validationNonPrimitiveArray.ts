@@ -1,8 +1,4 @@
-import {
-  registerDecorator,
-  ValidationOptions,
-  ValidationArguments,
-} from 'class-validator';
+import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
 
 export function IsNonPrimitiveArray(validationOptions?: ValidationOptions) {
   return (object: any, propertyName: string) => {
@@ -14,13 +10,7 @@ export function IsNonPrimitiveArray(validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          return (
-            Array.isArray(value) &&
-            value.reduce(
-              (a, b) => a && typeof b === 'object' && !Array.isArray(b),
-              true
-            )
-          );
+          return Array.isArray(value) && value.reduce((a, b) => a && typeof b === 'object' && !Array.isArray(b), true);
         },
       },
     });

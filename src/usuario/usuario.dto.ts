@@ -1,26 +1,17 @@
-import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  IsBoolean,
-  IsDateString,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsDateString, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { rolesEnum } from '../utils/roles.enum';
- 
+
 class UsuarioDto {
-  @IsString({message:'El email es requerido'})
+  @IsString({ message: 'El email es requerido' })
   email: string;
-  @IsString({message:'El password es requerido'})
+  @IsString({ message: 'El password es requerido' })
   password: string;
-  @IsString({message:'El nombre es requerido'})
+  @IsString({ message: 'El nombre es requerido' })
   nombre: string;
-  @IsString({message:'El apellido es requerido'})
+  @IsString({ message: 'El apellido es requerido' })
   apellido: string;
   @IsOptional()
-  @IsString({message:'El telefono es requerido'})
+  @IsString({ message: 'El telefono es requerido' })
   telefono: string;
   @IsOptional()
   @IsString()
@@ -32,7 +23,6 @@ class UsuarioDto {
   @IsDateString()
   fechaNacimiento?: string;
   // tipo_identificacion:string;
-
 
   @IsBoolean()
   @IsOptional()
@@ -52,21 +42,20 @@ class UsuarioDto {
   public tarjetaGuardada?: boolean;
 
   @IsOptional()
-  @IsDateString({message:'La fecha de creacion tiene que ser un string'})
+  @IsDateString({ message: 'La fecha de creacion tiene que ser un string' })
   fechaCreacion: string;
   @IsOptional()
-  @IsString({message:'El id del usuario creador tiene que ser un string'})
+  @IsString({ message: 'El id del usuario creador tiene que ser un string' })
   usuarioCreacion: string; // ObjectId string
 
-  @IsDateString({message:'La fecha de modificacion tiene que ser un string'})
+  @IsDateString({ message: 'La fecha de modificacion tiene que ser un string' })
   @IsOptional()
   fechaModificacion?: string;
-  @IsString({message:'El id del usuario modificador tiene que ser un string'})
+  @IsString({ message: 'El id del usuario modificador tiene que ser un string' })
   @IsOptional()
   usuarioModificacion?: string;
-  @IsBoolean({message: 'Activo debe ser un booleano'})
+  @IsBoolean({ message: 'Activo debe ser un booleano' })
   activo: boolean;
- 
 }
 
 export default UsuarioDto;

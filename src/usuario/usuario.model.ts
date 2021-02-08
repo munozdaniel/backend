@@ -9,7 +9,7 @@ export const usuarioSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
   apellido: { type: String, required: true },
   telefono: { type: String },
-  rol: { type: String, default:rolesEnum.CLIENTE },
+  rol: { type: String, default: rolesEnum.CLIENTE },
   identificacion: { type: String },
   fechaNacimiento: Date,
   perfilCompleto: { type: Boolean, default: false },
@@ -22,12 +22,11 @@ export const usuarioSchema = new mongoose.Schema({
   fechaModificacion: { type: Date, default: Date.now },
   usuarioModificacion: { type: String },
   activo: { type: Boolean, default: true },
-
 });
 
 // Hooks
 usuarioSchema.pre('save', async function (this: IUsuario, next: any) {
-  var SALT_FACTOR = 5;
+  const SALT_FACTOR = 5;
   if (!this.isModified('password')) return next();
 
   console.log('usuarioSchema', 'save');
@@ -37,7 +36,6 @@ usuarioSchema.pre('save', async function (this: IUsuario, next: any) {
   }
   next();
 });
-
 
 // usuarioSchema.pre('update', function (this: IUsuario, next: any) {
 //   const now = new Date();

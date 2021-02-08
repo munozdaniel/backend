@@ -1,9 +1,9 @@
-import mongoose, { SequenceOptions, SequenceSchema } from "mongoose";
-import IProfesor from "./profesor.interface";
-import mongoosePaginate from "mongoose-paginate-v2";
+import mongoose, { SequenceOptions, SequenceSchema } from 'mongoose';
+import IProfesor from './profesor.interface';
+import mongoosePaginate from 'mongoose-paginate-v2';
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 // import AutoincrementService from "../services/AutoincrementService";
-import { autoIncrement } from "mongoose-plugin-autoinc";
+import { autoIncrement } from 'mongoose-plugin-autoinc';
 export const profesorSchema: SequenceSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
   profesorNro: { type: Number, unique: true, required: false },
@@ -24,10 +24,10 @@ export const profesorSchema: SequenceSchema = new mongoose.Schema({
 profesorSchema.plugin(mongoosePaginate);
 // <IProfesor>
 profesorSchema.plugin(autoIncrement, {
-  model: "Profesore",
-  field: "profesorNro",
+  model: 'Profesore',
+  field: 'profesorNro',
 });
-const profesorModel = mongoose.model("Profesore", profesorSchema);
+const profesorModel = mongoose.model('Profesore', profesorSchema);
 // Hooks
 // profesorSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Profesor', field: 'profesorNro' });
 // profesorSchema.plugin(autoIncrement.plugin, {
@@ -37,7 +37,7 @@ const profesorModel = mongoose.model("Profesore", profesorSchema);
 //   incrementBy: 1,
 // });
 
-profesorSchema.pre("update", function (this: IProfesor, next: any) {
+profesorSchema.pre('update', function (this: IProfesor, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();
