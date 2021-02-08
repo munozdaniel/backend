@@ -30,13 +30,6 @@ profesorSchema.plugin(autoIncrement, {
 const profesorModel = mongoose.model("Profesore", profesorSchema);
 // Hooks
 // profesorSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Profesor', field: 'profesorNro' });
-// profesorSchema.pre('save', function (this: IProfesor, next: any) {
-//   const now = new Date();
-//   if (!this.fechaCreacion) {
-//     this.fechaCreacion = now;
-//   }
-//   next();
-// });
 // profesorSchema.plugin(autoIncrement.plugin, {
 //   model: "model",
 //   field: "field",
