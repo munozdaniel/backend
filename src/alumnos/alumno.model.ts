@@ -1,7 +1,7 @@
 import * as mongoose from "mongoose";
 import IAlumno from "./alumno.interface";
 import { adultoSchema } from "../adulto/adulto.model";
-import AutoincrementService from "../services/AutoincrementService";
+// import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 const mongoosePaginate = require("mongoose-paginate-v2");
 
@@ -54,12 +54,12 @@ const alumnoModel = mongoose.model("Alumno", alumnoSchema);
 //  alumnoModel.paginate();
 
 // Hooks
-alumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  start_seq: 100,
-  id: "autoincrementar",
-  inc_field: "alumnoNro",
-  disable_hooks: true,
-});
+// alumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
+//   start_seq: 100,
+//   id: "autoincrementar",
+//   inc_field: "alumnoNro",
+//   disable_hooks: true,
+// });
 
 // alumnoSchema.pre('save', function (this: IAlumno, next: any) {
 //   const now = new Date();

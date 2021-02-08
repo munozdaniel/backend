@@ -2,7 +2,7 @@ import * as mongoose from "mongoose";
 import ISeguimientoAlumno from "./seguimientoAlumno.interface";
 import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from "../services/AutoincrementService";
+// import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 export const seguimientoAlumnoSchema = new mongoose.Schema({
   seguimientoAlumnoNro: { type: Number },
@@ -38,10 +38,10 @@ const seguimientoAlumnoModel = mongoose.model(
 );
 // seguimientoAlumnoModel.paginate();
 // Hooks
-seguimientoAlumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: "seguimientoAlumnoNro",
-  start_seq: 100,
-}),
+// seguimientoAlumnoSchema.plugin(AutoincrementService.getAutoIncrement(), {
+//   inc_field: "seguimientoAlumnoNro",
+//   start_seq: 100,
+// }),
   // seguimientoAlumnoSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'SeguimientoAlumno', field: 'seguimientoAlumnoNro' }),
 
   // seguimientoAlumnoSchema.pre('save', function (this: ISeguimientoAlumno, next: any) {

@@ -2,7 +2,7 @@ import * as mongoose from "mongoose";
 import IAsignatura from "./comision.interface";
 import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from "../services/AutoincrementService";
+// import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const comisionSchema = new mongoose.Schema({
@@ -45,10 +45,10 @@ comisionSchema.plugin(mongoosePaginate);
 const comisionModel = mongoose.model("Comisione", comisionSchema);
 // comisionModel.paginate();
 // Hooks
-comisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: "comisionNro",
-  start_seq: 100,
-});
+// comisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
+//   inc_field: "comisionNro",
+//   start_seq: 100,
+// });
 // comisionSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Asignatura', field: 'comisionNro' });
 
 // comisionSchema.pre('save', function (this: IAsignatura, next: any) {

@@ -1,12 +1,12 @@
-import * as mongoose from "mongoose";
+import mongoose, { SequenceOptions, SequenceSchema } from "mongoose";
 import IProfesor from "./profesor.interface";
 import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from "../services/AutoincrementService";
-
-export const profesorSchema = new mongoose.Schema({
+// import AutoincrementService from "../services/AutoincrementService";
+import { autoIncrement } from "mongoose-plugin-autoinc";
+export const profesorSchema: SequenceSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
-  profesorNro: { type: Number },
+  profesorNro: { type: Number, unique: true, required: false },
   id_profesores: { type: Number, required: false }, // id se usa solo para migrar
   nombreCompleto: { type: String },
   telefono: { type: String },
@@ -18,19 +18,18 @@ export const profesorSchema = new mongoose.Schema({
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
-});
+}) as SequenceSchema;
 
 // Modelo
 profesorSchema.plugin(mongoosePaginate);
 // <IProfesor>
+profesorSchema.plugin(autoIncrement, {
+  model: "Profesore",
+  field: "profesorNro",
+});
 const profesorModel = mongoose.model("Profesore", profesorSchema);
 // Hooks
-profesorSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: "profesorNro",
-  start_seq: 100,
-});
 // profesorSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Profesor', field: 'profesorNro' });
-
 // profesorSchema.pre('save', function (this: IProfesor, next: any) {
 //   const now = new Date();
 //   if (!this.fechaCreacion) {
@@ -38,6 +37,13 @@ profesorSchema.plugin(AutoincrementService.getAutoIncrement(), {
 //   }
 //   next();
 // });
+// profesorSchema.plugin(autoIncrement.plugin, {
+//   model: "model",
+//   field: "field",
+//   startAt: 5000,
+//   incrementBy: 1,
+// });
+
 profesorSchema.pre("update", function (this: IProfesor, next: any) {
   const now = new Date();
   this.fechaModificacion = now;

@@ -2,7 +2,7 @@ import * as mongoose from "mongoose";
 import IAsistencia from "./asistencia.interface";
 import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from "../services/AutoincrementService";
+// import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const asistenciaSchema = new mongoose.Schema({
@@ -33,10 +33,10 @@ asistenciaSchema.plugin(mongoosePaginate);
 const asistenciaModel = mongoose.model("Asistencia", asistenciaSchema);
 // asistenciaModel.paginate();
 // Hooks
-asistenciaSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: "asistenciaNro",
-  start_seq: 100,
-});
+// asistenciaSchema.plugin(AutoincrementService.getAutoIncrement(), {
+//   inc_field: "asistenciaNro",
+//   start_seq: 100,
+// });
 // asistenciaSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Asistencia', field: 'asistenciaNro' });
 
 // asistenciaSchema.pre('save', function (this: IAsistencia, next: any) {

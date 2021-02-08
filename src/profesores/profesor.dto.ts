@@ -63,7 +63,7 @@ class CrearProfesorDto {
 
   @IsOptional()
   @IsDateString()
-  fechaCreacion: string;
+  fechaCreacion: Date;
   @IsDateString()
   @IsOptional()
   fechaModificacion?: string;

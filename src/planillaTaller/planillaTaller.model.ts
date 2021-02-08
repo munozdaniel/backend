@@ -2,7 +2,7 @@ import * as mongoose from "mongoose";
 import IPlanillaTaller from "./planillaTaller.interface";
 // import mongoosePaginate from "mongoose-paginate-v2";
 import aggregatePaginate from "mongoose-aggregate-paginate-v2";
-import AutoincrementService from "../services/AutoincrementService";
+// import AutoincrementService from "../services/AutoincrementService";
 
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 const Schema = mongoose.Schema;
@@ -50,10 +50,10 @@ const planillaTallerModel = mongoose.model(
 );
 // planillaTallerModel.paginate();
 // Hooks
-planillaTallerSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: "planillaTallerNro",
-  start_seq: 100,
-});
+// planillaTallerSchema.plugin(AutoincrementService.getAutoIncrement(), {
+//   inc_field: "planillaTallerNro",
+//   start_seq: 100,
+// });
 // planillaTallerSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'PlanillaTaller', field: 'planillaTallerNro' });
 
 // planillaTallerSchema.pre('save', function (this: IPlanillaTaller, next: any) {

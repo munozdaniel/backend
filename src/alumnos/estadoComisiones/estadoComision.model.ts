@@ -1,7 +1,7 @@
 import * as mongoose from "mongoose";
 import IEstadoComision from "./estadoComision.interface";
 import mongoosePaginate from "mongoose-paginate-v2";
-import AutoincrementService from "../../services/AutoincrementService";
+// import AutoincrementService from "../../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const estadoComisionSchema = new mongoose.Schema({
@@ -31,10 +31,10 @@ const estadoComisionModel = mongoose.model(
 );
 // estadoComisionModel.paginate();
 // Hooks
-estadoComisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: "estadoComisionNro",
-  start_seq: 100,
-});
+// estadoComisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
+//   inc_field: "estadoComisionNro",
+//   start_seq: 100,
+// });
 
 // estadoComisionSchema.pre('save', function (this: IEstadoComision, next: any) {
 //   const now = new Date();

@@ -2,7 +2,7 @@ import * as mongoose from "mongoose";
 import ITema from "./tema.interface";
 import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
-import AutoincrementService from "../services/AutoincrementService";
+// import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const temaSchema = new mongoose.Schema({
@@ -32,10 +32,10 @@ temaSchema.plugin(mongoosePaginate);
 const temaModel = mongoose.model("Tema", temaSchema);
 // temaModel.paginate();
 // Hooks
-temaSchema.plugin(AutoincrementService.getAutoIncrement(), {
-  inc_field: "temaNro",
-  start_seq: 100,
-});
+// temaSchema.plugin(AutoincrementService.getAutoIncrement(), {
+//   inc_field: "temaNro",
+//   start_seq: 100,
+// });
 // temaSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Tema', field: 'temaNro' });
 
 // temaSchema.pre('save', function (this: ITema, next: any) {

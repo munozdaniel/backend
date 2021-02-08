@@ -6,6 +6,7 @@ import Controller from "./interfaces/controller.interface";
 import errorMiddleware from "./middleware/error.middleware";
 import cors from "cors";
 import path from "path";
+
 const methodOverride = require("method-override");
 // Config
 const config = require("./utils/server/config");
@@ -73,23 +74,34 @@ class App {
     });
   }
 
-  private connectToTheDatabase() {
+  private async connectToTheDatabase() {
     const { MONGO_USER, MONGO_PASSWORD, MONGO_PATH } = process.env;
 
     // var url = 'mongodb://propet:propet321@localhost:27017/escuela';
     const url = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`;
     console.log("CADENA", url);
     try {
-      mongoose.connect(url, {
-        //  mongoose.connect('mongodb://127.0.0.1:27017/propet', {
-        useUnifiedTopology: true,
-        useNewUrlParser: true,
-        useFindAndModify: false,
-        useCreateIndex: true,
-        // user: `${MONGO_USER}`, // IMPORTANT TO HAVE IT HERE AND NOT IN CONNECTION STRING
-        // pass: `${MONGO_PASSWORD}`, // IMPORTANT TO HAVE IT HERE AND NOT IN CONNECTION STRING
-        // dbName: 'database-name', // IMPORTANT TO HAVE IT HERE AND NOT IN CONNECTION STRING
-      });
+      await mongoose
+        .connect(url, {
+          //  mongoose.connect('mongodb://127.0.0.1:27017/propet', {
+          useUnifiedTopology: true,
+          useNewUrlParser: true,
+          useFindAndModify: false,
+          useCreateIndex: true,
+          // user: `${MONGO_USER}`, // IMPORTANT TO HAVE IT HERE AND NOT IN CONNECTION STRING
+          // pass: `${MONGO_PASSWORD}`, // IMPORTANT TO HAVE IT HERE AND NOT IN CONNECTION STRING
+          // dbName: 'database-name', // IMPORTANT TO HAVE IT HERE AND NOT IN CONNECTION STRING
+        })
+        .then(() => {
+          console.log("Database connected.");
+        })
+        .catch((err) => {
+          console.log(
+            "MongoDB connection error. Please make sure MongoDB is running.\n" +
+              err
+          );
+          process.exit(1);
+        });
       // mongoose.connection.readyState => 0: disconnected - 1: connected - 2: connecting - 3: disconnecting
       console.log(mongoose.connection.readyState);
 
