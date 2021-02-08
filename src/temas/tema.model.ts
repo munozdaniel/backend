@@ -1,15 +1,14 @@
-import * as mongoose from "mongoose";
-import ITema from "./tema.interface";
-import mongoosePaginate from "mongoose-paginate-v2";
-// import AutoincrementFieldService from '../services/AutoincrementFieldService';
-// import AutoincrementService from "../services/AutoincrementService";
+import * as mongoose from 'mongoose';
+import ITema from './tema.interface';
+import mongoosePaginate from 'mongoose-paginate-v2';
 const Schema = mongoose.Schema;
+import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 export const temaSchema = new mongoose.Schema({
-  temaNro: Number,
+  temaNro: { type: Number, unique: true, required: false },
   planillaTaller: {
     type: Schema.Types.ObjectId,
-    ref: "PlanillaTallere",
+    ref: 'PlanillaTallere',
     required: true,
   },
   fecha: { type: Date },
@@ -29,7 +28,11 @@ export const temaSchema = new mongoose.Schema({
 // Modelo
 temaSchema.plugin(mongoosePaginate);
 // <ITema>
-const temaModel = mongoose.model("Tema", temaSchema);
+temaSchema.plugin(autoIncrement, {
+  model: 'Tema',
+  field: 'temaNro',
+});
+const temaModel = mongoose.model('Tema', temaSchema);
 // temaModel.paginate();
 // Hooks
 // temaSchema.plugin(AutoincrementService.getAutoIncrement(), {
@@ -45,7 +48,7 @@ const temaModel = mongoose.model("Tema", temaSchema);
 //   }
 //   next();
 // });
-temaSchema.pre("update", function (this: ITema, next: any) {
+temaSchema.pre('update', function (this: ITema, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();

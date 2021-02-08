@@ -5,7 +5,7 @@ import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 export const asignaturaSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
-  asignaturaNro: { type: Number },
+  asignaturaNro: { type: Number, unique: true, required: false },
   IdAsignarutas: { type: Number, required: false }, // id se usa solo para migrar
   detalle: { type: String, required: true },
   tipoAsignatura: { type: String, required: true },
