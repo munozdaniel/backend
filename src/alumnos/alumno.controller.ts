@@ -277,7 +277,7 @@ class AlumnoController implements Controller {
           const retorno: any = {
             estadoComisiones: estadoComisiones,
             alumnoId: x.id_alumno,
-            alumnoNro: index + 100,
+            // alumnoNro: index + 100,
             adultos,
             dni: dniMod ? dniMod : 'SIN REGISTRAR',
             tipoDni: tipoDniMod,
