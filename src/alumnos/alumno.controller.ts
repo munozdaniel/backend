@@ -56,16 +56,13 @@ class AlumnoController implements Controller {
     try {
       let { cicloLectivo, division, curso } = request.body;
       console.log('cicloLectivo, division, curso', cicloLectivo, division, curso);
-      cicloLectivo = 2019;
-      division = 3;
-      curso = 1;
+
       const opciones = [
-        // { $match: { _id: ObjectId("60175c184700d11d1c6f3192") } },
-        { $unwind: '$estadoComisiones' },
+        // { $unwind: '$estadoComisiones' },
         {
           $lookup: {
-            from: 'comisiones',
-            localField: 'estadoComisiones.comision',
+            from: 'estadocomisiones',
+            localField: 'estadoComisiones',
             foreignField: '_id',
             as: 'eComisiones',
           },
@@ -77,9 +74,26 @@ class AlumnoController implements Controller {
           },
         },
         {
-          $match: {
-            $and: [{ 'eComisiones.cicloLectivo': 2019 }, { 'eComisiones.curso': 1 }, { 'eComisiones.division': 5 }],
+          $lookup: {
+            from: 'comisiones',
+            localField: 'eComisiones.comision',
+            foreignField: '_id',
+            as: 'comisiones',
           },
+        },
+        {
+          $unwind: {
+            path: '$comisiones',
+            // preserveNullAndEmptyArrays: false,
+          },
+        },
+        // { $match: { 'eComisiones._id': ObjectId('6021bc2361109b26bc504b27') } },
+
+        {
+          $match: {
+            $and: [{ 'comisiones.cicloLectivo': cicloLectivo }, { 'comisiones.curso': curso }, { 'comisiones.division': division }],
+          },
+          //
         },
       ];
       const alumnos = await this.alumno.aggregate(opciones);
