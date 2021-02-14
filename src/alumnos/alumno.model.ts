@@ -10,13 +10,14 @@ export const alumnoSchema = new mongoose.Schema({
   adultos: [adultoSchema],
   // estadoComisiones: [estadoComisionSchema],
   // comisiones:[comisionSchema],
-  estadoComisiones: [
+  estadoCursadas: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'EstadoComisione',
+      ref: 'EstadoCursada',
       required: false,
     },
   ],
+  legajo: { type: String, required: true },
   alumnoId: { type: Number, required: false },
   dni: { type: String, required: false }, // Para migrar sin required
   tipoDni: { type: String, default: 'DNI', uppercase: true },

@@ -11,18 +11,23 @@ import { IQueryAlumnoPag } from '../utils/interfaces/iQueryAlumnoPag';
 import escapeStringRegexp from 'escape-string-regexp';
 import IAlumno from './alumno.interface';
 import alumnoOriginalModel from './alumnoOriginal.model';
-import comisionModel from '../comisiones/comision.model';
 import comisionesOriginalModel from '../comisiones/comisionOriginal.model';
-import estadoComisionModel from './estadoComisiones/estadoComision.model';
+import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
+import cursoModel from '../cursos/curso.model';
+import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
+import estadoCursadaModel from './estadoCursada/estadoCursada.model';
+import ConnectionService from '../services/Connection';
+import ICurso from 'cursos/curso.interface';
 const ObjectId = require('mongoose').Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
   public router = Router();
   private alumno = alumnoModel;
   private alumnoOriginal = alumnoOriginalModel;
-  private comision = comisionModel;
-  private estadoComision = estadoComisionModel;
+  private curso = cursoModel;
+  private estadoCursada = estadoCursadaModel;
   private comisionOriginal = comisionesOriginalModel;
+  private ciclolectivo = ciclolectivoModel;
 
   constructor() {
     this.initializeRoutes();
@@ -149,19 +154,52 @@ class AlumnoController implements Controller {
     }
   };
 
+  private actualizarInsertarCurso = async () => {};
+  private insertarEstadoCursada = async () => {};
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const arregloNoInsertados = [];
+
+      await ConnectionService.getConnection()
+        .db.listCollections({ name: 'alumnos' })
+        .next((err: any, collinfo: any) => {
+          console.log('collinfo1', collinfo);
+          if (collinfo) {
+            // The collection exists
+            alumnoModel.collection.drop();
+          }
+        });
+      await ConnectionService.getConnection()
+        .db.listCollections({ name: 'estadoCursadas' })
+        .next((err: any, collinfo: any) => {
+          console.log('collinfo2', collinfo);
+          if (collinfo) {
+            // The collection exists
+            console.log('collinfo2');
+            estadoCursadaModel.collection.drop();
+          }
+        });
+      await ConnectionService.getConnection()
+        .db.listCollections({ name: 'cursos' })
+        .next((err: any, collinfo: any) => {
+          console.log('collinfo3', collinfo);
+          if (collinfo) {
+            // The collection exists
+            cursoModel.collection.drop();
+          }
+        });
       const alumnos: any = await this.alumnoOriginal.find();
+      const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
       // {},
       // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
 
       // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
-      // console.log(
-      //   'alumnos',
-      //   alumnos[100].dni,
-      //   alumnos[100].telefonos,
-      //   alumnos[100].procedencia_colegio_primario
-      // );
+      console.log(
+        'alumnos',
+        alumnos
+        //   alumnos[100].telefonos,
+        //   alumnos[100].procedencia_colegio_primario
+      );
       console.log('Datos', alumnos.length);
 
       // console.log(
@@ -243,54 +281,65 @@ class AlumnoController implements Controller {
           // if (!dniMod) {
           //   console.log('dniMod', x);
           // }
-          let estadoComisiones: any = [];
+          let estadoCursadas: any = [];
           try {
-            // busco la comision migrada
-            // inserto esa comision y la condicion
+            //  Recorro las comisiones originales
             const comisionesOriginales = await this.comisionOriginal.find({
               id_alumnos: x.id_alumno,
             });
-            estadoComisiones = await Promise.all(
+            estadoCursadas = await Promise.all(
               comisionesOriginales.map(async (x, index2) => {
-                // Crear comision
-                const comisionData = {
-                  comisionNro: 100 + index2,
-                  division: x.Division,
-                  comision: x.comision,
-                  curso: x.Tcurso,
-                  cicloLectivo: x.ciclo_lectivo,
-                  fechaCreacion: new Date(),
-                  activo: true,
-                };
-                const createdComision = new this.comision({
-                  ...comisionData,
-                  // author: request.user ? request.user._id : null,
-                });
-                const savedComision = await createdComision.save();
+                // Por cada comision buscar si existe el curso por comision, curso, division
+                try {
+                  const nuevoCiclo: ICicloLectivo = ciclosLectivos.find((c: ICicloLectivo) => Number(c.anio) === Number(x.ciclo_lectivo));
+                  if (x) {
+                    const savedCurso = await this.curso.findOneAndUpdate(
+                      {
+                        division: x.Division,
+                        comision: x.comision ? x.comision : '',
+                        curso: x.Tcurso,
+                      },
+                      {
+                        $set: { fechaCreacion: new Date(), activo: true },
+                        $addToSet: { cicloLectivo: nuevoCiclo },
+                        // $push: { cicloLectivo: nuevoCiclo },
+                      },
+                      { new: true, upsert: true, setDefaultsOnInsert: true }
+                      // (err: any, doc: ICurso, res: any) => {
+                      //   console.log('err: any, doc: ICurso, res: any', err, doc, res);
+                      // }
+                    );
+                    console.log('savedCurso', savedCurso.cicloLectivo);
+                    // crear estadocomision
+                    const createdEstadoCursada = new this.estadoCursada({
+                      estadoCursadaNro: 100 + index2,
+                      curso: {
+                        ...savedCurso,
+                        comision: savedCurso.comision ? savedCurso.comision : 'SIN REGISTRAR',
+                      },
+                      condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
 
-                // crear estadocomision
-                const createdEstadoComision = new this.estadoComision({
-                  estadoComisionNro: 100 + index2,
-                  comision: {
-                    ...savedComision,
-                    comision: savedComision.comision ? savedComision.comision : 'SIN REGISTRAR',
-                  },
-                  condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
-
-                  fechaCreacion: new Date(),
-                  activo: true,
-                });
-                const savedEstadoComision = await createdEstadoComision.save();
-
-                return savedEstadoComision;
+                      fechaCreacion: new Date(),
+                      activo: true,
+                    });
+                    const savedEstadoComision = await createdEstadoCursada.save();
+                    return savedEstadoComision;
+                  }
+                } catch (errorUp) {
+                  // console.log('errorUp', errorUp);
+                }
               })
             );
           } catch (ero) {
-            console.log('ero', ero);
+            // console.log('ero', ero.errmsg);
+            if (!ero.errmsg) {
+              // console.log('ero', ero);
+            }
           }
           const retorno: any = {
-            estadoComisiones: estadoComisiones,
+            estadoCursadas: estadoCursadas,
             alumnoId: x.id_alumno,
+            legajo: x.id_alumno,
             // alumnoNro: index + 100,
             adultos,
             dni: dniMod ? dniMod : 'SIN REGISTRAR',

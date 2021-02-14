@@ -1,14 +1,14 @@
 import * as mongoose from "mongoose";
-import IEstadoComision from "./estadoComision.interface";
+import IEstadoCursada from "./estadoCursada.interface";
 import mongoosePaginate from "mongoose-paginate-v2";
 // import AutoincrementService from "../../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
-export const estadoComisionSchema = new mongoose.Schema({
-  estadoComisionNro: { type: Number, default: 100, required: true },
-  comision: {
+export const estadoCursadaSchema = new mongoose.Schema({
+  estadoCursadaNro: { type: Number, default: 100, required: true },
+  curso: {
     type: Schema.Types.ObjectId,
-    ref: "Comision",
+    ref: "Curso",
     required: true,
   },
   condicion: {
@@ -23,29 +23,29 @@ export const estadoComisionSchema = new mongoose.Schema({
 });
 
 // Modelo
-estadoComisionSchema.plugin(mongoosePaginate);
-// <IEstadoComision>
-const estadoComisionModel = mongoose.model(
-  "EstadoComisione",
-  estadoComisionSchema
+estadoCursadaSchema.plugin(mongoosePaginate);
+// <IEstadoCursada>
+const estadoCursadaModel = mongoose.model(
+  "EstadoCursada",
+  estadoCursadaSchema
 );
-// estadoComisionModel.paginate();
+// estadoCursadaModel.paginate();
 // Hooks
-// estadoComisionSchema.plugin(AutoincrementService.getAutoIncrement(), {
-//   inc_field: "estadoComisionNro",
+// estadoCursadaSchema.plugin(AutoincrementService.getAutoIncrement(), {
+//   inc_field: "estadoCursadaNro",
 //   start_seq: 100,
 // });
 
-// estadoComisionSchema.pre('save', function (this: IEstadoComision, next: any) {
+// estadoCursadaSchema.pre('save', function (this: IEstadoCursada, next: any) {
 //   const now = new Date();
 //   if (!this.fechaCreacion) {
 //     this.fechaCreacion = now;
 //   }
 //   next();
 // });
-estadoComisionSchema.pre("update", function (this: IEstadoComision, next: any) {
+estadoCursadaSchema.pre("update", function (this: IEstadoCursada, next: any) {
   const now = new Date();
   this.fechaModificacion = now;
   next();
 });
-export default estadoComisionModel;
+export default estadoCursadaModel;
