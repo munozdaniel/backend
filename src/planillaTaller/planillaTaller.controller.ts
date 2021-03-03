@@ -395,12 +395,8 @@ class PlanillaTallerController implements Controller {
 
       try {
         const filtrados = planillasTalleresRefactorizados.filter((x) => {
-          if (x && !x.curso) {
-            console.log('x.sincurso', x);
-          }
           return x !== null && typeof x !== 'undefined';
         });
-        console.log('FIN=============================', planillasTalleresRefactorizados.length, filtrados.length);
         const savedPlanillaTallers = await this.planillaTaller.insertMany(filtrados);
         response.send({
           savedPlanillaTallers,
