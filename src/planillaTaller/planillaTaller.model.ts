@@ -17,9 +17,9 @@ export const planillaTallerSchema = new mongoose.Schema({
     ref: 'Profesore',
     required: false,
   },
-  comision: {
+  curso: {
     type: Schema.Types.ObjectId,
-    ref: 'Comisione',
+    ref: 'Curso',
     required: true,
   },
   planillaTallerId: { type: Number, required: false }, // solo par a migrar

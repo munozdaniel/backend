@@ -66,7 +66,7 @@ class AlumnoController implements Controller {
         // { $unwind: '$estadoComisiones' },
         {
           $lookup: {
-            from: 'estadocomisiones',
+            from: 'estadocursadas',
             localField: 'estadoComisiones',
             foreignField: '_id',
             as: 'eComisiones',

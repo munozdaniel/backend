@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose';
 import IAsignatura from './asignatura.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import { autoIncrement } from 'mongoose-plugin-autoinc';
+const Schema = mongoose.Schema;
 
 export const asignaturaSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
@@ -9,9 +10,16 @@ export const asignaturaSchema = new mongoose.Schema({
   IdAsignarutas: { type: Number, required: false }, // id se usa solo para migrar
   detalle: { type: String, required: true },
   tipoAsignatura: { type: String, required: true },
-  tipoCiclo: { type: String, required: true },
+  tipoCiclo: { type: String, required: true }, // 1° BIMESTRE
   tipoFormacion: { type: String, required: true },
-  curso: { type: Number, required: true },
+  // curso: { type: Number, required: true },
+  cursos: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Curso',
+      required: true,
+    },
+  ],
   meses: { type: Number, required: true },
   horasCatedraAnuales: { type: Number, required: true },
   horasCatedraSemanales: { type: Number, required: true },
