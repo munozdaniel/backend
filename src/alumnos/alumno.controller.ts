@@ -189,7 +189,7 @@ class AlumnoController implements Controller {
           }
         });
       const alumnos: any = await this.alumnoOriginal.find();
-      const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
+      // const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
       // {},
       // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
 
@@ -287,21 +287,26 @@ class AlumnoController implements Controller {
             const comisionesOriginales = await this.comisionOriginal.find({
               id_alumnos: x.id_alumno,
             });
+            if (comisionesOriginales.length < 1) {
+              // TODO: estos no deberian venir en 0. Chequear migracion
+              console.log(x.id_alumno, 'comisionesOriginales', comisionesOriginales.length);
+            }
             estadoCursadas = await Promise.all(
               comisionesOriginales.map(async (x, index2) => {
                 // Por cada comision buscar si existe el curso por comision, curso, division
                 try {
-                  const nuevoCiclo: ICicloLectivo = ciclosLectivos.find((c: ICicloLectivo) => Number(c.anio) === Number(x.ciclo_lectivo));
+                  // const nuevoCiclo: ICicloLectivo = ciclosLectivos.find((c: ICicloLectivo) => Number(c.anio) === Number(x.ciclo_lectivo));
                   if (x) {
                     const savedCurso = await this.curso.findOneAndUpdate(
                       {
                         division: x.Division,
                         comision: x.comision ? x.comision : '',
                         curso: x.Tcurso,
+                        cicloLectivo: x.ciclo_lectivo,
                       },
                       {
                         $set: { fechaCreacion: new Date(), activo: true },
-                        $addToSet: { cicloLectivo: nuevoCiclo },
+                        // $addToSet: { cicloLectivo: x.ciclo_lectivo },
                         // $push: { cicloLectivo: nuevoCiclo },
                       },
                       { new: true, upsert: true, setDefaultsOnInsert: true }
@@ -309,8 +314,7 @@ class AlumnoController implements Controller {
                       //   console.log('err: any, doc: ICurso, res: any', err, doc, res);
                       // }
                     );
-                    console.log('savedCurso', savedCurso.cicloLectivo);
-                    // crear estadocomision
+                    // crear estadocursada
                     const createdEstadoCursada = new this.estadoCursada({
                       estadoCursadaNro: 100 + index2,
                       curso: {
@@ -322,11 +326,17 @@ class AlumnoController implements Controller {
                       fechaCreacion: new Date(),
                       activo: true,
                     });
-                    const savedEstadoComision = await createdEstadoCursada.save();
-                    return savedEstadoComision;
+                    try {
+                      const savedEstadoComision = await createdEstadoCursada.save();
+                      return savedEstadoComision;
+                    } catch (e4) {
+                      console.log('e4, ', e4);
+                    }
+                  } else {
+                    console.log('CXX, ', x);
                   }
                 } catch (errorUp) {
-                  // console.log('errorUp', errorUp);
+                  console.log('errorUp', errorUp);
                 }
               })
             );

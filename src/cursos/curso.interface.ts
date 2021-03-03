@@ -7,7 +7,8 @@ interface ICurso extends mongoose.Document {
   curso: number;
   comision: string;
   alumnoId?: string;
-  cicloLectivo: ICicloLectivo[];
+  cicloLectivo:number;
+  // cicloLectivo: ICicloLectivo[];
   division: number;
   // condicion:string;
 

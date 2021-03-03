@@ -1,15 +1,8 @@
-import IAsignatura from "../asignaturas/asignatura.interface";
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsDateString,
-  MaxLength,
-  MinLength,
-  ValidateNested,
-} from "class-validator";
-import IComision from "../comisiones/comision.interface";
-import IProfesor from "../profesores/profesor.interface";
+import IAsignatura from '../asignaturas/asignatura.interface';
+import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, ValidateNested } from 'class-validator';
+import IComision from '../comisiones/comision.interface';
+import IProfesor from '../profesores/profesor.interface';
+import ICurso from '../cursos/curso.interface';
 
 class CrearPlanillaTallerDto {
   @ValidateNested()
@@ -17,28 +10,27 @@ class CrearPlanillaTallerDto {
   @ValidateNested()
   profesorId: IProfesor;
   @ValidateNested()
-  comision: IComision;
+  curso: ICurso;
   @IsDateString()
   fechaInicio: Date;
   @IsDateString()
   fechaFinalizacion: Date;
-  @IsString({ message: "La observación no ha sido ingresado" })
+  @IsString({ message: 'La observación no ha sido ingresado' })
   @MinLength(7, {
-    message: "La observación es muy corto",
+    message: 'La observación es muy corto',
   })
   @MaxLength(100, {
-    message: "La observación no puede superar los 100 caracteres",
+    message: 'La observación no puede superar los 100 caracteres',
   })
   observacion: string;
-  @IsString({ message: "El bimestre no ha sido ingresado" })
+  @IsString({ message: 'El bimestre no ha sido ingresado' })
   @MinLength(4, {
-    message: "El bimestre es muy corto",
+    message: 'El bimestre es muy corto',
   })
   @MaxLength(100, {
-    message: "El bimestre no puede superar los 100 caracteres",
+    message: 'El bimestre no puede superar los 100 caracteres',
   })
   bimestre: string;
-
 
   @IsOptional()
   @IsDateString()

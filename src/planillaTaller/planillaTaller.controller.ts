@@ -1,10 +1,7 @@
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
-import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
-import CreatePlanillaTallerDto from './planillaTaller.dto';
-import PlanillaTaller from './planillaTaller.interface';
 import planillaTallerModel from './planillaTaller.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import IPlanillaTaller from './planillaTaller.interface';
@@ -12,10 +9,10 @@ import planillaTallerOriginalModel from './planillaTallerOriginal.model';
 import alumnoModel from '../alumnos/alumno.model';
 import asignaturaModel from '../asignaturas/asignatura.model';
 import profesorModel from '../profesores/profesor.model';
-import comisionModel from '../comisiones/comision.model';
-import CrearComisionDto from '../comisiones/comision.dto';
 import { IQueryPaginator } from '../utils/interfaces/iQueryPaginator';
 import CrearPlanillaTallerDto from './planillaTaller.dto';
+import cursoModel from '../cursos/curso.model';
+import CrearCursoDto from '../cursos/curso.dto';
 class PlanillaTallerController implements Controller {
   public path = '/planilla-taller';
   public router = Router();
@@ -23,7 +20,7 @@ class PlanillaTallerController implements Controller {
   private asignatura = asignaturaModel;
   private profesor = profesorModel;
   private planillaTallerOriginal = planillaTallerOriginalModel;
-  private comision = comisionModel;
+  private curso = cursoModel;
   private alumno = alumnoModel;
 
   constructor() {
@@ -35,6 +32,7 @@ class PlanillaTallerController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrarPlanillaTalleres);
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/paginar`, this.paginar);
+    this.router.get(`${this.path}/ciclo/:ciclo`, this.obtenerPlanillaTalleresPorCiclo);
     this.router.put(`${this.path}`, this.agregar);
   }
   private test = async (request: Request, response: Response, next: NextFunction) => {
@@ -58,6 +56,70 @@ class PlanillaTallerController implements Controller {
     } catch (e) {
       console.log('[ERROR]', e);
       next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+  private obtenerPlanillaTalleresPorCiclo = async (request: Request, response: Response, next: NextFunction) => {
+    const ciclo = request.params.ciclo;
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'curso',
+          foreignField: '_id',
+          as: 'curso',
+        },
+      },
+      { $unwind: '$curso' },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'curso.cicloLectivo',
+          foreignField: '_id',
+          as: 'curso.cicloLectivo',
+        },
+      },
+      { $unwind: '$curso.cicloLectivo' },
+      // {
+      //   $group: {
+      //     _id: "$_id",
+      //     root: { $mergeObjects: "$$ROOT" },
+      //     productosCarrito: { $push: "$productosCarrito" },
+      //   },
+      // },
+      // {
+      //   $replaceRoot: {
+      //     newRoot: {
+      //       $mergeObjects: ["$root", "$$ROOT"],
+      //     },
+      //   },
+      // },
+
+      {
+        $project: {
+          root: 0,
+        },
+      },
+      {
+        $match: { 'curso.cicloLectivo': 2019 },
+      },
+      // {
+      //   $project: {
+      //     _id: 1,
+      //     precioTotal: { $sum: "$productosCarrito.subtotal" },
+      //     productosCarrito: 1,
+      //     usuarioId: 1,
+      //   },
+      // },
+      { $sort: { _id: -1 } },
+    ];
+    const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
+    console.log('planillaTallerAggregate', planillaTallerAggregate);
+    const planillaTaller = planillaTallerAggregate && planillaTallerAggregate.length > 0 ? planillaTallerAggregate[0] : null;
+    console.log('planillaTaller', planillaTaller);
+    if (!planillaTaller) {
+      response.send(planillaTaller);
+    } else {
+      response.send(planillaTaller);
     }
   };
   private paginar = async (request: Request, response: Response, next: NextFunction) => {
@@ -254,17 +316,33 @@ class PlanillaTallerController implements Controller {
           } catch (ero) {
             console.log('ero2', ero);
           }
-          let unaComision: any = null;
-          unaComision = await this.comision.findOne({
-            division: x.division,
-            comision: x.comision,
-            curso: x.Tcurso,
-            cicloLectivo: x.ciclo_lectivo,
-          });
-          if (!unaComision) {
+          const opciones: any = [
+            {
+              $lookup: {
+                from: 'ciclolectivos',
+                localField: 'cicloLectivo',
+                foreignField: '_id',
+                as: 'cicloLectivo',
+              },
+            },
+            { $unwind: '$cicloLectivo' },
+            {
+              $match: { division: x.division, comision: x.comision, curso: x.Tcurso, cicloLectivo: x.ciclo_lectivo },
+            },
+          ];
+          const cursoAggregate = await this.curso.aggregate(opciones);
+          // console.log('cursoAggregate', cursoAggregate);
+          let unCurso = cursoAggregate && cursoAggregate.length > 0 ? cursoAggregate[0] : null;
+          // unCurso = await this.curso.findOne({
+          //   division: x.division,
+          //   comision: x.comision,
+          //   curso: x.Tcurso,
+          //   cicloLectivo: x.ciclo_lectivo,
+          // });
+          if (!unCurso) {
             if (x.comision && x.comision.length > 0 && x.ciclo_lectivo !== 0 && x.ciclo_lectivo !== 20) {
               try {
-                const comisionData: CrearComisionDto = {
+                const cursoData: CrearCursoDto = {
                   division: x.division,
                   comision: x.comision,
                   curso: x.Tcurso,
@@ -272,17 +350,16 @@ class PlanillaTallerController implements Controller {
                   activo: true,
                   fechaCreacion: new Date().toString(),
                 };
-                const created = new this.comision({
-                  ...comisionData,
+                const created = new this.curso({
+                  ...cursoData,
                   // author: request.user ? request.user._id : null,
                 });
-                unaComision = await created.save();
-                console.log('unaComision save', unaComision);
+                unCurso = await created.save();
               } catch (ero) {
                 console.log('ero4', ero);
               }
             } else {
-              // registros que no van a ser guardados
+              // registros que no van a ser guardados porque no tienen todos lso registros cargados correctamente
               console.log('Estas son las comisiones que no estan bien cargadas y que no puedo encontrar', x);
 
               return null;
@@ -291,13 +368,13 @@ class PlanillaTallerController implements Controller {
             // console.log("unaComision findone", unaComision);
           }
 
-          // console.log('unaComision', unaComision);
+          // console.log('unCurso', unCurso);
           const unaPlanillaTaller: IPlanillaTaller & any = {
             planillaTallerNro: 100 + index,
             planillaTallerId: x.id_planilla_de_taller,
             asignatura: asig,
             profesor: prof,
-            comision: unaComision,
+            curso: unCurso,
 
             // curso: x.Tcurso,
             // division: x.division,
@@ -317,7 +394,12 @@ class PlanillaTallerController implements Controller {
       );
 
       try {
-        const filtrados = planillasTalleresRefactorizados.filter((x) => x !== null && typeof x !== 'undefined');
+        const filtrados = planillasTalleresRefactorizados.filter((x) => {
+          if (x && !x.curso) {
+            console.log('x.sincurso', x);
+          }
+          return x !== null && typeof x !== 'undefined';
+        });
         console.log('FIN=============================', planillasTalleresRefactorizados.length, filtrados.length);
         const savedPlanillaTallers = await this.planillaTaller.insertMany(filtrados);
         response.send({
