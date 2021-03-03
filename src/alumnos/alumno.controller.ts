@@ -36,6 +36,8 @@ class AlumnoController implements Controller {
   private initializeRoutes() {
     console.log('AlumnoController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.get(`${this.path}/todos`, this.obtenerTodos);
+    this.router.get(`${this.path}/eliminar-coleccion`, this.eliminarColeccion);
     this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
     // this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
     this.router.post(`${this.path}/ficha`, this.getFichaAlumnos);
@@ -138,6 +140,11 @@ class AlumnoController implements Controller {
 
     response.send(alumnos);
   };
+  private obtenerTodos = async (request: Request, response: Response) => {
+    const alumnos = await this.alumno.find().sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
+
+    response.send(alumnos);
+  };
   private obtenerAlumnoPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
@@ -156,40 +163,44 @@ class AlumnoController implements Controller {
 
   private actualizarInsertarCurso = async () => {};
   private insertarEstadoCursada = async () => {};
+
+  private eliminarColeccion = async (request: Request, response: Response, next: NextFunction) => {
+    await ConnectionService.getConnection()
+      .db.listCollections({ name: 'alumnos' })
+      .next((err: any, collinfo: any) => {
+        console.log('collinfo1', collinfo);
+        if (collinfo) {
+          // The collection exists
+          alumnoModel.collection.drop();
+        }
+      });
+    await ConnectionService.getConnection()
+      .db.listCollections({ name: 'estadoCursadas' })
+      .next((err: any, collinfo: any) => {
+        console.log('collinfo2', collinfo);
+        if (collinfo) {
+          // The collection exists
+          console.log('collinfo2');
+          estadoCursadaModel.collection.drop();
+        }
+      });
+    await ConnectionService.getConnection()
+      .db.listCollections({ name: 'cursos' })
+      .next((err: any, collinfo: any) => {
+        console.log('collinfo3', collinfo);
+        if (collinfo) {
+          // The collection exists
+          cursoModel.collection.drop();
+        }
+      });
+    response.send('Colecciones eliminadas');
+  };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const arregloNoInsertados = [];
 
-      await ConnectionService.getConnection()
-        .db.listCollections({ name: 'alumnos' })
-        .next((err: any, collinfo: any) => {
-          console.log('collinfo1', collinfo);
-          if (collinfo) {
-            // The collection exists
-            alumnoModel.collection.drop();
-          }
-        });
-      await ConnectionService.getConnection()
-        .db.listCollections({ name: 'estadoCursadas' })
-        .next((err: any, collinfo: any) => {
-          console.log('collinfo2', collinfo);
-          if (collinfo) {
-            // The collection exists
-            console.log('collinfo2');
-            estadoCursadaModel.collection.drop();
-          }
-        });
-      await ConnectionService.getConnection()
-        .db.listCollections({ name: 'cursos' })
-        .next((err: any, collinfo: any) => {
-          console.log('collinfo3', collinfo);
-          if (collinfo) {
-            // The collection exists
-            cursoModel.collection.drop();
-          }
-        });
       const alumnos: any = await this.alumnoOriginal.find();
-      // const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
+      const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
       // {},
       // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
 
@@ -295,18 +306,18 @@ class AlumnoController implements Controller {
               comisionesOriginales.map(async (x, index2) => {
                 // Por cada comision buscar si existe el curso por comision, curso, division
                 try {
-                  // const nuevoCiclo: ICicloLectivo = ciclosLectivos.find((c: ICicloLectivo) => Number(c.anio) === Number(x.ciclo_lectivo));
+                  const nuevoCiclo: ICicloLectivo = ciclosLectivos.find((c: ICicloLectivo) => Number(c.anio) === Number(x.ciclo_lectivo));
                   if (x) {
                     const savedCurso = await this.curso.findOneAndUpdate(
                       {
                         division: x.Division,
                         comision: x.comision ? x.comision : '',
                         curso: x.Tcurso,
-                        cicloLectivo: x.ciclo_lectivo,
+                        // cicloLectivo: x.ciclo_lectivo,
                       },
                       {
                         $set: { fechaCreacion: new Date(), activo: true },
-                        // $addToSet: { cicloLectivo: x.ciclo_lectivo },
+                        $addToSet: { cicloLectivo: nuevoCiclo },
                         // $push: { cicloLectivo: nuevoCiclo },
                       },
                       { new: true, upsert: true, setDefaultsOnInsert: true }

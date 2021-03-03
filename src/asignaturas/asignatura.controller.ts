@@ -9,9 +9,11 @@ import asignaturaModel from './asignatura.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import IAsignatura from './asignatura.interface';
 import asignaturaOriginalModel from './asignaturaOriginal.model';
+import cursoModel from '../cursos/curso.model';
 class AsignaturaController implements Controller {
   public path = '/asignaturas';
   public router = Router();
+  private curso = cursoModel;
   private asignatura = asignaturaModel;
   private asignaturaOriginal = asignaturaOriginalModel;
 
@@ -104,42 +106,31 @@ class AsignaturaController implements Controller {
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const asignaturas: any = await this.asignaturaOriginal.find();
-      console.log('asignaturas', asignaturas);
-      // {},
-      // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
 
-      // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
-      // console.log(
-      //   'asignaturas',
-      //   asignaturas[100].dni,
-      //   asignaturas[100].telefonos,
-      //   asignaturas[100].procedencia_colegio_primario
-      // );
+      const asignaturasRefactorizados: IAsignatura[] = await Promise.all(
+        asignaturas.map(async (x: any, index: number) => {
+          // const cursos = await this.curso.find({ curso: Number(x.Tcurso) });
+          // console.log('cursos', cursos);
+          const unaAsignatura: IAsignatura & any = {
+            // _id: x._id,
+            // asignaturaNro: 100 + index,
+            detalle: x.DetalleAsignatura,
+            tipoAsignatura: x.TipoAsignatura,
+            tipoCiclo: x.TipoCiclo.toUpperCase(),
+            tipoFormacion: x.Tipodeformacion,
+            curso: Number(x.Tcurso),
+            meses: Number(x.Meses),
+            horasCatedraAnuales: x.HorasCatedraAnuales ? x.HorasCatedraAnuales : 0,
+            horasCatedraSemanales: x.HorasCatedraSemanales ? x.HorasCatedraSemanales : 0,
 
-      // console.log(
-      //   'asignaturas2',asignaturas,
+            fechaCreacion: new Date(),
+            activo: true,
+            IdAsignarutas: x.IdAsignarutas,
+          };
 
-      // );
-      const asignaturasRefactorizados: IAsignatura[] = asignaturas.map((x: any, index: number) => {
-        const unaAsignatura: IAsignatura & any = {
-          // _id: x._id,
-          // asignaturaNro: 100 + index,
-          detalle: x.DetalleAsignatura,
-          tipoAsignatura: x.TipoAsignatura,
-          tipoCiclo: x.TipoCiclo.toUpperCase(),
-          tipoFormacion: x.Tipodeformacion,
-          curso: Number(x.Tcurso),
-          meses: Number(x.Meses),
-          horasCatedraAnuales: x.HorasCatedraAnuales ? x.HorasCatedraAnuales : 0,
-          horasCatedraSemanales: x.HorasCatedraSemanales ? x.HorasCatedraSemanales : 0,
-
-          fechaCreacion: new Date(),
-          activo: true,
-          IdAsignarutas: x.IdAsignarutas,
-        };
-
-        return unaAsignatura;
-      });
+          return unaAsignatura;
+        })
+      );
 
       try {
         const savedAsignaturas = await this.asignatura.insertMany(asignaturasRefactorizados);

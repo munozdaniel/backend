@@ -15,14 +15,14 @@ export const cursoSchema = new mongoose.Schema({
     uppercase: true,
     default: 'SIN REGISTRAR',
   },
-  cicloLectivo: { type: Number, required: true },
-  // cicloLectivo: [
-  //   {
-  //     type: Schema.Types.ObjectId,
-  //     ref: 'CicloLectivo',
-  //     required: true,
-  //   },
-  // ],
+  // cicloLectivo: { type: Number, required: true },
+  cicloLectivo: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'CicloLectivo',
+      required: true,
+    },
+  ],
   curso: { type: Number, required: false, default: 0, min: 0 },
   division: { type: Number, required: false, default: 0, min: 0 },
 
