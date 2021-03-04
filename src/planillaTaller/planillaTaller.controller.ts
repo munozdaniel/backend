@@ -15,6 +15,7 @@ import cursoModel from '../cursos/curso.model';
 import CrearCursoDto from '../cursos/curso.dto';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
+const ObjectId = require('mongoose').Types.ObjectId;
 class PlanillaTallerController implements Controller {
   public path = '/planilla-taller';
   public router = Router();
@@ -36,6 +37,7 @@ class PlanillaTallerController implements Controller {
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/paginar`, this.paginar);
     this.router.get(`${this.path}/ciclo/:ciclo`, this.obtenerPlanillaTalleresPorCiclo);
+    this.router.get(`${this.path}/:id`, this.obtenerPlanillaTallerPorId);
     this.router.put(`${this.path}`, this.agregar);
   }
   private test = async (request: Request, response: Response, next: NextFunction) => {
@@ -59,6 +61,72 @@ class PlanillaTallerController implements Controller {
     } catch (e) {
       console.log('[ERROR]', e);
       next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+  private obtenerPlanillaTallerPorId = async (request: Request, response: Response, next: NextFunction) => {
+    const id = escapeStringRegexp(request.params.id);
+    console.log('id', request.params.id);
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'profesores',
+          localField: 'profesor',
+          foreignField: '_id',
+          as: 'profesor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$profesor',
+        },
+      },
+      {
+        $lookup: {
+          from: 'asignaturas',
+          localField: 'asignatura',
+          foreignField: '_id',
+          as: 'asignatura',
+        },
+      },
+      {
+        $unwind: {
+          path: '$asignatura',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'curso',
+          foreignField: '_id',
+          as: 'curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$curso',
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'curso.cicloLectivo',
+          foreignField: '_id',
+          as: 'curso.cicloLectivo',
+        },
+      },
+      {
+        $match: {
+          _id: new ObjectId(id),
+        },
+      },
+      { $sort: { _id: -1 } },
+    ];
+    const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
+    const planillaTaller = planillaTallerAggregate && planillaTallerAggregate.length > 0 ? planillaTallerAggregate[0] : null;
+    if (planillaTaller) {
+      response.send(planillaTallerAggregate);
+    } else {
+      next(new HttpException(400, 'No se encontró la planilla'));
     }
   };
   private obtenerPlanillaTalleresPorCiclo = async (request: Request, response: Response, next: NextFunction) => {

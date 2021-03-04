@@ -17,7 +17,6 @@ import cursoModel from '../cursos/curso.model';
 import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
 import estadoCursadaModel from './estadoCursada/estadoCursada.model';
 import ConnectionService from '../services/Connection';
-import ICurso from 'cursos/curso.interface';
 const ObjectId = require('mongoose').Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
