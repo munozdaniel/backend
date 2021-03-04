@@ -13,6 +13,8 @@ import { IQueryPaginator } from '../utils/interfaces/iQueryPaginator';
 import CrearPlanillaTallerDto from './planillaTaller.dto';
 import cursoModel from '../cursos/curso.model';
 import CrearCursoDto from '../cursos/curso.dto';
+import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
+import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 class PlanillaTallerController implements Controller {
   public path = '/planilla-taller';
   public router = Router();
@@ -22,6 +24,7 @@ class PlanillaTallerController implements Controller {
   private planillaTallerOriginal = planillaTallerOriginalModel;
   private curso = cursoModel;
   private alumno = alumnoModel;
+  private ciclolectivo = ciclolectivoModel;
 
   constructor() {
     this.initializeRoutes();
@@ -60,7 +63,34 @@ class PlanillaTallerController implements Controller {
   };
   private obtenerPlanillaTalleresPorCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const ciclo = request.params.ciclo;
+    console.log('ciclo', request.params.ciclo);
     const opciones: any = [
+      {
+        $lookup: {
+          from: 'profesores',
+          localField: 'profesor',
+          foreignField: '_id',
+          as: 'profesor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$profesor',
+        },
+      },
+      {
+        $lookup: {
+          from: 'asignaturas',
+          localField: 'asignatura',
+          foreignField: '_id',
+          as: 'asignatura',
+        },
+      },
+      {
+        $unwind: {
+          path: '$asignatura',
+        },
+      },
       {
         $lookup: {
           from: 'cursos',
@@ -69,7 +99,11 @@ class PlanillaTallerController implements Controller {
           as: 'curso',
         },
       },
-      { $unwind: '$curso' },
+      {
+        $unwind: {
+          path: '$curso',
+        },
+      },
       {
         $lookup: {
           from: 'ciclolectivos',
@@ -78,49 +112,21 @@ class PlanillaTallerController implements Controller {
           as: 'curso.cicloLectivo',
         },
       },
-      { $unwind: '$curso.cicloLectivo' },
-      // {
-      //   $group: {
-      //     _id: "$_id",
-      //     root: { $mergeObjects: "$$ROOT" },
-      //     productosCarrito: { $push: "$productosCarrito" },
-      //   },
-      // },
-      // {
-      //   $replaceRoot: {
-      //     newRoot: {
-      //       $mergeObjects: ["$root", "$$ROOT"],
-      //     },
-      //   },
-      // },
-
       {
-        $project: {
-          root: 0,
+        $unwind: {
+          path: '$curso.cicloLectivo',
         },
       },
       {
-        $match: { 'curso.cicloLectivo': 2019 },
+        $match: {
+          'curso.cicloLectivo.anio': Number(ciclo),
+        },
       },
-      // {
-      //   $project: {
-      //     _id: 1,
-      //     precioTotal: { $sum: "$productosCarrito.subtotal" },
-      //     productosCarrito: 1,
-      //     usuarioId: 1,
-      //   },
-      // },
       { $sort: { _id: -1 } },
     ];
     const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
     console.log('planillaTallerAggregate', planillaTallerAggregate);
-    const planillaTaller = planillaTallerAggregate && planillaTallerAggregate.length > 0 ? planillaTallerAggregate[0] : null;
-    console.log('planillaTaller', planillaTaller);
-    if (!planillaTaller) {
-      response.send(planillaTaller);
-    } else {
-      response.send(planillaTaller);
-    }
+    response.send(planillaTallerAggregate);
   };
   private paginar = async (request: Request, response: Response, next: NextFunction) => {
     const parametros: IQueryPaginator = request.query;
@@ -297,6 +303,7 @@ class PlanillaTallerController implements Controller {
     try {
       const planillasTalleres: any = await this.planillaTallerOriginal.find();
       // console.log('planillasTalleres>', planillasTalleres);
+      const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
 
       const planillasTalleresRefactorizados: IPlanillaTaller[] = await Promise.all(
         planillasTalleres.map(async (x: any, index: number) => {
@@ -325,13 +332,16 @@ class PlanillaTallerController implements Controller {
                 as: 'cicloLectivo',
               },
             },
-            { $unwind: '$cicloLectivo' },
             {
-              $match: { division: x.division, comision: x.comision, curso: x.Tcurso, cicloLectivo: x.ciclo_lectivo },
+              $match: { division: x.division, comision: x.comision, curso: x.Tcurso },
             },
+            //   { $unwind: '$cicloLectivo' },
+            //   {
+            //     $match: { division: x.division, comision: x.comision, curso: x.Tcurso, cicloLectivo: x.ciclo_lectivo },
+            //   },
           ];
           const cursoAggregate = await this.curso.aggregate(opciones);
-          // console.log('cursoAggregate', cursoAggregate);
+          console.log('cursoAggregate', cursoAggregate);
           let unCurso = cursoAggregate && cursoAggregate.length > 0 ? cursoAggregate[0] : null;
           // unCurso = await this.curso.findOne({
           //   division: x.division,
@@ -341,12 +351,13 @@ class PlanillaTallerController implements Controller {
           // });
           if (!unCurso) {
             if (x.comision && x.comision.length > 0 && x.ciclo_lectivo !== 0 && x.ciclo_lectivo !== 20) {
+              console.log('====>>>> cyurso incompleto', x.ciclo_lectivo);
               try {
                 const cursoData: CrearCursoDto = {
                   division: x.division,
                   comision: x.comision,
                   curso: x.Tcurso,
-                  cicloLectivo: x.ciclo_lectivo,
+                  cicloLectivo: ciclosLectivos.find((d) => d.anio === x.ciclo_lectivo),
                   activo: true,
                   fechaCreacion: new Date().toString(),
                 };
