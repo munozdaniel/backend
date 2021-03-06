@@ -365,6 +365,7 @@ class AlumnoController implements Controller {
                       curso: x.Tcurso,
                       // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
                     };
+                    // Si no tiene comisione entonces no es taller
                     if (!x.comision || x.comision.trim().length < 1) {
                       match = {
                         division: x.Division,
@@ -372,6 +373,7 @@ class AlumnoController implements Controller {
                         // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
                       };
                     }
+                    console.log('match', match);
                     const opciones = [
                       // {
                       //   $lookup: {
@@ -392,58 +394,40 @@ class AlumnoController implements Controller {
                     ];
 
                     try {
-                      let savedCurso = null;
+                      const nuevo = {
+                        division: x.Division,
+                        comision: x.comision ? x.comision : null,
+                        curso: x.Tcurso,
+                        // cicloLectivo: [nuevoCiclo],
+                        fechaCreacion: new Date(),
+                        activo: true,
+                      };
+                      const savedCurso = await this.curso.findOneAndUpdate(match, nuevo, {
+                        upsert: true,
+                        new: true,
+                        setDefaultsOnInsert: true,
+                      });
+                      console.log('ciursp', savedCurso);
+                      // if (!cursoEncontrado || cursoEncontrado.length < 1) {
+                      //   // No lo encontró entonces lo inserto con el ciclolectivo
 
-                      const cursoEncontrado = await this.curso.aggregate(opciones);
-                      console.log('nuevoCiclo', [nuevoCiclo]);
-                      console.log('11111111cursoEncontrado', cursoEncontrado);
-                      if (!cursoEncontrado || cursoEncontrado.length < 1) {
-                        // No lo encontró entonces lo inserto con el ciclolectivo
-                        console.log('22222222222cursoEncontrado', cursoEncontrado);
-
-                        const createdCurso = new this.curso({
-                          division: x.Division,
-                          comision: x.comision ? x.comision : null,
-                          curso: x.Tcurso,
-                          cicloLectivo: [nuevoCiclo],
-                          fechaCreacion: new Date(),
-                          activo: true,
-                        });
-                        try {
-                          savedCurso = await createdCurso.save();
-                        } catch (errorSa) {
-                          console.log('errorSa=============================>s', cursoEncontrado);
-                        }
-                      } else {
-                        console.log('cursoEncontrado[0].cicloLectivo', cursoEncontrado[0].cicloLectivo);
-                        // Lo encontró, verificar si tiene el año sino actualizamos con el nuevo ciclo
-                        const index = cursoEncontrado[0].cicloLectivo.findIndex(
-                          (x: any) => ObjectId(x).toString() === ObjectId(nuevoCiclo._id).toString()
-                        );
-                        console.log(index);
-                        if (index === -1) {
-                          try {
-                            // Actualizamos con el nuevo ciclo
-                            savedCurso = await this.curso.findOneAndUpdate(
-                              match,
-                              {
-                                // $set: { fechaCreacion: new Date(), activo: true },
-                                $addToSet: { cicloLectivo: nuevoCiclo },
-                                // $push: { cicloLectivo: nuevoCiclo },
-                              },
-                              { new: true, upsert: true, setDefaultsOnInsert: true }
-                              // (err: any, doc: ICurso, res: any) => {
-                              //   console.log('err: any, doc: ICurso, res: any', err, doc, res);
-                              // }
-                            );
-                          } catch (errorSa) {
-                            console.log('findOneAndUpdate=============================>s', errorSa);
-                          }
-                        } else {
-                          // Ya lo tiene, entonces lo reuitilizamos
-                          savedCurso = cursoEncontrado[0];
-                        }
-                      }
+                      //   const createdCurso = new this.curso({
+                      //     division: x.Division,
+                      //     comision: x.comision ? x.comision : null,
+                      //     curso: x.Tcurso,
+                      //     // cicloLectivo: [nuevoCiclo],
+                      //     fechaCreacion: new Date(),
+                      //     activo: true,
+                      //   });
+                      //   try {
+                      //     savedCurso = await createdCurso.save();
+                      //   } catch (errorSa) {
+                      //     console.log('errorSa=============================>s', errorSa);
+                      //   }
+                      // } else {
+                      //   // Ya lo tiene, entonces lo reuitilizamos
+                      //   savedCurso = cursoEncontrado[0];
+                      // }
 
                       // crear estadocursada
                       const createdEstadoCursada = new this.estadoCursada({
@@ -453,7 +437,7 @@ class AlumnoController implements Controller {
                           comision: savedCurso.comision ? savedCurso.comision : 'SIN REGISTRAR',
                         },
                         condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
-
+                        cicloLectivo: nuevoCiclo,
                         fechaCreacion: new Date(),
                         activo: true,
                       });

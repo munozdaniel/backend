@@ -11,6 +11,8 @@ import ISeguimientoAlumno from './seguimientoAlumno.interface';
 import seguimientoAlumnoOriginalModel from './seguimientoAlumnoOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
+import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
+import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 class SeguimientoAlumnoController implements Controller {
   public path = '/seguimiento-alumnos';
   public router = Router();
@@ -18,6 +20,7 @@ class SeguimientoAlumnoController implements Controller {
   private planillaTaller = planillaTallerModel;
   private alumno = alumnoModel;
   private seguimientoAlumnoOriginal = seguimientoAlumnoOriginalModel;
+  private ciclolectivo = ciclolectivoModel;
 
   constructor() {
     this.initializeRoutes();
@@ -49,6 +52,7 @@ class SeguimientoAlumnoController implements Controller {
   };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
       const seguimientosOriginales: any = await this.seguimientoAlumnoOriginal.find();
 
       const seguimientoRefactorizados: ISeguimientoAlumno[] = await Promise.all(
@@ -69,13 +73,14 @@ class SeguimientoAlumnoController implements Controller {
           } catch (ero) {
             console.log('ero', ero);
           }
+          const cl = await ciclosLectivos.filter((d) => Number(d.anio) === (x.ciclo_lectivo === 0 ? 2019 : Number(x.ciclo_lectivo)));
           const unSeguimientoAlumno: ISeguimientoAlumno & any = {
             seguimientoAlumnoNro: index,
             alumno: alumno,
             planillaTaller: planillataller,
             fecha: x.fecha,
             tipoSeguimiento: x.tipo_seguimiento,
-            cicloLectivo: x.ciclo_lectivo,
+            cicloLectivo: cl[0],
             resuelto: x.Resuelto === 'SI' ? true : false,
             observacion: x.observacion,
             observacion2: x.Observacion,

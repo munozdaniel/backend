@@ -13,16 +13,16 @@ export const cursoSchema = new mongoose.Schema({
     type: String,
     required: false,
     uppercase: true,
-    default: 'SIN REGISTRAR',
+    default: null,
   },
   // cicloLectivo: { type: Number, required: true },
-  cicloLectivo: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'CicloLectivo',
-      required: true,
-    },
-  ],
+  // cicloLectivo: [
+  //   {
+  //     type: Schema.Types.ObjectId,
+  //     ref: 'CicloLectivo',
+  //     required: true,
+  //   },
+  // ],
   curso: { type: Number, required: false, default: 0, min: 0 },
   division: { type: Number, required: false, default: 0, min: 0 },
 
@@ -31,7 +31,7 @@ export const cursoSchema = new mongoose.Schema({
   activo: { type: Boolean, default: true },
 });
 
-cursoSchema.index({ comision: 1, 'cicloLectivo._id': 1, curso: 1, division: 1 }, { unique: true });
+cursoSchema.index({ comision: 1, curso: 1, division: 1 }, { unique: true });
 // Modelo
 // cursoSchema.plugin(mongoosePaginate);
 const cursoModel = mongoose.model<ICurso>('Curso', cursoSchema);

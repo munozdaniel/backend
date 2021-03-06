@@ -1,8 +1,8 @@
-import IAsignatura from "../asignaturas/asignatura.interface";
-import IComision from "../comisiones/comision.interface";
-import * as mongoose from "mongoose";
-import IProfesor from "../profesores/profesor.interface";
-import ICurso from "cursos/curso.interface";
+import IAsignatura from '../asignaturas/asignatura.interface';
+import * as mongoose from 'mongoose';
+import IProfesor from '../profesores/profesor.interface';
+import ICurso from 'cursos/curso.interface';
+import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
 interface IPlanillaTaller extends mongoose.Document {
   _id: string;
   planillaTallerNro: number;
@@ -13,7 +13,7 @@ interface IPlanillaTaller extends mongoose.Document {
   // curso: number;
   // division: number;
   // comision: string;
-  // cicloLectivo: number;
+  cicloLectivo: ICicloLectivo;
   fechaInicio: Date;
   fechaFinalizacion: Date;
   observacion: string;

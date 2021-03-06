@@ -61,8 +61,8 @@ class CursoController implements Controller {
       console.log('request.body', request.body);
       const curso: ICurso = request.body.curso;
       const unaCurso = await this.curso.findOne({
-        cicloLectivo: curso.cicloLectivo,
-        comision: curso.curso,
+        // cicloLectivo: curso.cicloLectivo,
+        comision: curso.comision,
         division: Number(curso.division),
         curso: Number(curso.curso),
         activo: curso.activo,

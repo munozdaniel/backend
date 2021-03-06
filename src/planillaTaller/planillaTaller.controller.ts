@@ -491,74 +491,52 @@ class PlanillaTallerController implements Controller {
           } catch (ero) {
             console.log('ero2', ero);
           }
-          const opciones: any = [
-            {
-              $lookup: {
-                from: 'ciclolectivos',
-                localField: 'cicloLectivo',
-                foreignField: '_id',
-                as: 'cicloLectivo',
-              },
-            },
-            {
-              $match: { division: x.division, comision: x.comision, curso: x.Tcurso },
-            },
-            //   { $unwind: '$cicloLectivo' },
-            //   {
-            //     $match: { division: x.division, comision: x.comision, curso: x.Tcurso, cicloLectivo: x.ciclo_lectivo },
-            //   },
-          ];
-          const cursoAggregate = await this.curso.aggregate(opciones);
-          console.log('cursoAggregate', cursoAggregate);
-          let unCurso = cursoAggregate && cursoAggregate.length > 0 ? cursoAggregate[0] : null;
-          // unCurso = await this.curso.findOne({
-          //   division: x.division,
-          //   comision: x.comision,
-          //   curso: x.Tcurso,
-          //   cicloLectivo: x.ciclo_lectivo,
-          // });
-          if (!unCurso) {
-            if (x.comision && x.comision.length > 0 && x.ciclo_lectivo !== 0 && x.ciclo_lectivo !== 20) {
-              console.log('====>>>> cyurso incompleto', x.ciclo_lectivo);
-              try {
-                const cursoData: CrearCursoDto = {
-                  division: x.division,
-                  comision: x.comision,
-                  curso: x.Tcurso,
-                  cicloLectivo: ciclosLectivos.find((d) => d.anio === x.ciclo_lectivo),
-                  activo: true,
-                  fechaCreacion: new Date().toString(),
-                };
-                const created = new this.curso({
-                  ...cursoData,
-                  // author: request.user ? request.user._id : null,
-                });
-                unCurso = await created.save();
-              } catch (ero) {
-                console.log('ero4', ero);
-              }
-            } else {
-              // registros que no van a ser guardados porque no tienen todos lso registros cargados correctamente
-              console.log('Estas son las comisiones que no estan bien cargadas y que no puedo encontrar', x);
-
-              return null;
+          // Cursos
+          const nuevo = {
+            division: x.Division,
+            comision: x.comision ? x.comision : null,
+            curso: x.Tcurso,
+            // cicloLectivo: [nuevoCiclo],
+            fechaCreacion: new Date(),
+            activo: true,
+          };
+          let savedCurso = null;
+          if (x.comision && x.comision.length > 0 && x.ciclo_lectivo !== 0 && x.ciclo_lectivo !== 20) {
+            let match: any = {
+              division: x.Division,
+              comision: x.comision,
+              curso: x.Tcurso,
+              // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
+            };
+            // Si no tiene comisione entonces no es taller
+            if (!x.comision || x.comision.trim().length < 1) {
+              match = {
+                division: x.Division,
+                curso: x.Tcurso,
+                // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
+              };
             }
+            savedCurso = await this.curso.findOneAndUpdate(match, nuevo, {
+              upsert: true,
+              new: true,
+              setDefaultsOnInsert: true,
+            });
           } else {
-            // console.log("unaComision findone", unaComision);
+            return null;
           }
 
-          // console.log('unCurso', unCurso);
+          const cl = await ciclosLectivos.filter((d) => Number(d.anio) === Number(x.ciclo_lectivo));
           const unaPlanillaTaller: IPlanillaTaller & any = {
             planillaTallerNro: 100 + index,
             planillaTallerId: x.id_planilla_de_taller,
             asignatura: asig,
             profesor: prof,
-            curso: unCurso,
+            curso: savedCurso,
 
             // curso: x.Tcurso,
             // division: x.division,
             // comision: x.comision,
-            // cicloLectivo: x.ciclo_lectivo,
+            cicloLectivo: cl[0],
             fechaInicio: x.FechaInicio,
             observacion: x.Observacion,
             fechaFinalizacion: x.FechaFinalizacion,

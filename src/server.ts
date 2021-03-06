@@ -7,7 +7,6 @@ import UsuarioController from './usuario/usuario.controller';
 import AlumnoController from './alumnos/alumno.controller';
 import AsignaturaController from './asignaturas/asignatura.controller';
 import ProfesorController from './profesores/profesor.controller';
-import ComisionController from './comisiones/comision.controller';
 import PlanillaTallerController from './planillaTaller/planillaTaller.controller';
 import SeguimientoAlumnoController from './seguimientoAlumnos/seguimientoAlumno.controller';
 import TemaController from './temas/tema.controller';
@@ -25,7 +24,6 @@ const app = new App([
   new UsuarioController(),
   new AlumnoController(),
   new AsignaturaController(),
-  new ComisionController(),
   new ProfesorController(),
   new PlanillaTallerController(),
   new SeguimientoAlumnoController(),

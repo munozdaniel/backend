@@ -1,16 +1,6 @@
-import IAlumno from "alumnos/alumno.interface";
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsDateString,
-  MaxLength,
-  MinLength,
-  ValidateNested,
-  Min,
-  IsNumber,
-} from "class-validator";
-import IPlanillaTaller from "../planillaTaller/planillaTaller.interface";
+import IAlumno from 'alumnos/alumno.interface';
+import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, ValidateNested, Min, IsNumber } from 'class-validator';
+import IPlanillaTaller from '../planillaTaller/planillaTaller.interface';
 
 class CrearAsistenciaDto {
   @ValidateNested()

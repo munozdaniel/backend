@@ -6,6 +6,11 @@ import { autoIncrement } from 'mongoose-plugin-autoinc';
 const Schema = mongoose.Schema;
 export const seguimientoAlumnoSchema = new mongoose.Schema({
   seguimientoAlumnoNro: { type: Number, unique: true, required: false },
+  cicloLectivo: {
+    type: Schema.Types.ObjectId,
+    ref: 'CicloLectivo',
+    required: true,
+  },
   alumno: {
     type: Schema.Types.ObjectId,
     ref: 'Alumno',
@@ -18,7 +23,7 @@ export const seguimientoAlumnoSchema = new mongoose.Schema({
   },
   fecha: { type: String },
   tipoSeguimiento: { type: String },
-  cicloLectivo: { type: Number },
+  // cicloLectivo: { type: Number },
   resuelto: { type: Boolean },
   observacion: { type: String },
   observacion2: { type: String },

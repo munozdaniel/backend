@@ -7,6 +7,11 @@ const Schema = mongoose.Schema;
 
 export const planillaTallerSchema = new mongoose.Schema({
   planillaTallerNro: { type: Number, unique: true, required: false },
+  cicloLectivo: {
+    type: Schema.Types.ObjectId,
+    ref: 'CicloLectivo',
+    required: true,
+  },
   asignatura: {
     type: Schema.Types.ObjectId,
     ref: 'Asignatura',

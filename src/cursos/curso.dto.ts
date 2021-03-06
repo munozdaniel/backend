@@ -1,5 +1,4 @@
-import CrearCiclolectivoDto from '../ciclolectivos/ciclolectivo.dto';
-import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumber, Min, ValidateNested } from 'class-validator';
+ import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumber, Min, ValidateNested } from 'class-validator';
 
 class CrearCursoDto {
   @IsString({ message: 'La comision no ha sido ingresada' })
@@ -10,8 +9,8 @@ class CrearCursoDto {
     message: 'La comision no puede superar los 100 caracteres',
   })
   comision: string;
-  @ValidateNested()
-  cicloLectivo: CrearCiclolectivoDto;
+  // @IsNumber()
+  // cicloLectivo: number;
   @IsNumber()
   @Min(0, { message: 'El curso tiene que ser mayor a 0' })
   curso: number;

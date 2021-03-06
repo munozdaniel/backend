@@ -66,8 +66,14 @@ class AsistenciaController implements Controller {
   };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const asistenciasOriginales: any = await this.asistenciaOriginal.find();
-      // console.log('asistenciasOriginales>', asistenciasOriginales);
+      // const asistenciasOriginales: any = await this.asistenciaOriginal.find().limit(10000);
+      // const asistenciasOriginales: any = await this.asistenciaOriginal.find().skip(10000).limit(10000);
+      // const asistenciasOriginales: any = await this.asistenciaOriginal.find().skip(20000).limit(10000);
+      //const asistenciasOriginales: any = await this.asistenciaOriginal.find().skip(30000).limit(10000);
+      //  const asistenciasOriginales: any = await this.asistenciaOriginal.find().skip(40000).limit(10000);
+      //const asistenciasOriginales: any = await this.asistenciaOriginal.find().skip(50000).limit(10000);
+      const asistenciasOriginales: any = await this.asistenciaOriginal.find().skip(60000).limit(10000);
+      // const asistenciasOriginales: any = await this.asistenciaOriginal.find().skip(70000).limit(10000);
 
       const asistenciasOriginalesRefactorizados: IAsistencia[] = await Promise.all(
         asistenciasOriginales.map(async (x: any, index: number) => {
@@ -77,20 +83,31 @@ class AsistenciaController implements Controller {
             planillataller = await this.planillaTaller.findOne({
               planillaTallerId: x.id_planilla_de_taller,
             });
+            if (!planillataller) {
+              console.log(' x.id_planilla_de_taller', x.id_planilla_de_taller);
+              return null;
+            }
           } catch (ero) {
             console.log('ero', ero);
           }
           try {
-            alumno = await this.alumno.findOne({
-              alumnoId: x.id_alumnos,
-            });
+            if (x.id_alumnos && x.id_alumnos !== 0) {
+              alumno = await this.alumno.findOne({
+                alumnoId: x.id_alumnos,
+              });
+              if (!alumno) {
+                console.log(' x.id_alumnos', x.id_alumnos);
+                return null;
+              }
+            } else {
+              console.log('&& x.id_alumnos', x.id_alumnos);
+              return null;
+            }
           } catch (ero) {
             console.log('ero', ero);
           }
 
-          // console.log('unaPlanillaTaller', unaPlanillaTaller);
           const unaAsistencia: IAsistencia & any = {
-            asistenciaNro: index,
             id_planilla_de_asistencia: x.id_planilla_de_asistencia, // solo para migrar
             planillaTaller: planillataller,
             alumno: alumno,
@@ -107,8 +124,14 @@ class AsistenciaController implements Controller {
       );
 
       try {
-        console.log('asistenciasOriginalesRefactorizados', asistenciasOriginalesRefactorizados);
-        const savedAsistencias = await this.asistencia.insertMany(asistenciasOriginalesRefactorizados);
+        const filtrados = asistenciasOriginalesRefactorizados.filter((x) => {
+          if (x.fecha === null) {
+            console.log('&&&& x.id_alumnos', x.alumno.alumnoId);
+          }
+          return x !== null && typeof x !== 'undefined' && x.fecha !== null;
+        });
+        console.log('filtrados', filtrados.length);
+        const savedAsistencias = await this.asistencia.insertMany(filtrados);
         response.send({
           savedAsistencias,
         });

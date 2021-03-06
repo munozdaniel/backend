@@ -1,8 +1,8 @@
 import IAsignatura from '../asignaturas/asignatura.interface';
-import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, ValidateNested } from 'class-validator';
-import IComision from '../comisiones/comision.interface';
+import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, ValidateNested, IsNumber } from 'class-validator';
 import IProfesor from '../profesores/profesor.interface';
 import ICurso from '../cursos/curso.interface';
+import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 
 class CrearPlanillaTallerDto {
   @ValidateNested()
@@ -11,6 +11,8 @@ class CrearPlanillaTallerDto {
   profesorId: IProfesor;
   @ValidateNested()
   curso: ICurso;
+  @ValidateNested()
+  cicloLectivo: ICicloLectivo;
   @IsDateString()
   fechaInicio: Date;
   @IsDateString()

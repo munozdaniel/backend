@@ -9,7 +9,6 @@ import calificacionModel from './calificacion.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import ICalificacion from './calificacion.interface';
 import calificacionOriginalModel from './calificacionOriginal.model';
-import CrearComisionDto from '../comisiones/comision.dto';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import profesorModel from '../profesores/profesor.model';
@@ -45,6 +44,10 @@ class CalificacionController implements Controller {
             planillataller = await this.planillaTaller.findOne({
               planillaTallerId: x.id_planilla_de_taller,
             });
+            if (!planillataller) {
+              console.log(' x.id_planilla_de_taller', x.id_planilla_de_taller);
+              return null;
+            }
           } catch (ero) {
             console.log('ero', ero);
           }
@@ -56,9 +59,14 @@ class CalificacionController implements Controller {
             console.log('ero', ero);
           }
           try {
-            alumno = await this.alumno.findOne({
-              alumnoId: x.Id_alumno,
-            });
+            if (x.Id_alumno && x.Id_alumno !== 0) {
+              alumno = await this.alumno.findOne({
+                alumnoId: x.Id_alumno,
+              });
+            } else {
+              console.log('&& x.Id_alumno', x.Id_alumno);
+              return null;
+            }
           } catch (ero) {
             console.log('ero', ero);
           }
@@ -88,7 +96,10 @@ class CalificacionController implements Controller {
         //   "calificacionsOriginalesRefactorizados",
         //   calificacionsOriginalesRefactorizados
         // );
-        const savedCalificacions = await this.calificacion.insertMany(calificacionsOriginalesRefactorizados);
+        const filtrados = calificacionsOriginalesRefactorizados.filter((x) => {
+          return x !== null && typeof x !== 'undefined';
+        });
+        const savedCalificacions = await this.calificacion.insertMany(filtrados);
         response.send({
           savedCalificacions,
         });

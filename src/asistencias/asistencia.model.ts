@@ -7,7 +7,6 @@ const Schema = mongoose.Schema;
 import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 export const asistenciaSchema = new mongoose.Schema({
-  asistenciaNro: { type: Number, unique: true, required: false },
   planillaTaller: {
     type: Schema.Types.ObjectId,
     ref: "PlanillaTallere",
