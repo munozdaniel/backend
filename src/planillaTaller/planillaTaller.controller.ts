@@ -261,6 +261,19 @@ class PlanillaTallerController implements Controller {
       },
       {
         $lookup: {
+          from: 'ciclolectivos',
+          localField: 'cicloLectivo',
+          foreignField: '_id',
+          as: 'cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
           from: 'cursos',
           localField: 'curso',
           foreignField: '_id',
@@ -273,25 +286,13 @@ class PlanillaTallerController implements Controller {
         },
       },
       {
-        $lookup: {
-          from: 'ciclolectivos',
-          localField: 'curso.cicloLectivo',
-          foreignField: '_id',
-          as: 'curso.cicloLectivo',
-        },
-      },
-      {
-        $unwind: {
-          path: '$curso.cicloLectivo',
-        },
-      },
-      {
         $match: {
-          'curso.cicloLectivo.anio': Number(ciclo),
+          'cicloLectivo.anio': Number(ciclo),
         },
       },
       { $sort: { _id: -1 } },
     ];
+
     const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
     console.log('planillaTallerAggregate', planillaTallerAggregate);
     response.send(planillaTallerAggregate);
