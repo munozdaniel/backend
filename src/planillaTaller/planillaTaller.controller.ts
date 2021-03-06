@@ -12,7 +12,6 @@ import profesorModel from '../profesores/profesor.model';
 import { IQueryPaginator } from '../utils/interfaces/iQueryPaginator';
 import CrearPlanillaTallerDto from './planillaTaller.dto';
 import cursoModel from '../cursos/curso.model';
-import CrearCursoDto from '../cursos/curso.dto';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 const ObjectId = require('mongoose').Types.ObjectId;
@@ -163,6 +162,19 @@ class PlanillaTallerController implements Controller {
       },
       {
         $lookup: {
+          from: 'ciclolectivos',
+          localField: 'cicloLectivo',
+          foreignField: '_id',
+          as: 'cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
           from: 'cursos',
           localField: 'curso',
           foreignField: '_id',
@@ -175,44 +187,31 @@ class PlanillaTallerController implements Controller {
         },
       },
       {
-        $lookup: {
-          from: 'ciclolectivos',
-          localField: 'curso.cicloLectivo',
-          foreignField: '_id',
-          as: 'curso.cicloLectivo',
-        },
-      },
-      {
-        $unwind: {
-          path: '$curso.cicloLectivo',
-        },
-      },
-      {
         $match: {
           _id: new ObjectId(id),
-          'curso.cicloLectivo.anio': Number(ciclo),
+          'cicloLectivo.anio': Number(ciclo),
         },
       },
-      {
-        $project: {
-          _id: 1,
-          planillaTallerNro: 1,
-          asignatura: 1,
-          profesor: {
-            nombreCompleto: 1,
-          },
-          fechaInicio: 1,
-          fechaFinalizacion: 1,
-          bimestre: 1,
-          observacion: 1,
-          curso: {
-            comision: 1,
-            curso: 1,
-            division: 1,
-            cicloLectivo: ['$curso.cicloLectivo'],
-          },
-        },
-      },
+      // {
+      //   $project: {
+      //     _id: 1,
+      //     planillaTallerNro: 1,
+      //     asignatura: 1,
+      //     profesor: {
+      //       nombreCompleto: 1,
+      //     },
+      //     fechaInicio: 1,
+      //     fechaFinalizacion: 1,
+      //     bimestre: 1,
+      //     observacion: 1,
+      //     curso: {
+      //       comision: 1,
+      //       curso: 1,
+      //       division: 1,
+      //       cicloLectivo: ['$curso.cicloLectivo'],
+      //     },
+      //   },
+      // },
       {
         $sort: {
           _id: -1,
@@ -222,7 +221,7 @@ class PlanillaTallerController implements Controller {
 
     const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
     const planillaTaller = planillaTallerAggregate && planillaTallerAggregate.length > 0 ? planillaTallerAggregate[0] : null;
-    console.log('planillaTaller', planillaTaller);
+    console.log('planillaTaller>', planillaTaller);
     if (planillaTaller) {
       response.send(planillaTaller);
     } else {
@@ -294,7 +293,6 @@ class PlanillaTallerController implements Controller {
     ];
 
     const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
-    console.log('planillaTallerAggregate', planillaTallerAggregate);
     response.send(planillaTallerAggregate);
   };
   private paginar = async (request: Request, response: Response, next: NextFunction) => {
@@ -494,7 +492,7 @@ class PlanillaTallerController implements Controller {
           }
           // Cursos
           const nuevo = {
-            division: x.Division,
+            division: x.division,
             comision: x.comision ? x.comision : null,
             curso: x.Tcurso,
             // cicloLectivo: [nuevoCiclo],
@@ -504,7 +502,7 @@ class PlanillaTallerController implements Controller {
           let savedCurso = null;
           if (x.comision && x.comision.length > 0 && x.ciclo_lectivo !== 0 && x.ciclo_lectivo !== 20) {
             let match: any = {
-              division: x.Division,
+              division: x.division,
               comision: x.comision,
               curso: x.Tcurso,
               // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
@@ -512,7 +510,7 @@ class PlanillaTallerController implements Controller {
             // Si no tiene comisione entonces no es taller
             if (!x.comision || x.comision.trim().length < 1) {
               match = {
-                division: x.Division,
+                division: x.division,
                 curso: x.Tcurso,
                 // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
               };

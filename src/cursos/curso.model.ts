@@ -13,7 +13,7 @@ export const cursoSchema = new mongoose.Schema({
     type: String,
     required: false,
     uppercase: true,
-    default: null,
+    default: null,  
   },
   // cicloLectivo: { type: Number, required: true },
   // cicloLectivo: [
@@ -23,8 +23,8 @@ export const cursoSchema = new mongoose.Schema({
   //     required: true,
   //   },
   // ],
-  curso: { type: Number, required: false, default: 0, min: 0 },
-  division: { type: Number, required: false, default: 0, min: 0 },
+  curso: { type: Number, required: true, default: 0, min: 0 },
+  division: { type: Number, required: true, default: 0, min: 0 },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
