@@ -48,6 +48,7 @@ class AlumnoController implements Controller {
       .patch(`${this.path}/:id`, validationMiddleware(CreateAlumnoDto, true), this.modifyAlumno)
       .get(`${this.path}/:id`, this.obtenerAlumnoPorId)
       .delete(`${this.path}/:id`, this.deleteAlumno)
+      .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
       .put(
         this.path,
         validationMiddleware(CreateAlumnoDto),
@@ -56,6 +57,64 @@ class AlumnoController implements Controller {
       );
   }
 
+  private obtenerAlumnosPorCurso = async (request: Request, response: Response, next: NextFunction) => {
+    const { curso, comision, division } = request.body;
+    console.log('PARAMETROS BODY', curso, comision, division);
+    let match: any = {
+      'estadoCursadas.curso.curso': curso,
+      'estadoCursadas.curso.comision': comision,
+      'estadoCursadas.curso.division': division,
+    };
+    if (!comision) {
+      match = {
+        'estadoCursadas.curso.curso': curso,
+        'estadoCursadas.curso.division': division,
+      };
+    }
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $match: match,
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+    ];
+    const alumnosAggregate = await this.alumno.aggregate(opciones);
+    console.log('alumno', alumnosAggregate);
+    if (alumnosAggregate) {
+      response.send(alumnosAggregate);
+    } else {
+      next(new NotFoundException());
+    }
+  };
   private getFichaAlumnos = async (request: Request, response: Response, next: NextFunction) => {
     console.log('getFichaAlumnos');
 
@@ -174,7 +233,7 @@ class AlumnoController implements Controller {
         }
       });
     await ConnectionService.getConnection()
-      .db.listCollections({ name: 'estadoCursadas' })
+      .db.listCollections({ name: 'estadocursadas' })
       .next((err: any, collinfo: any) => {
         console.log('collinfo2', collinfo);
         if (collinfo) {
@@ -204,13 +263,6 @@ class AlumnoController implements Controller {
       // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
 
       // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
-      console.log(
-        'alumnos',
-        alumnos
-        //   alumnos[100].telefonos,
-        //   alumnos[100].procedencia_colegio_primario
-      );
-      console.log('Datos', alumnos.length);
 
       // console.log(
       //   'alumnos2',alumnos,
@@ -295,11 +347,11 @@ class AlumnoController implements Controller {
           try {
             //  Recorro las comisiones originales
             const comisionesOriginales = await this.comisionOriginal.find({
-              id_alumnos: x.id_alumno,
+              id_alumnos: Number(x.id_alumno),
             });
             if (comisionesOriginales.length < 1) {
               // TODO: estos no deberian venir en 0. Chequear migracion
-              console.log(x.id_alumno, 'comisionesOriginales', comisionesOriginales.length);
+              console.log(x.id_alumno, 'este alumno no tiene cursads===========> no existen', comisionesOriginales.length);
             }
             estadoCursadas = await Promise.all(
               comisionesOriginales.map(async (x, index2) => {
@@ -307,40 +359,112 @@ class AlumnoController implements Controller {
                 try {
                   const nuevoCiclo: ICicloLectivo = ciclosLectivos.find((c: ICicloLectivo) => Number(c.anio) === Number(x.ciclo_lectivo));
                   if (x) {
-                    const savedCurso = await this.curso.findOneAndUpdate(
-                      {
+                    let match: any = {
+                      division: x.Division,
+                      comision: x.comision,
+                      curso: x.Tcurso,
+                      // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
+                    };
+                    if (!x.comision || x.comision.trim().length < 1) {
+                      match = {
                         division: x.Division,
-                        comision: x.comision ? x.comision : '',
                         curso: x.Tcurso,
-                        // cicloLectivo: x.ciclo_lectivo,
-                      },
+                        // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
+                      };
+                    }
+                    const opciones = [
+                      // {
+                      //   $lookup: {
+                      //     from: 'ciclolectivos',
+                      //     localField: 'cicloLectivo',
+                      //     foreignField: '_id',
+                      //     as: 'cicloLectivo',
+                      //   },
+                      // },
+                      // {
+                      //   $unwind: {
+                      //     path: '$cicloLectivo',
+                      //   },
+                      // },
                       {
-                        $set: { fechaCreacion: new Date(), activo: true },
-                        $addToSet: { cicloLectivo: nuevoCiclo },
-                        // $push: { cicloLectivo: nuevoCiclo },
+                        $match: match,
                       },
-                      { new: true, upsert: true, setDefaultsOnInsert: true }
-                      // (err: any, doc: ICurso, res: any) => {
-                      //   console.log('err: any, doc: ICurso, res: any', err, doc, res);
-                      // }
-                    );
-                    // crear estadocursada
-                    const createdEstadoCursada = new this.estadoCursada({
-                      estadoCursadaNro: 100 + index2,
-                      curso: {
-                        ...savedCurso,
-                        comision: savedCurso.comision ? savedCurso.comision : 'SIN REGISTRAR',
-                      },
-                      condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
+                    ];
 
-                      fechaCreacion: new Date(),
-                      activo: true,
-                    });
                     try {
-                      const savedEstadoComision = await createdEstadoCursada.save();
-                      return savedEstadoComision;
+                      let savedCurso = null;
+
+                      const cursoEncontrado = await this.curso.aggregate(opciones);
+                      console.log('nuevoCiclo', [nuevoCiclo]);
+                      console.log('11111111cursoEncontrado', cursoEncontrado);
+                      if (!cursoEncontrado || cursoEncontrado.length < 1) {
+                        // No lo encontró entonces lo inserto con el ciclolectivo
+                        console.log('22222222222cursoEncontrado', cursoEncontrado);
+
+                        const createdCurso = new this.curso({
+                          division: x.Division,
+                          comision: x.comision ? x.comision : null,
+                          curso: x.Tcurso,
+                          cicloLectivo: [nuevoCiclo],
+                          fechaCreacion: new Date(),
+                          activo: true,
+                        });
+                        try {
+                          savedCurso = await createdCurso.save();
+                        } catch (errorSa) {
+                          console.log('errorSa=============================>s', cursoEncontrado);
+                        }
+                      } else {
+                        console.log('cursoEncontrado[0].cicloLectivo', cursoEncontrado[0].cicloLectivo);
+                        // Lo encontró, verificar si tiene el año sino actualizamos con el nuevo ciclo
+                        const index = cursoEncontrado[0].cicloLectivo.findIndex(
+                          (x: any) => ObjectId(x).toString() === ObjectId(nuevoCiclo._id).toString()
+                        );
+                        console.log(index);
+                        if (index === -1) {
+                          try {
+                            // Actualizamos con el nuevo ciclo
+                            savedCurso = await this.curso.findOneAndUpdate(
+                              match,
+                              {
+                                // $set: { fechaCreacion: new Date(), activo: true },
+                                $addToSet: { cicloLectivo: nuevoCiclo },
+                                // $push: { cicloLectivo: nuevoCiclo },
+                              },
+                              { new: true, upsert: true, setDefaultsOnInsert: true }
+                              // (err: any, doc: ICurso, res: any) => {
+                              //   console.log('err: any, doc: ICurso, res: any', err, doc, res);
+                              // }
+                            );
+                          } catch (errorSa) {
+                            console.log('findOneAndUpdate=============================>s', errorSa);
+                          }
+                        } else {
+                          // Ya lo tiene, entonces lo reuitilizamos
+                          savedCurso = cursoEncontrado[0];
+                        }
+                      }
+
+                      // crear estadocursada
+                      const createdEstadoCursada = new this.estadoCursada({
+                        estadoCursadaNro: 100 + index2,
+                        curso: {
+                          ...savedCurso,
+                          comision: savedCurso.comision ? savedCurso.comision : 'SIN REGISTRAR',
+                        },
+                        condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
+
+                        fechaCreacion: new Date(),
+                        activo: true,
+                      });
+                      try {
+                        const savedEstadoComision = await createdEstadoCursada.save();
+                        return savedEstadoComision;
+                      } catch (e4) {
+                        console.log('e4, ', e4);
+                      }
                     } catch (e4) {
-                      console.log('e4, ', e4);
+                      console.log('find, ', e4);
                     }
                   } else {
                     console.log('CXX, ', x);

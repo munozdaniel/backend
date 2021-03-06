@@ -1,17 +1,15 @@
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
-import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
-import validationMiddleware from '../middleware/validation.middleware';
-import CreateAsistenciaDto from './asistencia.dto';
-import Asistencia from './asistencia.interface';
+
 import asistenciaModel from './asistencia.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import IAsistencia from './asistencia.interface';
 import asistenciaOriginalModel from './asistenciaOriginal.model';
-import CrearComisionDto from '../comisiones/comision.dto';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
+import NotFoundException from '../exceptions/NotFoundException';
+const ObjectId = require('mongoose').Types.ObjectId;
 class AsistenciaController implements Controller {
   public path = '/asistencia';
   public router = Router();
@@ -27,8 +25,45 @@ class AsistenciaController implements Controller {
   private initializeRoutes() {
     console.log('AsistenciaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.get(`${this.path}/por-alumno/:id`, this.obtenerAsistenciasPorAlumnoId);
   }
 
+  private obtenerAsistenciasPorAlumnoId = async (request: Request, response: Response, next: NextFunction) => {
+    const id = escapeStringRegexp(request.params.id);
+    console.log('id', id);
+    try {
+      const opciones: any = [
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+          },
+        },
+        {
+          $match: {
+            'alumno._id': ObjectId(id),
+          },
+        },
+      ];
+      const asistenciasAggregate = await this.asistencia.aggregate(opciones);
+      console.log('asistenciasAggregate', asistenciasAggregate);
+      if (asistenciasAggregate) {
+        response.send(asistenciasAggregate);
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const asistenciasOriginales: any = await this.asistenciaOriginal.find();

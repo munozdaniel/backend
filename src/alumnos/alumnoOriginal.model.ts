@@ -40,6 +40,6 @@ export const alumnoOriginalSchema = new mongoose.Schema({
 });
 
 // Modelo
-const alumnoOriginalModel = mongoose.model<IAlumnoOriginal>('AlumnoOriginal', alumnoOriginalSchema);
+const alumnoOriginalModel = mongoose.model<IAlumnoOriginal>('AlumnosOriginal', alumnoOriginalSchema);
 
 export default alumnoOriginalModel;
