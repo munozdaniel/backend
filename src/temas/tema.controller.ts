@@ -10,6 +10,8 @@ import escapeStringRegexp from 'escape-string-regexp';
 import ITema from './tema.interface';
 import temaOriginalModel from './temaOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
+const ObjectId = require('mongoose').Types.ObjectId;
+
 class TemaController implements Controller {
   public path = '/tema';
   public router = Router();
@@ -24,8 +26,24 @@ class TemaController implements Controller {
   private initializeRoutes() {
     console.log('TemaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.get(`${this.path}/por-planilla/:id`, this.obtenerTemaPorPlanillaTaller);
   }
 
+  private obtenerTemaPorPlanillaTaller = async (request: Request, response: Response, next: NextFunction) => {
+    const id = escapeStringRegexp(request.params.id);
+    try {
+      const temas = await this.tema.find({ planillaTaller: ObjectId(id) });
+      console.log(id, 'temas', temas);
+      if (temas) {
+        response.send(temas);
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas en el servidor'));
+    }
+  };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const temasOriginales: any = await this.temaOriginal.find();

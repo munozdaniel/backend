@@ -49,6 +49,7 @@ class AlumnoController implements Controller {
       .get(`${this.path}/:id`, this.obtenerAlumnoPorId)
       .delete(`${this.path}/:id`, this.deleteAlumno)
       .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
+      .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
       .put(
         this.path,
         validationMiddleware(CreateAlumnoDto),
@@ -57,6 +58,80 @@ class AlumnoController implements Controller {
       );
   }
 
+  private obtenerAlumnosPorCursoCiclo = async (request: Request, response: Response, next: NextFunction) => {
+    const { curso, comision, division, ciclo } = request.body;
+    console.log('PARAMETROS BODY', curso, comision, division);
+    let match: any = {
+      'estadoCursadas.curso.curso': curso,
+      'estadoCursadas.curso.comision': comision,
+      'estadoCursadas.curso.division': division,
+      'estadoCursadas.cicloLectivo.anio': Number(ciclo),
+    };
+    if (!comision) {
+      match = {
+        'estadoCursadas.curso.curso': curso,
+        'estadoCursadas.curso.division': division,
+        'estadoCursadas.cicloLectivo.anio': Number(ciclo),
+      };
+    }
+    console.log('match', match);
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'estadoCursadas.cicloLectivo',
+          foreignField: '_id',
+          as: 'estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $match: match,
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+    ];
+    const alumnosAggregate = await this.alumno.aggregate(opciones);
+    console.log('alumno', alumnosAggregate);
+    if (alumnosAggregate) {
+      response.send(alumnosAggregate);
+    } else {
+      next(new NotFoundException());
+    }
+  };
   private obtenerAlumnosPorCurso = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, comision, division } = request.body;
     console.log('PARAMETROS BODY', curso, comision, division);

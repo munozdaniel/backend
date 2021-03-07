@@ -12,6 +12,8 @@ import calificacionOriginalModel from './calificacionOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import profesorModel from '../profesores/profesor.model';
+const ObjectId = require('mongoose').Types.ObjectId;
+
 class CalificacionController implements Controller {
   public path = '/calificacion';
   public router = Router();
@@ -28,6 +30,7 @@ class CalificacionController implements Controller {
   private initializeRoutes() {
     console.log('CalificacionController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
+    this.router.post(`${this.path}/por-alumno/:id`, this.obtenerCalificacionesPorAlumnoId);
   }
 
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
@@ -113,6 +116,45 @@ class CalificacionController implements Controller {
     } catch (e2) {
       console.log('ERROR', e2);
       next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+  private obtenerCalificacionesPorAlumnoId = async (request: Request, response: Response, next: NextFunction) => {
+    console.log('obtenerCalificacionesPorAlumnoId');
+    const id = escapeStringRegexp(request.params.id);
+    const planillaId = escapeStringRegexp(request.body.planillaId);
+    console.log('id', id);
+    try {
+      const opciones: any = [
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+          },
+        },
+        {
+          $match: {
+            'alumno._id': ObjectId(id),
+            planillaTaller: ObjectId(planillaId),
+          },
+        },
+      ];
+      const calificacionesAggregate = await this.calificacion.aggregate(opciones);
+      console.log('calificacionesAggregate', calificacionesAggregate);
+      if (calificacionesAggregate) {
+        response.send(calificacionesAggregate);
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
     }
   };
 }
