@@ -33,7 +33,6 @@ class TemaController implements Controller {
     const id = escapeStringRegexp(request.params.id);
     try {
       const temas = await this.tema.find({ planillaTaller: ObjectId(id) });
-      console.log(id, 'temas', temas);
       if (temas) {
         response.send(temas);
       } else {

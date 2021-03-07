@@ -13,6 +13,7 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
+const ObjectId = require('mongoose').Types.ObjectId;
 class SeguimientoAlumnoController implements Controller {
   public path = '/seguimiento-alumnos';
   public router = Router();
@@ -30,7 +31,52 @@ class SeguimientoAlumnoController implements Controller {
     console.log('SeguimientoAlumnoController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.post(`${this.path}/resueltos`, this.resueltos);
+    this.router.post(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
   }
+  private obtenerSeguimientoAlumnoPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    const { alumnoId, ciclo } = request.body;
+    console.log('alumno, cilco', alumnoId, ciclo);
+    try {
+      const opciones: any = [
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'cicloLectivo',
+            foreignField: '_id',
+            as: 'cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$cicloLectivo',
+          },
+        },
+        {
+          $match: {
+            planillaTaller: ObjectId(id),
+            alumno: ObjectId(alumnoId),
+            'cicloLectivo.anio': Number(ciclo),
+          },
+        },
+      ];
+      console.log({
+        planillaTaller: ObjectId(id),
+        alumno: ObjectId(alumnoId),
+        'cicloLectivo.anio': Number(ciclo),
+      });
+      const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
+      console.log(id, 'seguimientos', seguimientos);
+      if (seguimientos && seguimientos.length > 0) {
+        response.send(seguimientos[0]);
+      } else {
+        response.send([]);
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas en el servidor'));
+    }
+  };
   private resueltos = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const { resuelto } = request.body;
