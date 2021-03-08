@@ -14,6 +14,7 @@ import CrearPlanillaTallerDto from './planillaTaller.dto';
 import cursoModel from '../cursos/curso.model';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
+import NotFoundException from '../exceptions/NotFoundException';
 const ObjectId = require('mongoose').Types.ObjectId;
 class PlanillaTallerController implements Controller {
   public path = '/planilla-taller';
@@ -47,20 +48,35 @@ class PlanillaTallerController implements Controller {
   };
   private agregar = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar datos
+    // La plantilla viene incompleta, hay que buscar el cicloLectivo y el curso
     console.log('request.body', request.body);
     const planillaData: CrearPlanillaTallerDto = request.body;
-    const createdPlanilla = new this.planillaTaller({
-      ...planillaData,
-      // author: request.user ? request.user._id : null,
-    });
-    try {
-      const savedComision = await createdPlanilla.save();
-      console.log('guardado', savedComision, savedComision.planillaTallerNro);
-      // await savedComision.populate('author', '-password').execPopulate();
-      response.send(savedComision);
-    } catch (e) {
-      console.log('[ERROR]', e);
-      next(new HttpException(400, 'Parametros Incorrectos'));
+    const { curso, cicloLectivo, comision, division } = request.body;
+    const unCicloLectivo = await this.ciclolectivo.findOne({ anio: Number(cicloLectivo) });
+    if (!unCicloLectivo) {
+      next(new NotFoundException('ciclo lectivo'));
+    } else {
+      let unCurso = await this.curso.findOne({ comision, curso, division });
+      if (!unCurso) {
+        const createdCurso = new this.curso({ comision, curso, division, activo: true, fechaCreacion: new Date() });
+        unCurso = await createdCurso.save();
+      }
+      const createdPlanilla = new this.planillaTaller({
+        ...planillaData,
+        curso: unCurso,
+        cicloLectivo: unCicloLectivo,
+        // author: request.user ? request.user._id : null,
+      });
+      console.log('createdPlanilla', createdPlanilla);
+      try {
+        const savedComision = await createdPlanilla.save();
+        console.log('guardado', savedComision, savedComision.planillaTallerNro);
+        // await savedComision.populate('author', '-password').execPopulate();
+        response.send(savedComision);
+      } catch (e) {
+        console.log('[ERROR]', e);
+        next(new HttpException(400, 'Ocurrió un error al guardar la planilla'));
+      }
     }
   };
   private obtenerPlanillaTallerPorId = async (request: Request, response: Response, next: NextFunction) => {
@@ -109,9 +125,14 @@ class PlanillaTallerController implements Controller {
       {
         $lookup: {
           from: 'ciclolectivos',
-          localField: 'curso.cicloLectivo',
+          localField: 'cicloLectivo',
           foreignField: '_id',
-          as: 'curso.cicloLectivo',
+          as: 'cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$cicloLectivo',
         },
       },
       {
@@ -124,7 +145,7 @@ class PlanillaTallerController implements Controller {
     const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
     const planillaTaller = planillaTallerAggregate && planillaTallerAggregate.length > 0 ? planillaTallerAggregate[0] : null;
     if (planillaTaller) {
-      response.send(planillaTallerAggregate);
+      response.send(planillaTaller);
     } else {
       next(new HttpException(400, 'No se encontró la planilla'));
     }

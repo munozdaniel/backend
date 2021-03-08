@@ -1,8 +1,8 @@
 import HttpException from './HttpException';
 
 class NotFoundException extends HttpException {
-  constructor(id?: string) {
-    super(404, 'El registro buscado no se encontró');
+  constructor(id = 'buscado') {
+    super(404, 'El registro ' + id + ' no se encontró');
   }
 }
 

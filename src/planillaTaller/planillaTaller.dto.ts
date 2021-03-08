@@ -10,8 +10,10 @@ class CrearPlanillaTallerDto {
   @ValidateNested()
   profesorId: IProfesor;
   @ValidateNested()
+  @IsOptional()
   curso: ICurso;
   @ValidateNested()
+  @IsOptional()
   cicloLectivo: ICicloLectivo;
   @IsDateString()
   fechaInicio: Date;
