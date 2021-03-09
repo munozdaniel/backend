@@ -26,8 +26,69 @@ class AsistenciaController implements Controller {
     console.log('AsistenciaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrarMultiples);
     this.router.post(`${this.path}/por-alumno/:id`, this.obtenerAsistenciasPorAlumnoId);
+    this.router.post(`${this.path}/por-alumno-curso`, this.obtenerAsistenciasPorAlumnosCurso);
   }
 
+  private obtenerAsistenciasPorAlumnosCurso = async (request: Request, response: Response, next: NextFunction) => {
+    const { curso, division, comision, ciclo } = request.body;
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'estadoCursadas.cicloLectivo',
+          foreignField: '_id',
+          as: 'estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $match: {
+          'estadoCursadas.curso.curso': Number(curso),
+          'estadoCursadas.curso.division': Number(division),
+          'estadoCursadas.curso.comision': comision,
+          'estadoCursadas.cicloLectivo.anio': Number(ciclo),
+        },
+      },
+    ];
+    console.log('opciones', opciones);
+    const alumnos = await this.alumno.aggregate(opciones);
+    console.log(alumnos);
+    if (alumnos) {
+      return response.send(alumnos);
+    } else {
+      next(new NotFoundException('alumnos'));
+    }
+  };
   private obtenerAsistenciasPorAlumnoId = async (request: Request, response: Response, next: NextFunction) => {
     const id = escapeStringRegexp(request.params.id);
     const planillaId = escapeStringRegexp(request.body.planillaId);
