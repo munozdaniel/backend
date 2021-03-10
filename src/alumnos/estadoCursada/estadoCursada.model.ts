@@ -29,6 +29,8 @@ export const estadoCursadaSchema = new mongoose.Schema({
 });
 
 // Modelo
+
+
 estadoCursadaSchema.plugin(mongoosePaginate);
 // <IEstadoCursada>
 const estadoCursadaModel = mongoose.model('EstadoCursada', estadoCursadaSchema);

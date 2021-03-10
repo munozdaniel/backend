@@ -17,6 +17,7 @@ import cursoModel from '../cursos/curso.model';
 import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
 import estadoCursadaModel from './estadoCursada/estadoCursada.model';
 import ConnectionService from '../services/Connection';
+import IEstadoCursada from './estadoCursada/estadoCursada.interface';
 const ObjectId = require('mongoose').Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
@@ -51,6 +52,8 @@ class AlumnoController implements Controller {
       .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
       .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
       .post(`${this.path}/por-curso-division-ciclo`, this.obtenerAlumnosPorCursoDivisionCiclo)
+      .post(`${this.path}/por-curso-divisiones-ciclo`, this.obtenerAlumnosPorCursoDivisionesCiclo)
+      .post(`${this.path}/actualizar-nuevo-ciclo`, this.actualizarAlNuevoCiclo)
       .put(
         this.path,
         validationMiddleware(CreateAlumnoDto),
@@ -58,9 +61,235 @@ class AlumnoController implements Controller {
         this.createAlumno
       );
   }
+  private actualizarAlNuevoCiclo = async (request: Request, response: Response, next: NextFunction) => {
+    const { curso, divisiones, cicloAnterior, ciclo } = request.body;
+    // Obtengo todos los cursos por curso y division. <NO
+    // Busco todos los alumnos por curso y division y ciclo.
+    // Por cada alumno busco el estadocursada con el ciclo enviado si existe pasa a la lista de alumnoNoActualizado <NO
+    // Por cada alumno buscamos el estadocursada con findOneAndUpdate (upsert, new) para que lo inserte si no existe
+    console.log('cicloAnterior', cicloAnterior);
+    console.log('cicloActual', ciclo);
+    let match: any = {
+      'estadoCursadas.activo': true,
+      'estadoCursadas.cicloLectivo._id': ObjectId(cicloAnterior._id),
+      'estadoCursadas.curso.curso': Number(curso),
+      'estadoCursadas.curso.division': { $in: divisiones },
+    };
+
+    console.log('match', match);
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'estadoCursadas.cicloLectivo',
+          foreignField: '_id',
+          as: 'estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $group: {
+          _id: '$_id',
+          root: {
+            $mergeObjects: '$$ROOT',
+          },
+          estadoCursadas: {
+            $push: '$estadoCursadas',
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ['$root', '$$ROOT'],
+          },
+        },
+      },
+      {
+        $project: {
+          root: 0,
+        },
+      },
+      {
+        $match: match,
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+    ];
+    // Busco todos los alumnos por ciclo y
+
+    const alumnosNoActualizados: any[] = [];
+    const alumnosAggregate = await this.alumno.aggregate(opciones);
+    console.log('alumnosAggregate', alumnosAggregate.length);
+    if (alumnosAggregate) {
+      const alumnosActualizados = await Promise.all(
+        alumnosAggregate.map(async (x: IAlumno, index: number) => {
+          const indice = await x.estadoCursadas.findIndex((x: IEstadoCursada) => {
+            if (ObjectId(x.cicloLectivo._id) === ObjectId(ciclo._id)) {
+              console.log(' EXISTE: ', x.cicloLectivo._id, ciclo._id);
+            }
+            // return ObjectId(x.cicloLectivo._id) === ObjectId(ciclo._id);
+            return x.cicloLectivo.anio === ciclo.anio;
+          });
+
+          const estadosCursadasAGuardar: IEstadoCursada & any = {
+            curso: x.estadoCursadas[0].curso, // debe contener un solo ciclo
+            cicloLectivo: ciclo,
+            condicion: 'REGULAR',
+            fechaCreacion: new Date(),
+            activo: true,
+          };
+          if (indice === -1) {
+            //
+            // No existe el ciclo entonces estamos seguro de insertarlo
+            const created = new this.estadoCursada({
+              curso: x.estadoCursadas[0].curso, // debe contener un solo ciclo
+              cicloLectivo: ciclo,
+              condicion: 'REGULAR',
+              fechaCreacion: new Date(),
+              activo: true,
+            });
+            const savedEstado = await created.save();
+            x.estadoCursadas.push(savedEstado);
+            const alumnoActualizado = await this.alumno.findByIdAndUpdate(
+              x._id,
+              {
+                $set: {
+                  estadoCursadas: x.estadoCursadas,
+                },
+              },
+              // { $push: { estadoCursadas: savedEstado } },
+              // { $addToSet: { estadoCursadas: savedEstado } },
+              { upsert: true, new: true }
+            );
+            return alumnoActualizado;
+          } else {
+            console.log('YA ESTAMOS', x.estadoCursadas);
+            alumnosNoActualizados.push(x);
+          }
+        })
+      );
+      return response.send({ alumnosActualizados: alumnosActualizados.filter((x) => x), alumnosNoActualizados });
+    } else {
+      next(new NotFoundException());
+    }
+  };
+  /**
+   *
+   * @param request
+   * @param response
+   * @param next
+   */
+  private obtenerAlumnosPorCursoDivisionesCiclo = async (request: Request, response: Response, next: NextFunction) => {
+    const { curso, divisiones, cicloLectivo } = request.body;
+    console.log('PARAMETROS BODY', cicloLectivo);
+    let match: any = {
+      'estadoCursadas.activo': true,
+      'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
+      'estadoCursadas.curso.curso': Number(curso),
+      'estadoCursadas.curso.division': { $in: divisiones },
+    };
+
+    console.log('match2', match);
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'estadoCursadas.cicloLectivo',
+          foreignField: '_id',
+          as: 'estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $match: match,
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+    ];
+    const alumnosAggregate = await this.alumno.aggregate(opciones);
+    if (alumnosAggregate) {
+      response.send(alumnosAggregate);
+    } else {
+      next(new NotFoundException());
+    }
+  };
+  /**
+   *
+   * @param request
+   * @param response
+   * @param next
+   */
   private obtenerAlumnosPorCursoDivisionCiclo = async (request: Request, response: Response, next: NextFunction) => {
-    const { curso, comision, division, ciclo } = request.body;
-    console.log('PARAMETROS BODY', curso, comision, division);
+    const { curso, division, ciclo } = request.body;
+    console.log('PARAMETROS BODY', curso, division);
     let match: any = {
       'estadoCursadas.curso.curso': Number(curso),
       'estadoCursadas.curso.division': Number(division),
@@ -118,7 +347,6 @@ class AlumnoController implements Controller {
       },
     ];
     const alumnosAggregate = await this.alumno.aggregate(opciones);
-    console.log('alumno', alumnosAggregate);
     if (alumnosAggregate) {
       response.send(alumnosAggregate);
     } else {
@@ -192,7 +420,6 @@ class AlumnoController implements Controller {
       },
     ];
     const alumnosAggregate = await this.alumno.aggregate(opciones);
-    console.log('alumno', alumnosAggregate);
     if (alumnosAggregate) {
       response.send(alumnosAggregate);
     } else {
