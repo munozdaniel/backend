@@ -13,6 +13,7 @@ import TemaController from './temas/tema.controller';
 import AsistenciaController from './asistencias/asistencia.controller';
 import CalificacionController from './calificaciones/calificacion.controller';
 import CicloLectivoController from './ciclolectivos/ciclolectivo.controller';
+import CalendarioController from './calendario/calendario.controller';
 
 validateEnv();
 
@@ -31,6 +32,7 @@ const app = new App([
   new AsistenciaController(),
   new CalificacionController(),
   new CicloLectivoController(),
+  new CalendarioController(),
 ]);
 
 app.listen();

@@ -27,10 +27,56 @@ class AsistenciaController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrarMultiples);
     this.router.post(`${this.path}/por-alumno/:id`, this.obtenerAsistenciasPorAlumnoId);
     this.router.post(`${this.path}/por-alumno-curso`, this.obtenerAsistenciasPorAlumnosCurso);
+    this.router.get(`${this.path}/por-planilla/:id`, this.obtenerAsistenciasPorPlanilla);
   }
 
+  private obtenerAsistenciasPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'planillatalleres',
+          localField: 'planillaTaller',
+          foreignField: '_id',
+          as: 'planillaTaller',
+        },
+      },
+      {
+        $unwind: {
+          path: '$planillaTaller',
+        },
+      },
+      {
+        $lookup: {
+          from: 'alumnos',
+          localField: 'alumno',
+          foreignField: '_id',
+          as: 'alumno',
+        },
+      },
+      {
+        $unwind: {
+          path: '$alumno',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: {
+          'planillaTaller._id': ObjectId(id),
+        },
+      },
+    ];
+    console.log('opciones', opciones);
+    const asistencias = await this.asistencia.aggregate(opciones);
+    console.log(asistencias);
+    if (asistencias) {
+      return response.send(asistencias);
+    } else {
+      next(new NotFoundException('asistencias'));
+    }
+  };
   private obtenerAsistenciasPorAlumnosCurso = async (request: Request, response: Response, next: NextFunction) => {
-    const { curso, division, comision, ciclo } = request.body;
+    const { curso, division, ciclo } = request.body;
     const opciones: any = [
       {
         $lookup: {
@@ -75,7 +121,6 @@ class AsistenciaController implements Controller {
         $match: {
           'estadoCursadas.curso.curso': Number(curso),
           'estadoCursadas.curso.division': Number(division),
-          'estadoCursadas.curso.comision': comision,
           'estadoCursadas.cicloLectivo.anio': Number(ciclo),
         },
       },
