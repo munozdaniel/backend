@@ -216,7 +216,7 @@ class AlumnoController implements Controller {
    */
   private obtenerAlumnosPorCursoDivisionesCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, divisiones, cicloLectivo } = request.body;
-    console.log('PARAMETROS BODY', cicloLectivo);
+    console.log('obtenerAlumnosPorCursoDivisionesCiclo BODY', cicloLectivo);
     let match: any = {
       'estadoCursadas.activo': true,
       'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
@@ -289,7 +289,7 @@ class AlumnoController implements Controller {
    */
   private obtenerAlumnosPorCursoDivisionCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, division, ciclo } = request.body;
-    console.log('PARAMETROS BODY', curso, division);
+    console.log('obtenerAlumnosPorCursoDivisionCiclo BODY', curso, division);
     let match: any = {
       'estadoCursadas.curso.curso': Number(curso),
       'estadoCursadas.curso.division': Number(division),
@@ -355,7 +355,7 @@ class AlumnoController implements Controller {
   };
   private obtenerAlumnosPorCursoCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, comision, division, ciclo } = request.body;
-    console.log('PARAMETROS BODY', curso, comision, division);
+    console.log('obtenerAlumnosPorCursoCiclo BODY', curso, comision, division);
     let match: any = {
       'estadoCursadas.curso.curso': Number(curso),
       'estadoCursadas.curso.comision': comision,
@@ -420,6 +420,7 @@ class AlumnoController implements Controller {
       },
     ];
     const alumnosAggregate = await this.alumno.aggregate(opciones);
+    console.log('=========================>');
     if (alumnosAggregate) {
       response.send(alumnosAggregate);
     } else {
@@ -428,7 +429,7 @@ class AlumnoController implements Controller {
   };
   private obtenerAlumnosPorCurso = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, comision, division } = request.body;
-    console.log('PARAMETROS BODY', curso, comision, division);
+    console.log('obtenerAlumnosPorCurso BODY', curso, comision, division);
     let match: any = {
       'estadoCursadas.curso.curso': curso,
       'estadoCursadas.curso.comision': comision,

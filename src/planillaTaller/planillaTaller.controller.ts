@@ -15,10 +15,14 @@ import cursoModel from '../cursos/curso.model';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import NotFoundException from '../exceptions/NotFoundException';
+import calendarioModel from '../calendario/calendario.model';
+var isodate = require('isodate');
+
 const ObjectId = require('mongoose').Types.ObjectId;
 class PlanillaTallerController implements Controller {
   public path = '/planilla-taller';
   public router = Router();
+  private calendario = calendarioModel;
   private planillaTaller = planillaTallerModel;
   private asignatura = asignaturaModel;
   private profesor = profesorModel;
@@ -37,8 +41,9 @@ class PlanillaTallerController implements Controller {
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/paginar`, this.paginar);
     this.router.get(`${this.path}/ciclo/:ciclo`, this.obtenerPlanillaTalleresPorCiclo);
-    this.router.get(`${this.path}/:id/:ciclo`, this.obtenerPlanillaTallerPorIdCiclo);
+    this.router.get(`${this.path}/filtro/:id/:ciclo`, this.obtenerPlanillaTallerPorIdCiclo);
     this.router.get(`${this.path}/:id`, this.obtenerPlanillaTallerPorId);
+    this.router.get(`${this.path}/:id/total-asistencias`, this.buscarTotalAsistenciaPorPlanilla);
     this.router.put(`${this.path}`, this.agregar);
   }
   private test = async (request: Request, response: Response, next: NextFunction) => {
@@ -77,6 +82,43 @@ class PlanillaTallerController implements Controller {
         console.log('[ERROR]', e);
         next(new HttpException(400, 'Ocurrió un error al guardar la planilla'));
       }
+    }
+  };
+  /**
+   * Calculamos el total de clases de una plamnilla
+   * @param request
+   * @param response
+   * @param next
+   */
+  private buscarTotalAsistenciaPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    console.log('buscarTotalAsistenciaPorPlanilla');
+    const planillaId = request.params.id;
+    console.log('planillaId', planillaId);
+    const planilla = await this.planillaTaller.findById(planillaId);
+    if (planilla) {
+      console.log({
+        cicloLectivo: planilla.cicloLectivo,
+        fecha: {
+          $gte: new Date(planilla.fechaInicio).toISOString(),
+          $lt: new Date(planilla.fechaFinalizacion).toISOString(),
+        },
+      });
+      const calendario = await this.calendario.find({
+        cicloLectivo: planilla.cicloLectivo,
+        fecha: {
+          $gte: new Date(planilla.fechaInicio).toISOString(),
+          $lt: new Date(planilla.fechaFinalizacion).toISOString(),
+        },
+      });
+      console.log('calendario', calendario);
+
+      if (calendario) {
+        response.send({ total: calendario.length });
+      } else {
+        response.send({ total: 0 });
+      }
+    } else {
+      return next(new NotFoundException());
     }
   };
   private obtenerPlanillaTallerPorId = async (request: Request, response: Response, next: NextFunction) => {
@@ -153,7 +195,7 @@ class PlanillaTallerController implements Controller {
   private obtenerPlanillaTallerPorIdCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const id = escapeStringRegexp(request.params.id);
     const ciclo = escapeStringRegexp(request.params.ciclo);
-    console.log('id', request.params.id);
+    console.log('obtenerPlanillaTallerPorIdCiclo', request.params.id);
     const opciones: any = [
       {
         $lookup: {
@@ -209,7 +251,7 @@ class PlanillaTallerController implements Controller {
       },
       {
         $match: {
-          _id: new ObjectId(id),
+          _id: ObjectId(id),
           'cicloLectivo.anio': Number(ciclo),
         },
       },
