@@ -53,6 +53,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
       .post(`${this.path}/por-curso-division-ciclo`, this.obtenerAlumnosPorCursoDivisionCiclo)
       .post(`${this.path}/por-curso-divisiones-ciclo`, this.obtenerAlumnosPorCursoDivisionesCiclo)
+      .post(`${this.path}/por-curso-especifico`, this.obtenerAlumnosPorCursoEspecifico)
       .post(`${this.path}/actualizar-nuevo-ciclo`, this.actualizarAlNuevoCiclo)
       .put(
         this.path,
@@ -204,6 +205,80 @@ class AlumnoController implements Controller {
         })
       );
       return response.send({ alumnosActualizados: alumnosActualizados.filter((x) => x), alumnosNoActualizados });
+    } else {
+      next(new NotFoundException());
+    }
+  };
+  /**
+   *
+   * @param request
+   * @param response
+   * @param next
+   */
+  private obtenerAlumnosPorCursoEspecifico = async (request: Request, response: Response, next: NextFunction) => {
+    const { curso, comision, division, cicloLectivo } = request.body;
+    console.log('obtenerAlumnosPorCursoEspecifico BODY', request.body);
+    let match: any = {
+      'estadoCursadas.activo': true,
+      'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
+      'estadoCursadas.curso.comision': comision,
+      'estadoCursadas.curso.curso': Number(curso),
+      'estadoCursadas.curso.division': Number(division),
+    };
+
+    console.log('match2', match);
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'estadoCursadas.cicloLectivo',
+          foreignField: '_id',
+          as: 'estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $match: match,
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+    ];
+    const alumnosAggregate = await this.alumno.aggregate(opciones);
+    if (alumnosAggregate) {
+      response.send(alumnosAggregate);
     } else {
       next(new NotFoundException());
     }

@@ -93,24 +93,31 @@ class PlanillaTallerController implements Controller {
   private buscarTotalAsistenciaPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     console.log('buscarTotalAsistenciaPorPlanilla');
     const planillaId = request.params.id;
-    console.log('planillaId', planillaId);
-    const planilla = await this.planillaTaller.findById(planillaId);
+    const planilla = await this.planillaTaller.findById(planillaId).populate('curso');
     if (planilla) {
-      console.log({
+      console.log('planilla.curso.comision', planilla);
+      let criterioComision = null;
+      switch (planilla.curso.comision) {
+        case 'A':
+          criterioComision = { comisionA: 1 };
+          break;
+
+        default:
+          criterioComision = null;
+          break;
+      }
+      let criterio = {
         cicloLectivo: planilla.cicloLectivo,
         fecha: {
           $gte: new Date(planilla.fechaInicio).toISOString(),
           $lt: new Date(planilla.fechaFinalizacion).toISOString(),
         },
-      });
-      const calendario = await this.calendario.find({
-        cicloLectivo: planilla.cicloLectivo,
-        fecha: {
-          $gte: new Date(planilla.fechaInicio).toISOString(),
-          $lt: new Date(planilla.fechaFinalizacion).toISOString(),
-        },
-      });
-      console.log('calendario', calendario);
+      };
+      if (criterioComision) {
+        criterio = { ...criterio, ...criterioComision };
+      }
+      console.log(criterio);
+      const calendario = await this.calendario.find(criterio);
 
       if (calendario) {
         response.send({ total: calendario.length });
