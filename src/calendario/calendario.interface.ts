@@ -5,14 +5,14 @@ interface ICalendario extends mongoose.Document {
   id_calendario: number; // para migrar
   fecha: Date;
   cicloLectivo: ICicloLectivo;
-  a: number;
-  b: number;
-  c: number;
-  d: number;
-  e: number;
-  f: number;
-  g: number;
-  h: number;
+  comisionA: number;
+  comisionB: number;
+  comisionC: number;
+  comisionD: number;
+  comisionE: number;
+  comisionF: number;
+  comisionG: number;
+  comisionH: number;
 
   fechaCreacion?: Date;
   activo: boolean;

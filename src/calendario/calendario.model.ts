@@ -6,21 +6,21 @@ const Schema = mongoose.Schema;
 
 export const calendarioSchema = new mongoose.Schema({
   calendarioNro: { type: Number, unique: true, required: false },
-  id_calendario: { type: Number, required: true }, // para migrar
+  id_calendario: { type: Number, required: false }, // para migrar
   fecha: { type: Date },
   cicloLectivo: {
     type: Schema.Types.ObjectId,
     ref: 'EstadoCursada',
     required: false,
   },
-  a: { type: Number, required: true },
-  b: { type: Number, required: true },
-  c: { type: Number, required: true },
-  d: { type: Number, required: true },
-  e: { type: Number, required: true },
-  f: { type: Number, required: true },
-  g: { type: Number, required: true },
-  h: { type: Number, required: true },
+  comisionA: { type: Number, required: true },
+  comisionB: { type: Number, required: true },
+  comisionC: { type: Number, required: true },
+  comisionD: { type: Number, required: true },
+  comisionE: { type: Number, required: true },
+  comisionF: { type: Number, required: true },
+  comisionG: { type: Number, required: true },
+  comisionH: { type: Number, required: true },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
