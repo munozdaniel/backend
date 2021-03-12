@@ -9,6 +9,7 @@ import asistenciaOriginalModel from './asistenciaOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import NotFoundException from '../exceptions/NotFoundException';
+var isodate = require('isodate');
 const ObjectId = require('mongoose').Types.ObjectId;
 class AsistenciaController implements Controller {
   public path = '/asistencia';
@@ -28,8 +29,90 @@ class AsistenciaController implements Controller {
     this.router.post(`${this.path}/por-alumno/:id`, this.obtenerAsistenciasPorAlumnoId);
     this.router.post(`${this.path}/por-alumno-curso`, this.obtenerAsistenciasPorAlumnosCurso);
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerAsistenciasPorPlanilla);
+    this.router.put(`${this.path}`, this.guardarAsistencia);
+    this.router.patch(`${this.path}/:id`, this.actualizarAsistencia);
   }
 
+  private guardarAsistencia = async (request: Request, response: Response, next: NextFunction) => {
+    const asistencia = request.body.asistencia;
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'planillatalleres',
+          localField: 'planillaTaller',
+          foreignField: '_id',
+          as: 'planillaTaller',
+        },
+      },
+      {
+        $unwind: {
+          path: '$planillaTaller',
+        },
+      },
+      {
+        $lookup: {
+          from: 'alumnos',
+          localField: 'alumno',
+          foreignField: '_id',
+          as: 'alumno',
+        },
+      },
+      {
+        $unwind: {
+          path: '$alumno',
+        },
+      },
+      {
+        $match: {
+          'alumno._id': ObjectId(asistencia.alumno._id),
+          'planillaTaller._id': ObjectId(asistencia.planillaTaller._id),
+          fecha: isodate(asistencia.fecha.toString()),
+        },
+      },
+    ];
+    const asistenciaRepetida = await this.asistencia.aggregate(opciones);
+    console.log('¿asistencia', asistenciaRepetida);
+    console.log('opciones', opciones);
+    if (asistenciaRepetida && asistenciaRepetida.length > 0) {
+      const updated = await this.asistencia.findByIdAndUpdate(asistenciaRepetida[0]._id, asistencia, { new: true });
+      console.log('updated', updated);
+      if (updated) {
+        response.send({ asistencia: updated });
+      } else {
+        response.send({ asistencia: null });
+      }
+    } else {
+      const created = new this.asistencia({ ...asistencia });
+      try {
+        const saved = await created.save();
+        if (saved) {
+          response.send({ asistencia: saved });
+        } else {
+          response.send({ asistencia: null });
+        }
+      } catch (e4) {
+        console.log('[ERROR], ', e4);
+        next(new HttpException(500, 'Ocurrió un error interno'));
+      }
+    }
+  };
+  private actualizarAsistencia = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    console.log('id', id);
+    const asistencia = request.body.asistencia;
+    try {
+      const updated = await this.asistencia.findByIdAndUpdate(id, asistencia, { new: true });
+      console.log('updated', updated);
+      if (updated) {
+        response.send({ asistencia: updated });
+      } else {
+        response.send({ asistencia: null });
+      }
+    } catch (e4) {
+      console.log('[ERROR], ', e4);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
   private obtenerAsistenciasPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const opciones: any = [
@@ -160,10 +243,7 @@ class AsistenciaController implements Controller {
           },
         },
       ];
-      console.log(id);
-      console.log(planillaId);
       const asistenciasAggregate = await this.asistencia.aggregate(opciones);
-      console.log('asistenciasAggregate', asistenciasAggregate);
       if (asistenciasAggregate) {
         response.send(asistenciasAggregate);
       } else {
