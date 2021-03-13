@@ -12,6 +12,7 @@ import calificacionOriginalModel from './calificacionOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import profesorModel from '../profesores/profesor.model';
+import moment from 'moment';
 const ObjectId = require('mongoose').Types.ObjectId;
 
 class CalificacionController implements Controller {
@@ -73,6 +74,8 @@ class CalificacionController implements Controller {
           } catch (ero) {
             console.log('ero', ero);
           }
+          const now = new Date();
+          const hoy = new Date(moment(now).format('YYYY-MM-DD'));
           const unaCalificacion: ICalificacion & any = {
             calificacionNro: index,
             id_calificaciones: x.id_calificaciones, // solo para migrar
@@ -85,7 +88,7 @@ class CalificacionController implements Controller {
             observaciones: x.Observaciones,
             promedia: x.promedia === 'SI' ? true : false,
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
 

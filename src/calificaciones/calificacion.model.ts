@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose';
 import ICalificacion from './calificacion.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import { autoIncrement } from 'mongoose-plugin-autoinc';
+import moment from 'moment';
 
 const Schema = mongoose.Schema;
 
@@ -45,7 +46,8 @@ const calificacionModel = mongoose.model('Calificacione', calificacionSchema);
 
 calificacionSchema.pre('update', function (this: ICalificacion, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy;
   next();
 });
 export default calificacionModel;

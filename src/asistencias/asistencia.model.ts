@@ -1,20 +1,21 @@
-import * as mongoose from "mongoose";
-import IAsistencia from "./asistencia.interface";
-import mongoosePaginate from "mongoose-paginate-v2";
+import * as mongoose from 'mongoose';
+import IAsistencia from './asistencia.interface';
+import mongoosePaginate from 'mongoose-paginate-v2';
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 // import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
 import { autoIncrement } from 'mongoose-plugin-autoinc';
+import moment from 'moment';
 
 export const asistenciaSchema = new mongoose.Schema({
   planillaTaller: {
     type: Schema.Types.ObjectId,
-    ref: "PlanillaTallere",
+    ref: 'PlanillaTallere',
     required: true,
   },
   alumno: {
     type: Schema.Types.ObjectId,
-    ref: "Alumno",
+    ref: 'Alumno',
     required: true,
   },
   id_planilla_de_asistencia: { type: Number }, // para migrar
@@ -34,25 +35,14 @@ asistenciaSchema.plugin(autoIncrement, {
   model: 'Asistencia',
   field: 'asistenciaNro',
 });
-const asistenciaModel = mongoose.model("Asistencia", asistenciaSchema);
-// asistenciaModel.paginate();
-// Hooks
-// asistenciaSchema.plugin(AutoincrementService.getAutoIncrement(), {
-//   inc_field: "asistenciaNro",
-//   start_seq: 100,
-// });
-// asistenciaSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Asistencia', field: 'asistenciaNro' });
+asistenciaSchema.index({ planillaTaller: 1, alumno: 1, fecha: 1 }, { unique: true });
 
-// asistenciaSchema.pre('save', function (this: IAsistencia, next: any) {
-//   const now = new Date();
-//   if (!this.fechaCreacion) {
-//     this.fechaCreacion = now;
-//   }
-//   next();
-// });
-asistenciaSchema.pre("update", function (this: IAsistencia, next: any) {
+const asistenciaModel = mongoose.model('Asistencia', asistenciaSchema);
+
+asistenciaSchema.pre('update', function (this: IAsistencia, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy;
   next();
 });
 export default asistenciaModel;

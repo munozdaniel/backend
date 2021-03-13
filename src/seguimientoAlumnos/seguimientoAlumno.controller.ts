@@ -13,6 +13,7 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
+import moment from 'moment';
 const ObjectId = require('mongoose').Types.ObjectId;
 class SeguimientoAlumnoController implements Controller {
   public path = '/seguimiento-alumnos';
@@ -98,6 +99,8 @@ class SeguimientoAlumnoController implements Controller {
   };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
       const seguimientosOriginales: any = await this.seguimientoAlumnoOriginal.find();
 
@@ -132,7 +135,7 @@ class SeguimientoAlumnoController implements Controller {
             observacion2: x.Observacion,
             observacionJefe: x.ObservacionJefe,
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
 

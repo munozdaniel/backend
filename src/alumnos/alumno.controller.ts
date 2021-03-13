@@ -18,6 +18,7 @@ import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
 import estadoCursadaModel from './estadoCursada/estadoCursada.model';
 import ConnectionService from '../services/Connection';
 import IEstadoCursada from './estadoCursada/estadoCursada.interface';
+import moment from 'moment';
 const ObjectId = require('mongoose').Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
@@ -63,6 +64,8 @@ class AlumnoController implements Controller {
       );
   }
   private actualizarAlNuevoCiclo = async (request: Request, response: Response, next: NextFunction) => {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const { curso, divisiones, cicloAnterior, ciclo } = request.body;
     // Obtengo todos los cursos por curso y division. <NO
     // Busco todos los alumnos por curso y division y ciclo.
@@ -171,7 +174,7 @@ class AlumnoController implements Controller {
             curso: x.estadoCursadas[0].curso, // debe contener un solo ciclo
             cicloLectivo: ciclo,
             condicion: 'REGULAR',
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
           if (indice === -1) {
@@ -181,7 +184,7 @@ class AlumnoController implements Controller {
               curso: x.estadoCursadas[0].curso, // debe contener un solo ciclo
               cicloLectivo: ciclo,
               condicion: 'REGULAR',
-              fechaCreacion: new Date(),
+              fechaCreacion: hoy,
               activo: true,
             });
             const savedEstado = await created.save();
@@ -701,7 +704,8 @@ class AlumnoController implements Controller {
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const arregloNoInsertados = [];
-
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const alumnos: any = await this.alumnoOriginal.find();
       const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
       // {},
@@ -718,7 +722,7 @@ class AlumnoController implements Controller {
           const padre = {
             tipoAdulto: 'PADRE',
             activo: true,
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             nombreCompleto: x.nombre_y_apellido_padre,
             telefono: x.telefono_padre,
             email: x.mail_padre,
@@ -726,7 +730,7 @@ class AlumnoController implements Controller {
           const madre = {
             tipoAdulto: 'MADRE',
             activo: true,
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             nombreCompleto: x.nombre_y_apellido_madre,
             telefono: x.telefono_madre,
             email: x.mail_madre,
@@ -734,7 +738,7 @@ class AlumnoController implements Controller {
           const tutor1 = {
             tipoAdulto: 'TUTOR',
             activo: true,
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             nombreCompleto: x.nombre_y_apellido_tutor1,
             telefono: x.telefono_tutor1,
             email: x.mail_tutor1,
@@ -742,7 +746,7 @@ class AlumnoController implements Controller {
           const tutor2 = {
             tipoAdulto: 'TUTOR',
             activo: true,
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             nombreCompleto: x.nombre_y_apellido_tutor2,
             telefono: x.telefono_tutor2,
             email: x.mail_tutor2,
@@ -844,7 +848,7 @@ class AlumnoController implements Controller {
                         comision: x.comision ? x.comision : null,
                         curso: x.Tcurso,
                         // cicloLectivo: [nuevoCiclo],
-                        fechaCreacion: new Date(),
+                        fechaCreacion: hoy,
                         activo: true,
                       };
                       const savedCurso = await this.curso.findOneAndUpdate(match, nuevo, {
@@ -853,28 +857,9 @@ class AlumnoController implements Controller {
                         setDefaultsOnInsert: true,
                       });
                       console.log('ciursp', savedCurso);
-                      // if (!cursoEncontrado || cursoEncontrado.length < 1) {
-                      //   // No lo encontró entonces lo inserto con el ciclolectivo
-
-                      //   const createdCurso = new this.curso({
-                      //     division: x.Division,
-                      //     comision: x.comision ? x.comision : null,
-                      //     curso: x.Tcurso,
-                      //     // cicloLectivo: [nuevoCiclo],
-                      //     fechaCreacion: new Date(),
-                      //     activo: true,
-                      //   });
-                      //   try {
-                      //     savedCurso = await createdCurso.save();
-                      //   } catch (errorSa) {
-                      //     console.log('errorSa=============================>s', errorSa);
-                      //   }
-                      // } else {
-                      //   // Ya lo tiene, entonces lo reuitilizamos
-                      //   savedCurso = cursoEncontrado[0];
-                      // }
 
                       // crear estadocursada
+
                       const createdEstadoCursada = new this.estadoCursada({
                         estadoCursadaNro: 100 + index2,
                         curso: {
@@ -883,7 +868,7 @@ class AlumnoController implements Controller {
                         },
                         condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
                         cicloLectivo: nuevoCiclo,
-                        fechaCreacion: new Date(),
+                        fechaCreacion: hoy,
                         activo: true,
                       });
                       try {
@@ -909,6 +894,8 @@ class AlumnoController implements Controller {
               // console.log('ero', ero);
             }
           }
+
+          console.log('hoy', hoy);
           const retorno: any = {
             estadoCursadas: estadoCursadas,
             alumnoId: x.id_alumno,
@@ -945,7 +932,7 @@ class AlumnoController implements Controller {
             emailTae: x.MailTae,
             archivoDiagnostico: x.ArchivoDiagnostico,
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
 

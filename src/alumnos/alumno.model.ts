@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose';
 import IAlumno from './alumno.interface';
 import { adultoSchema } from '../adulto/adulto.model';
 import { autoIncrement } from 'mongoose-plugin-autoinc';
+import moment from 'moment';
 const Schema = mongoose.Schema;
 const mongoosePaginate = require('mongoose-paginate-v2');
 
@@ -44,7 +45,7 @@ export const alumnoSchema = new mongoose.Schema({
   observaciones: { type: String },
   observacionTelefono: { type: String },
 
-  fechaCreacion: { type: Date, default: Date.now },
+  fechaCreacion: { type: Date },
   fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
 });
@@ -60,7 +61,8 @@ const alumnoModel = mongoose.model('Alumno', alumnoSchema);
 
 alumnoSchema.pre('update', function (this: IAlumno, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy;
   next();
 });
 export default alumnoModel;

@@ -3,6 +3,7 @@ import ITema from './tema.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 const Schema = mongoose.Schema;
 import { autoIncrement } from 'mongoose-plugin-autoinc';
+import moment from 'moment';
 
 export const temaSchema = new mongoose.Schema({
   temaNro: { type: Number, unique: true, required: false },
@@ -33,24 +34,11 @@ temaSchema.plugin(autoIncrement, {
   field: 'temaNro',
 });
 const temaModel = mongoose.model('Tema', temaSchema);
-// temaModel.paginate();
-// Hooks
-// temaSchema.plugin(AutoincrementService.getAutoIncrement(), {
-//   inc_field: "temaNro",
-//   start_seq: 100,
-// });
-// temaSchema.plugin(AutoincrementFieldService.getAutoIncrement().plugin, { model: 'Tema', field: 'temaNro' });
-
-// temaSchema.pre('save', function (this: ITema, next: any) {
-//   const now = new Date();
-//   if (!this.fechaCreacion) {
-//     this.fechaCreacion = now;
-//   }
-//   next();
-// });
+ 
 temaSchema.pre('update', function (this: ITema, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy;
   next();
 });
 export default temaModel;

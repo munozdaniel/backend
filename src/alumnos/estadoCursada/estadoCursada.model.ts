@@ -1,6 +1,7 @@
 import * as mongoose from 'mongoose';
 import IEstadoCursada from './estadoCursada.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
+import moment from 'moment';
 // import AutoincrementService from "../../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
@@ -23,13 +24,12 @@ export const estadoCursadaSchema = new mongoose.Schema({
     required: true,
   },
   // cicloLectivo: { type: Number, required: true },
-  fechaCreacion: { type: Date, default: Date.now },
-  fechaModificacion: { type: Date },
+  fechaCreacion: { type: String },
+  fechaModificacion: { type: String },
   activo: { type: Boolean, default: true },
 });
 
 // Modelo
-
 
 estadoCursadaSchema.plugin(mongoosePaginate);
 // <IEstadoCursada>
@@ -50,7 +50,8 @@ const estadoCursadaModel = mongoose.model('EstadoCursada', estadoCursadaSchema);
 // });
 estadoCursadaSchema.pre('update', function (this: IEstadoCursada, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy.toString();
   next();
 });
 export default estadoCursadaModel;

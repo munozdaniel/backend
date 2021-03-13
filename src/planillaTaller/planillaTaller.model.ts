@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose';
 import IPlanillaTaller from './planillaTaller.interface';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { autoIncrement } from 'mongoose-plugin-autoinc';
+import moment from 'moment';
 
 const Schema = mongoose.Schema;
 
@@ -54,7 +55,8 @@ const planillaTallerModel = mongoose.model('PlanillaTallere', planillaTallerSche
 
 planillaTallerSchema.pre('update', function (this: IPlanillaTaller, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy;
   next();
 });
 export default planillaTallerModel;

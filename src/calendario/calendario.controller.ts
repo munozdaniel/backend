@@ -31,6 +31,8 @@ class CalendarioController implements Controller {
   }
 
   private crearCalendario = async (request: Request, response: Response, next: NextFunction) => {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const cicloLectivoActual = await this.cicloLectivo.findOne({ anio: moment().year() });
     console.log('cicloLectivoActual', cicloLectivoActual);
     const existentes = await this.calendario.aggregate([
@@ -85,8 +87,8 @@ class CalendarioController implements Controller {
             comisionF: 0,
             comisionG: 0,
             comisionH: 0,
-            fecha: fechaInicio,
-            fechaCreacion: new Date(),
+            fecha: moment(fechaInicio).format('YYYY-MM-DD'),
+            fechaCreacion: hoy,
             activo: true,
           });
         }
@@ -102,8 +104,8 @@ class CalendarioController implements Controller {
             comisionF: 1,
             comisionG: 1,
             comisionH: 1,
-            fecha: fechaInicio,
-            fechaCreacion: new Date(),
+            fecha: moment(fechaInicio).format('YYYY-MM-DD'),
+            fechaCreacion: hoy,
             activo: true,
           });
         }
@@ -120,8 +122,8 @@ class CalendarioController implements Controller {
             comisionF: 0,
             comisionG: 0,
             comisionH: 0,
-            fecha: fechaInicio,
-            fechaCreacion: new Date(),
+            fecha: moment(fechaInicio).format('YYYY-MM-DD'),
+            fechaCreacion: hoy,
             activo: true,
           });
         }
@@ -137,8 +139,8 @@ class CalendarioController implements Controller {
             comisionF: 1,
             comisionG: 1,
             comisionH: 1,
-            fecha: fechaInicio,
-            fechaCreacion: new Date(),
+            fecha: moment(fechaInicio).format('YYYY-MM-DD'),
+            fechaCreacion: hoy,
             activo: true,
           });
         }
@@ -196,6 +198,8 @@ class CalendarioController implements Controller {
   };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const calendariosOriginales: any = await this.calendarioOriginal.find();
       console.log('calendariosOriginales>', calendariosOriginales);
 
@@ -228,7 +232,7 @@ class CalendarioController implements Controller {
             comisionG: x.G,
             comisionH: x.H,
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
 

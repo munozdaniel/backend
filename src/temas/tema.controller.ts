@@ -10,6 +10,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import ITema from './tema.interface';
 import temaOriginalModel from './temaOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
+import moment from 'moment';
 const ObjectId = require('mongoose').Types.ObjectId;
 
 class TemaController implements Controller {
@@ -45,6 +46,8 @@ class TemaController implements Controller {
   };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const temasOriginales: any = await this.temaOriginal.find();
       // console.log('temasOriginales>', temasOriginales);
 
@@ -72,7 +75,7 @@ class TemaController implements Controller {
               caracterClase: x.CaracterClase,
               observacionJefe: x.ObservacionJefe,
 
-              fechaCreacion: new Date(),
+              fechaCreacion: hoy,
               activo: true,
             };
 

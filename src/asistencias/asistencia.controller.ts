@@ -9,8 +9,10 @@ import asistenciaOriginalModel from './asistenciaOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import NotFoundException from '../exceptions/NotFoundException';
-var isodate = require('isodate');
+import moment from 'moment';
 const ObjectId = require('mongoose').Types.ObjectId;
+var isodate = require('isodate');
+
 class AsistenciaController implements Controller {
   public path = '/asistencia';
   public router = Router();
@@ -35,66 +37,50 @@ class AsistenciaController implements Controller {
 
   private guardarAsistencia = async (request: Request, response: Response, next: NextFunction) => {
     const asistencia = request.body.asistencia;
-    const opciones: any = [
-      {
-        $lookup: {
-          from: 'planillatalleres',
-          localField: 'planillaTaller',
-          foreignField: '_id',
-          as: 'planillaTaller',
-        },
+    const match = {
+      alumno: ObjectId(asistencia.alumno._id),
+      planillaTaller: ObjectId(asistencia.planillaTaller._id),
+      fecha: {
+        $gte: new Date(asistencia.fecha).toISOString(),
+        $lt: moment(asistencia.fecha).add('59', 'seconds').add('59', 'minutes').add('23', 'hours').toDate().toISOString(),
       },
-      {
-        $unwind: {
-          path: '$planillaTaller',
-        },
-      },
-      {
-        $lookup: {
-          from: 'alumnos',
-          localField: 'alumno',
-          foreignField: '_id',
-          as: 'alumno',
-        },
-      },
-      {
-        $unwind: {
-          path: '$alumno',
-        },
-      },
-      {
-        $match: {
-          'alumno._id': ObjectId(asistencia.alumno._id),
-          'planillaTaller._id': ObjectId(asistencia.planillaTaller._id),
-          fecha: isodate(asistencia.fecha.toString()),
-        },
-      },
-    ];
-    const asistenciaRepetida = await this.asistencia.aggregate(opciones);
-    console.log('¿asistencia', asistenciaRepetida);
-    console.log('opciones', opciones);
-    if (asistenciaRepetida && asistenciaRepetida.length > 0) {
-      const updated = await this.asistencia.findByIdAndUpdate(asistenciaRepetida[0]._id, asistencia, { new: true });
-      console.log('updated', updated);
-      if (updated) {
-        response.send({ asistencia: updated });
-      } else {
-        response.send({ asistencia: null });
-      }
+    };
+    console.log('matc', match);
+    const updated = await this.asistencia.findOneAndUpdate(match, asistencia, { upsert: true, new: true });
+    console.log('updated', updated);
+    if (updated) {
+      response.send({ asistencia: updated });
     } else {
-      const created = new this.asistencia({ ...asistencia });
-      try {
-        const saved = await created.save();
-        if (saved) {
-          response.send({ asistencia: saved });
-        } else {
-          response.send({ asistencia: null });
-        }
-      } catch (e4) {
-        console.log('[ERROR], ', e4);
-        next(new HttpException(500, 'Ocurrió un error interno'));
-      }
+      response.send({ asistencia: null });
     }
+    // const asistenciaRepetida = await this.asistencia.findOne(match);
+    // // const asistenciaRepetida = await this.asistencia.aggregate(opciones);
+    // console.log('¿asistencia', asistenciaRepetida);
+    // if (asistenciaRepetida) {
+    //   const updated = await this.asistencia.findByIdAndUpdate(asistenciaRepetida._id, asistencia, { new: true });
+    //   console.log('updated', updated);
+    //   if (updated) {
+    //     response.send({ asistencia: updated });
+    //   } else {
+    //     response.send({ asistencia: null });
+    //   }
+    //   // } else {
+    //   //   response.send({ asistencia: null });
+    //   // }
+    // } else {
+    //   const created = new this.asistencia({ ...asistencia });
+    //   try {
+    //     const saved = await created.save();
+    //     if (saved) {
+    //       response.send({ asistencia: saved });
+    //     } else {
+    //       response.send({ asistencia: null });
+    //     }
+    //   } catch (e4) {
+    //     console.log('[ERROR], ', e4);
+    //     next(new HttpException(500, 'Ocurrió un error interno'));
+    //   }
+    // }
   };
   private actualizarAsistencia = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
@@ -243,6 +229,7 @@ class AsistenciaController implements Controller {
           },
         },
       ];
+      console.log('opciones para obtener las asistencia de un usuario:', opciones);
       const asistenciasAggregate = await this.asistencia.aggregate(opciones);
       if (asistenciasAggregate) {
         response.send(asistenciasAggregate);
@@ -255,6 +242,8 @@ class AsistenciaController implements Controller {
     }
   };
   private recuperarDatos = async (skip: number, limit: number, request: Request, response: Response, next: NextFunction) => {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const asistenciasOriginales: any = await this.asistenciaOriginal.find().skip(skip).limit(limit);
     const asistenciasOriginalesRefactorizados: IAsistencia[] = await Promise.all(
       asistenciasOriginales.map(async (x: any, index: number) => {
@@ -296,7 +285,7 @@ class AsistenciaController implements Controller {
           presente: x.Presente === 'SI' ? true : false,
           llegoTarde: x.LlegoTarde === 'SI' ? true : false,
 
-          fechaCreacion: new Date(),
+          fechaCreacion: hoy,
           activo: true,
         };
 
@@ -344,6 +333,8 @@ class AsistenciaController implements Controller {
   };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const asistenciasOriginales: any = await this.asistenciaOriginal.find().limit(10000);
       // const asistenciasOriginales2: any = await this.asistenciaOriginal.find().skip(10000).limit(10000);
       // const asistenciasOriginales3: any = await this.asistenciaOriginal.find().skip(20000).limit(10000);
@@ -393,7 +384,7 @@ class AsistenciaController implements Controller {
             presente: x.Presente === 'SI' ? true : false,
             llegoTarde: x.LlegoTarde === 'SI' ? true : false,
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
 

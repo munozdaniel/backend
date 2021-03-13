@@ -10,6 +10,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import IAsignatura from './asignatura.interface';
 import asignaturaOriginalModel from './asignaturaOriginal.model';
 import cursoModel from '../cursos/curso.model';
+import moment from 'moment';
 class AsignaturaController implements Controller {
   public path = '/asignaturas';
   public router = Router();
@@ -46,7 +47,8 @@ class AsignaturaController implements Controller {
       );
   }
   private test = async (request: Request, response: Response) => {
-    console.log('test');
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const asignaturaData: any = {
       detalle: 'detalle',
       tipoAsignatura: 'ALGO',
@@ -57,7 +59,7 @@ class AsignaturaController implements Controller {
       horasCatedraAnuales: 4,
       horasCatedraSemanales: 2,
       activo: true,
-      fechaCreacion: new Date(),
+      fechaCreacion: hoy,
     };
     console.log('asignaturaData', asignaturaData);
 
@@ -106,7 +108,8 @@ class AsignaturaController implements Controller {
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const asignaturas: any = await this.asignaturaOriginal.find();
-
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const asignaturasRefactorizados: IAsignatura[] = await Promise.all(
         asignaturas.map(async (x: any, index: number) => {
           // const cursos = await this.curso.find({ curso: Number(x.Tcurso) });
@@ -123,7 +126,7 @@ class AsignaturaController implements Controller {
             horasCatedraAnuales: x.HorasCatedraAnuales ? x.HorasCatedraAnuales : 0,
             horasCatedraSemanales: x.HorasCatedraSemanales ? x.HorasCatedraSemanales : 0,
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
             IdAsignarutas: x.IdAsignarutas,
           };

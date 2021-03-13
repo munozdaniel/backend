@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose';
 import IAsignatura from './curso.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import ICurso from './curso.interface';
+import moment from 'moment';
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 // import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
@@ -38,7 +39,8 @@ const cursoModel = mongoose.model<ICurso>('Curso', cursoSchema);
 
 cursoSchema.pre('update', function (this: ICurso, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy;
   next();
 });
 export default cursoModel;

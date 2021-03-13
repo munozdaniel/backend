@@ -7,8 +7,8 @@ interface IEstadoCursada extends mongoose.Document {
   curso: ICurso;
   condicion: string;
   cicloLectivo: ICicloLectivo;
-  fechaCreacion: Date;
-  fechaModificacion?: Date;
+  fechaCreacion: string;
+  fechaModificacion?: string;
   activo: boolean;
 }
 

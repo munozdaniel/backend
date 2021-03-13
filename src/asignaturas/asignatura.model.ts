@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose';
 import IAsignatura from './asignatura.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import { autoIncrement } from 'mongoose-plugin-autoinc';
+import moment from 'moment';
 const Schema = mongoose.Schema;
 
 export const asignaturaSchema = new mongoose.Schema({
@@ -40,7 +41,8 @@ const asignaturaModel = mongoose.model('Asignatura', asignaturaSchema);
 
 asignaturaSchema.pre('update', function (this: IAsignatura, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy;
   next();
 });
 export default asignaturaModel;

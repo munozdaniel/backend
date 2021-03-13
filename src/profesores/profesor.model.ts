@@ -4,6 +4,7 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 // import AutoincrementService from "../services/AutoincrementService";
 import { autoIncrement } from 'mongoose-plugin-autoinc';
+import moment from 'moment';
 export const profesorSchema: SequenceSchema = new mongoose.Schema({
   // _id: {type:String, required:true},
   profesorNro: { type: Number, unique: true, required: false },
@@ -39,7 +40,8 @@ const profesorModel = mongoose.model('Profesore', profesorSchema);
 
 profesorSchema.pre('update', function (this: IProfesor, next: any) {
   const now = new Date();
-  this.fechaModificacion = now;
+  const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+  this.fechaModificacion = hoy;
   next();
 });
 export default profesorModel;

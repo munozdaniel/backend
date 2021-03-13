@@ -16,7 +16,7 @@ import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import NotFoundException from '../exceptions/NotFoundException';
 import calendarioModel from '../calendario/calendario.model';
-var isodate = require('isodate');
+import moment from 'moment';
 
 const ObjectId = require('mongoose').Types.ObjectId;
 class PlanillaTallerController implements Controller {
@@ -52,6 +52,8 @@ class PlanillaTallerController implements Controller {
     });
   };
   private agregar = async (request: Request, response: Response, next: NextFunction) => {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     // Agregar datos
     // La plantilla viene incompleta, hay que buscar el cicloLectivo y el curso
     console.log('request.body', request.body);
@@ -63,7 +65,7 @@ class PlanillaTallerController implements Controller {
     } else {
       let unCurso = await this.curso.findOne({ comision, curso, division });
       if (!unCurso) {
-        const createdCurso = new this.curso({ comision, curso, division, activo: true, fechaCreacion: new Date() });
+        const createdCurso = new this.curso({ comision, curso, division, activo: true, fechaCreacion: hoy });
         unCurso = await createdCurso.save();
       }
       const createdPlanilla = new this.planillaTaller({
@@ -538,6 +540,8 @@ class PlanillaTallerController implements Controller {
   };
   private migrarPlanillaTalleres = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const planillasTalleres: any = await this.planillaTallerOriginal.find();
       // console.log('planillasTalleres>', planillasTalleres);
       const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
@@ -566,7 +570,7 @@ class PlanillaTallerController implements Controller {
             comision: x.comision ? x.comision : null,
             curso: x.Tcurso,
             // cicloLectivo: [nuevoCiclo],
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
           let savedCurso = null;
@@ -611,7 +615,7 @@ class PlanillaTallerController implements Controller {
             fechaFinalizacion: x.FechaFinalizacion,
             bimestre: x.Bimestre ? x.Bimestre : 'SIN REGISTRAR',
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
 

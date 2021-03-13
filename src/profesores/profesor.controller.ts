@@ -9,6 +9,7 @@ import profesorModel, { profesorSchema } from './profesor.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import IProfesor from './profesor.interface';
 import profesorOriginalModel from './profesorOriginal.model';
+import moment from 'moment';
 class ProfesorController implements Controller {
   public path = '/profesores';
   public router = Router();
@@ -103,6 +104,8 @@ class ProfesorController implements Controller {
 
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const profesores: any = await this.profesorOriginal.find();
       console.log('profesores', profesores);
       // {},
@@ -131,7 +134,7 @@ class ProfesorController implements Controller {
           email: x.mail,
           formacion: x.formacion,
           titulo: x.tipo_de_titulacion,
-          fechaCreacion: new Date(),
+          fechaCreacion: hoy,
           activo: true,
         };
 

@@ -11,6 +11,7 @@ import ICurso from './curso.interface';
 import comisionOriginalModel from './comisionOriginal.model';
 import alumnoModel from '../alumnos/alumno.model';
 import comisionUnicaModel from './comisionUnica.model';
+import moment from 'moment';
 class CursoController implements Controller {
   public path = '/cursos';
   public router = Router();
@@ -58,6 +59,8 @@ class CursoController implements Controller {
 
   private buscarCursoesPorCicloLectivo = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       console.log('request.body', request.body);
       const curso: ICurso = request.body.curso;
       const unaCurso = await this.curso.findOne({
@@ -72,7 +75,7 @@ class CursoController implements Controller {
       if (unaCurso) {
         response.send(unaCurso);
       } else {
-        curso.fechaCreacion = new Date();
+        curso.fechaCreacion = hoy;
         const cursoData: CreateCursoDto = curso as any;
         const createdCurso = new this.curso({
           ...cursoData,
@@ -135,6 +138,8 @@ class CursoController implements Controller {
   };
   private migrarCursoesUnicas = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const cursos: any = await this.comisionSql.find();
       console.log('cursos', cursos);
 
@@ -152,7 +157,7 @@ class CursoController implements Controller {
             //   ? x.Condicion.toUpperCase()
             //   : 'SIN REGISTRAR',
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
 
@@ -176,8 +181,9 @@ class CursoController implements Controller {
   };
   private migrarCursoes = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const cursos: any = await this.comisionOriginal.find();
-      console.log('cursos', cursos);
 
       const cursosRefactorizados: ICurso[] = await Promise.all(
         cursos.map(async (x: any, index: number) => {
@@ -201,7 +207,7 @@ class CursoController implements Controller {
             division: x.Division ? Number(x.Division) : null,
             condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
 
-            fechaCreacion: new Date(),
+            fechaCreacion: hoy,
             activo: true,
           };
 
@@ -223,116 +229,6 @@ class CursoController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-
-  // private migrarAlumnos = async (
-  //   request: Request,
-  //   response: Response,
-  //   next: NextFunction
-  // ) => {
-  //   try {
-  //     const cursos: any = await this.curso.find().populate('alumno');
-  //     console.log('cursos', cursos.length);
-  //     // {},
-  //     // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
-
-  //     // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
-  //     // console.log(
-  //     //   'cursos',
-  //     //   cursos[100].dni,
-  //     //   cursos[100].telefonos,
-  //     //   cursos[100].procedencia_colegio_primario
-  //     // );
-
-  //     // console.log(
-  //     //   'cursos2',cursos,
-
-  //     // );
-  //     console.log('==================================> 1');
-  //     // const cursosRefactorizados: ICurso[] = cursos.map(
-  //     //   (x: any, index: number) => {
-
-  //     //     const unaCurso: ICurso & any = {
-  //     //       // _id: x._id,
-  //     //       alumnoId: x.id_alumnos,
-  //     //       cursoNro: 100 + index,
-  //     //       curso: x.curso ? x.curso.toUpperCase() : 'SIN REGISTRAR',
-  //     //       cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
-  //     //       curso: x.Tcurso ? Number(x.Tcurso) : null,
-  //     //       division: x.Division ? Number(x.Division) : null,
-  //     //       condicion: x.Condicion
-  //     //         ? x.Condicion.toUpperCase()
-  //     //         : 'SIN REGISTRAR',
-
-  //     //       fechaCreacion: new Date(),
-  //     //       activo: true,
-  //     //     };
-
-  //     //     return unaCurso;
-  //     //   }
-  //     // );
-
-  //     try {
-  //       // const savedCursos = await this.curso.insertMany(
-  //       //   cursosRefactorizados
-  //       // );
-  //       // console.log(
-  //       //   '==================================> 2',
-  //       //   cursosRefactorizados.length
-  //       // );
-  //       try {
-  //         const savedCursos = await Promise.all(
-  //           cursos.map(async (x: ICurso & any) => {
-  //             const unaCurso:any = {
-  //               _id: x._id,
-  //               cursoNro: x.cursoNro,
-  //               curso: x.curso,
-  //               cicloLectivo: x.cicloLectivo,
-  //               curso: x.curso,
-  //               division: x.division,
-  //               condicion: x.condicion,
-  //               activo:true
-  //              //  alumno: x.alumno,
-  //             };
-  //             // const alu = await this.alumno.findOne({ alumnoId: 1 });
-  //             //  console.log('aluy,', x.alumno);
-  //             // return unaCurso;
-  //             return await this.alumno.findOneAndUpdate(
-  //               { _id: x.alumno },
-  //               {
-  //                 $push: {
-  //                   cursos: unaCurso,
-  //                 },
-  //               }
-  //               //,{ upsert: true }
-  //             );
-  //           })
-  //         );
-  //         console.log(
-  //           '==================================> 3',
-  //           savedCursos.length
-  //         );
-
-  //         response.send({
-  //           savedCursos,
-  //         });
-  //       } catch (error) {
-  //         console.log('Datos', error);
-  //         new HttpException(
-  //           500,
-  //           'Ocurrió un error al guardar las cursos 1'
-  //         );
-  //       }
-  //     } catch (e) {
-  //       console.log('ERROR', e);
-  //       next(
-  //         new HttpException(500, 'Ocurrió un error al guardar las cursos')
-  //       );
-  //     }
-  //   } catch (e2) {
-  //     console.log('ERROR', e2);
-  //     next(new HttpException(400, 'Parametros Incorrectos'));
-  //   }
-  // };
 
   private getCursoById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
