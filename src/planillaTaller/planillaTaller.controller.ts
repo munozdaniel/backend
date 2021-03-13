@@ -68,8 +68,13 @@ class PlanillaTallerController implements Controller {
         const createdCurso = new this.curso({ comision, curso, division, activo: true, fechaCreacion: hoy });
         unCurso = await createdCurso.save();
       }
+      const ini = new Date(moment(planillaData.fechaInicio).format('YYYY-MM-DD'));
+      const fin = new Date(moment(planillaData.fechaFinalizacion).format('YYYY-MM-DD'));
+
       const createdPlanilla = new this.planillaTaller({
         ...planillaData,
+        fechaInicio: ini,
+        fechaFinalizacion: fin,
         curso: unCurso,
         cicloLectivo: unCicloLectivo,
         // author: request.user ? request.user._id : null,
@@ -599,6 +604,8 @@ class PlanillaTallerController implements Controller {
           }
 
           const cl = await ciclosLectivos.filter((d) => Number(d.anio) === Number(x.ciclo_lectivo));
+          const ini = new Date(moment(x.FechaInicio).format('YYYY-MM-DD'));
+          const fin = new Date(moment(x.FechaFinalizacion).format('YYYY-MM-DD'));
           const unaPlanillaTaller: IPlanillaTaller & any = {
             planillaTallerNro: 100 + index,
             planillaTallerId: x.id_planilla_de_taller,
@@ -610,9 +617,9 @@ class PlanillaTallerController implements Controller {
             // division: x.division,
             // comision: x.comision,
             cicloLectivo: cl[0],
-            fechaInicio: x.FechaInicio,
             observacion: x.Observacion,
-            fechaFinalizacion: x.FechaFinalizacion,
+            fechaInicio: ini,
+            fechaFinalizacion: fin,
             bimestre: x.Bimestre ? x.Bimestre : 'SIN REGISTRAR',
 
             fechaCreacion: hoy,

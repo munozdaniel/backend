@@ -31,10 +31,10 @@ export const asistenciaSchema = new mongoose.Schema({
 // Modelo
 asistenciaSchema.plugin(mongoosePaginate);
 // <IAsistencia>
-asistenciaSchema.plugin(autoIncrement, {
-  model: 'Asistencia',
-  field: 'asistenciaNro',
-});
+// asistenciaSchema.plugin(autoIncrement, {
+//   model: 'Asistencia',
+//   field: 'asistenciaNro',
+// });
 asistenciaSchema.index({ planillaTaller: 1, alumno: 1, fecha: 1 }, { unique: true });
 
 const asistenciaModel = mongoose.model('Asistencia', asistenciaSchema);
@@ -45,4 +45,22 @@ asistenciaSchema.pre('update', function (this: IAsistencia, next: any) {
   this.fechaModificacion = hoy;
   next();
 });
+// asistenciaSchema.pre('findOneAndUpdate', function (this: IAsistencia, next: any) {
+//   const ultimaAsistencia = asistenciaModel.find().sort({_id:1}).limit(1);
+//   this.
+//   mongoose.models["YourModel"].find(this.getQuery(), (err, data) => {
+//     if (data.length === 0) {
+//         mongoose.models["YourModel"].create({
+//             name: self.getQuery().name
+//         },
+//         function (err, name) {
+//             if (err) return next(err)
+//             next()
+//         })
+//     } else {
+//         next()
+//     } 
+// })
+//   next();
+// });
 export default asistenciaModel;

@@ -24,8 +24,8 @@ export const estadoCursadaSchema = new mongoose.Schema({
     required: true,
   },
   // cicloLectivo: { type: Number, required: true },
-  fechaCreacion: { type: String },
-  fechaModificacion: { type: String },
+  fechaCreacion: { type: Date, required: true },
+  fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
 });
 
@@ -51,7 +51,7 @@ const estadoCursadaModel = mongoose.model('EstadoCursada', estadoCursadaSchema);
 estadoCursadaSchema.pre('update', function (this: IEstadoCursada, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
-  this.fechaModificacion = hoy.toString();
+  this.fechaModificacion = hoy;
   next();
 });
 export default estadoCursadaModel;

@@ -45,7 +45,14 @@ class AsistenciaController implements Controller {
         $lt: moment(asistencia.fecha).add('59', 'seconds').add('59', 'minutes').add('23', 'hours').toDate().toISOString(),
       },
     };
+    console.log('asistencia', asistencia.fecha);
+    const encontrados = await this.asistencia.find(match);
     console.log('matc', match);
+    console.log('encontrados', encontrados);
+    console.log('momement', moment(asistencia.fecha).format('YYYY-MM-DD'));
+    console.log('date', new Date(moment(asistencia.fecha).format('YYYY-MM-DD')));
+    const ini = new Date(moment(asistencia.fecha).utc().format('YYYY-MM-DD'));
+    asistencia.fecha = ini;
     const updated = await this.asistencia.findOneAndUpdate(match, asistencia, { upsert: true, new: true });
     console.log('updated', updated);
     if (updated) {
@@ -53,39 +60,13 @@ class AsistenciaController implements Controller {
     } else {
       response.send({ asistencia: null });
     }
-    // const asistenciaRepetida = await this.asistencia.findOne(match);
-    // // const asistenciaRepetida = await this.asistencia.aggregate(opciones);
-    // console.log('¿asistencia', asistenciaRepetida);
-    // if (asistenciaRepetida) {
-    //   const updated = await this.asistencia.findByIdAndUpdate(asistenciaRepetida._id, asistencia, { new: true });
-    //   console.log('updated', updated);
-    //   if (updated) {
-    //     response.send({ asistencia: updated });
-    //   } else {
-    //     response.send({ asistencia: null });
-    //   }
-    //   // } else {
-    //   //   response.send({ asistencia: null });
-    //   // }
-    // } else {
-    //   const created = new this.asistencia({ ...asistencia });
-    //   try {
-    //     const saved = await created.save();
-    //     if (saved) {
-    //       response.send({ asistencia: saved });
-    //     } else {
-    //       response.send({ asistencia: null });
-    //     }
-    //   } catch (e4) {
-    //     console.log('[ERROR], ', e4);
-    //     next(new HttpException(500, 'Ocurrió un error interno'));
-    //   }
-    // }
   };
   private actualizarAsistencia = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     console.log('id', id);
     const asistencia = request.body.asistencia;
+    const ini = new Date(moment(asistencia.fecha).format('YYYY-MM-DD'));
+    asistencia.fecha = ini;
     try {
       const updated = await this.asistencia.findByIdAndUpdate(id, asistencia, { new: true });
       console.log('updated', updated);

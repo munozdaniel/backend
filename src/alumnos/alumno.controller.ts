@@ -823,24 +823,7 @@ class AlumnoController implements Controller {
                       };
                     }
                     console.log('match', match);
-                    const opciones = [
-                      // {
-                      //   $lookup: {
-                      //     from: 'ciclolectivos',
-                      //     localField: 'cicloLectivo',
-                      //     foreignField: '_id',
-                      //     as: 'cicloLectivo',
-                      //   },
-                      // },
-                      // {
-                      //   $unwind: {
-                      //     path: '$cicloLectivo',
-                      //   },
-                      // },
-                      {
-                        $match: match,
-                      },
-                    ];
+                   
 
                     try {
                       const nuevo = {
@@ -895,7 +878,6 @@ class AlumnoController implements Controller {
             }
           }
 
-          console.log('hoy', hoy);
           const retorno: any = {
             estadoCursadas: estadoCursadas,
             alumnoId: x.id_alumno,
