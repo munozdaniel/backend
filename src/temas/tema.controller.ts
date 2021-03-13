@@ -30,8 +30,27 @@ class TemaController implements Controller {
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerTemaPorPlanillaTaller);
     this.router.put(`${this.path}`, this.guardarTema);
     this.router.patch(`${this.path}/:id`, this.actualizarTema);
+    this.router.delete(`${this.path}/:id`, this.eliminar);
   }
 
+  private eliminar = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const successResponse = await this.tema.findByIdAndDelete(id);
+      if (successResponse) {
+        response.send({
+          status: 200,
+          success: true,
+          message: 'Operación Exitosa',
+        });
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
   private guardarTema = async (request: Request, response: Response, next: NextFunction) => {
     const temaData: CreateTemaDto = request.body;
     console.log('¿temaData', temaData);

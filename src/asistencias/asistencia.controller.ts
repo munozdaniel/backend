@@ -33,8 +33,27 @@ class AsistenciaController implements Controller {
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerAsistenciasPorPlanilla);
     this.router.put(`${this.path}`, this.guardarAsistencia);
     this.router.patch(`${this.path}/:id`, this.actualizarAsistencia);
+    this.router.delete(`${this.path}/:id`, this.eliminar);
   }
 
+  private eliminar = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const successResponse = await this.asistencia.findByIdAndDelete(id);
+      if (successResponse) {
+        response.send({
+          status: 200,
+          success: true,
+          message: 'Operación Exitosa',
+        });
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
   private guardarAsistencia = async (request: Request, response: Response, next: NextFunction) => {
     const asistencia = request.body.asistencia;
     const match = {

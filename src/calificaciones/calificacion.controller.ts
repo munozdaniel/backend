@@ -33,8 +33,27 @@ class CalificacionController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.post(`${this.path}/por-alumno/:id`, this.obtenerCalificacionesPorAlumnoId);
     this.router.put(`${this.path}`, this.guardarCalificacion);
+    this.router.delete(`${this.path}/:id`, this.eliminar);
     this.router.patch(`${this.path}/:id`, this.actualizarCalificacion);
   }
+  private eliminar = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const successResponse = await this.calificacion.findByIdAndDelete(id);
+      if (successResponse) {
+        response.send({
+          status: 200,
+          success: true,
+          message: 'Operación Exitosa',
+        });
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
   private guardarCalificacion = async (request: Request, response: Response, next: NextFunction) => {
     const calificacionData: CreateCalificacionDto = request.body;
     console.log('¿calificacionData', calificacionData);
