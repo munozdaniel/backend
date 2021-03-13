@@ -823,7 +823,6 @@ class AlumnoController implements Controller {
                       };
                     }
                     console.log('match', match);
-                   
 
                     try {
                       const nuevo = {
@@ -1022,9 +1021,13 @@ class AlumnoController implements Controller {
       ...alumnoData,
       // author: request.user ? request.user._id : null,
     });
-    const savedAlumno = await createdAlumno.save();
-    // await savedAlumno.populate('author', '-password').execPopulate();
-    response.send(savedAlumno);
+    try {
+      const savedAlumno = await createdAlumno.save();
+      response.send(savedAlumno);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno'));
+    }
   };
   private createAlumnoComplete = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar foto

@@ -23,7 +23,7 @@ export const calificacionSchema = new mongoose.Schema({
     ref: 'Profesore',
     required: true,
   },
-  id_calificaciones: { type: Number, required: true }, // para migrar
+  id_calificaciones: { type: Number, required: false }, // para migrar
   formaExamen: { type: String, required: false },
   tipoExamen: { type: String, required: false },
   promedia: { type: Boolean, required: true },

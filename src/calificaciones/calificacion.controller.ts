@@ -32,8 +32,42 @@ class CalificacionController implements Controller {
     console.log('CalificacionController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.post(`${this.path}/por-alumno/:id`, this.obtenerCalificacionesPorAlumnoId);
+    this.router.put(`${this.path}`, this.guardarCalificacion);
+    this.router.patch(`${this.path}/:id`, this.actualizarCalificacion);
   }
-
+  private guardarCalificacion = async (request: Request, response: Response, next: NextFunction) => {
+    const calificacionData: CreateCalificacionDto = request.body;
+    console.log('¿calificacionData', calificacionData);
+    const created = new this.calificacion({
+      ...calificacionData,
+    });
+    try {
+      const saved = await created.save();
+      response.send(saved);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno'));
+    }
+  };
+  private actualizarCalificacion = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    console.log('id', id);
+    const calificacion = request.body.calificacion;
+    const ini = new Date(moment(calificacion.fecha).format('YYYY-MM-DD'));
+    calificacion.fecha = ini;
+    try {
+      const updated = await this.calificacion.findByIdAndUpdate(id, calificacion, { new: true });
+      console.log('updated', updated);
+      if (updated) {
+        response.send({ calificacion: updated });
+      } else {
+        response.send({ calificacion: null });
+      }
+    } catch (e4) {
+      console.log('[ERROR], ', e4);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const calificacionsOriginales: any = await this.calificacionOriginal.find();
@@ -74,6 +108,71 @@ class CalificacionController implements Controller {
           } catch (ero) {
             console.log('ero', ero);
           }
+          let tipoExamen = null;
+          switch (x.tipo_de_examen) {
+            case '1er Trab Grupal':
+              tipoExamen = '1ER TRABAJO GRUPAL';
+              break;
+            case '1er Trab Practi':
+              tipoExamen = '1ER TRABAJO PRACTICO';
+              break;
+            case '1ra Evaluacion':
+              tipoExamen = '1RA EVALUACION';
+              break;
+            case '2da Evaluacion':
+              tipoExamen = '2DA EVALUACION';
+              break;
+            case '2do Trab Grupal':
+              tipoExamen = '2DO TRABAJO GRUPAL';
+              break;
+            case '2do Trab Practi':
+              tipoExamen = '2DO TRABAJO PRACTICO';
+              break;
+            case '3er  Trab Pract':
+              tipoExamen = '3ER TRABAJO PRACTICO';
+              break;
+            case '3ra Evaluacion':
+              tipoExamen = '3RA EVALUACION';
+              break;
+            case '3ro Trab Grupal':
+              tipoExamen = '3ER TRABAJO GRUPAL';
+              break;
+            case '4to  Trab Pract':
+              tipoExamen = '4TO TRABAJO PRACTICO';
+              break;
+            case 'Concepto':
+              tipoExamen = 'CONCEPTO';
+              break;
+            case 'Evaluacion':
+              tipoExamen = 'EVALUACION';
+              break;
+            case 'Participacion':
+              tipoExamen = 'PARTICIPACION';
+              break;
+            case 'Trabajo Grupal':
+              tipoExamen = 'TRABAJO GRUPAL';
+              break;
+            case 'Trabajo Practico':
+              tipoExamen = 'TRABAJO PRACTICO';
+              break;
+            default:
+              break;
+          }
+          let formaExamen = null;
+          switch (x.forma_del_examen) {
+            case 'Escrito':
+              formaExamen = 'ESCRITO';
+              break;
+
+            case 'Oral':
+              formaExamen = 'ORAL';
+              break;
+            case 'Prac.Laboratori':
+              formaExamen = 'PRACT. LABORATORIO';
+              break;
+            default:
+              break;
+          }
           const now = new Date();
           const hoy = new Date(moment(now).format('YYYY-MM-DD'));
           const unaCalificacion: ICalificacion & any = {
@@ -82,8 +181,8 @@ class CalificacionController implements Controller {
             planillaTaller: planillataller,
             profesor: profesor,
             alumno: alumno,
-            formaExamen: x.forma_del_examen,
-            tipoExamen: x.tipo_de_examen,
+            formaExamen,
+            tipoExamen,
             promedioGeneral: x.PromedioGeneral,
             observaciones: x.Observaciones,
             promedia: x.promedia === 'SI' ? true : false,
