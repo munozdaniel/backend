@@ -45,20 +45,19 @@ class AsistenciaController implements Controller {
         $lt: moment(asistencia.fecha).add('59', 'seconds').add('59', 'minutes').add('23', 'hours').toDate().toISOString(),
       },
     };
-    console.log('asistencia', asistencia.fecha);
-    const encontrados = await this.asistencia.find(match);
-    console.log('matc', match);
-    console.log('encontrados', encontrados);
-    console.log('momement', moment(asistencia.fecha).format('YYYY-MM-DD'));
-    console.log('date', new Date(moment(asistencia.fecha).format('YYYY-MM-DD')));
     const ini = new Date(moment(asistencia.fecha).utc().format('YYYY-MM-DD'));
     asistencia.fecha = ini;
-    const updated = await this.asistencia.findOneAndUpdate(match, asistencia, { upsert: true, new: true });
-    console.log('updated', updated);
-    if (updated) {
-      response.send({ asistencia: updated });
-    } else {
-      response.send({ asistencia: null });
+    try {
+      const updated = await this.asistencia.findOneAndUpdate(match, asistencia, { upsert: true, new: true });
+      console.log('updated', updated);
+      if (updated) {
+        response.send({ asistencia: updated });
+      } else {
+        response.send({ asistencia: null });
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno'));
     }
   };
   private actualizarAsistencia = async (request: Request, response: Response, next: NextFunction) => {

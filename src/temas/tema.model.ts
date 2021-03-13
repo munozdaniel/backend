@@ -12,13 +12,13 @@ export const temaSchema = new mongoose.Schema({
     ref: 'PlanillaTallere',
     required: true,
   },
-  fecha: { type: Date },
-  temaDelDia: { type: String },
-  tipoDesarrollo: { type: String },
-  temasProximaClase: { type: String },
-  nroClase: { type: Number },
-  unidad: { type: Number },
-  caracterClase: { type: String },
+  fecha: { type: Date, required: true },
+  temaDelDia: { type: String, required: true },
+  tipoDesarrollo: { type: String, required: true },
+  temasProximaClase: { type: String, required: false },
+  nroClase: { type: Number, required: true },
+  unidad: { type: Number, required: true },
+  caracterClase: { type: String, required: true },
   observacionJefe: { type: String },
 
   fechaCreacion: { type: Date, default: Date.now },
@@ -34,7 +34,7 @@ temaSchema.plugin(autoIncrement, {
   field: 'temaNro',
 });
 const temaModel = mongoose.model('Tema', temaSchema);
- 
+
 temaSchema.pre('update', function (this: ITema, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));

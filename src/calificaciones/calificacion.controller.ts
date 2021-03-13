@@ -51,10 +51,7 @@ class CalificacionController implements Controller {
   };
   private actualizarCalificacion = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log('id', id);
     const calificacion = request.body.calificacion;
-    const ini = new Date(moment(calificacion.fecha).format('YYYY-MM-DD'));
-    calificacion.fecha = ini;
     try {
       const updated = await this.calificacion.findByIdAndUpdate(id, calificacion, { new: true });
       console.log('updated', updated);

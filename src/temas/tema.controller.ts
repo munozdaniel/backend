@@ -28,8 +28,55 @@ class TemaController implements Controller {
     console.log('TemaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerTemaPorPlanillaTaller);
+    this.router.put(`${this.path}`, this.guardarTema);
+    this.router.patch(`${this.path}/:id`, this.actualizarTema);
   }
 
+  private guardarTema = async (request: Request, response: Response, next: NextFunction) => {
+    const temaData: CreateTemaDto = request.body;
+    console.log('¿temaData', temaData);
+    const match = {
+      planillaTaller: ObjectId(temaData.planillaTaller._id),
+      fecha: {
+        $gte: new Date(temaData.fecha).toISOString(),
+        $lt: moment(temaData.fecha).add('59', 'seconds').add('59', 'minutes').add('23', 'hours').toDate().toISOString(),
+      },
+    };
+    const ini = new Date(moment(temaData.fecha).utc().format('YYYY-MM-DD'));
+    temaData.fecha = ini;
+
+    try {
+      const updated = await this.tema.findOneAndUpdate(match, temaData, { upsert: true, new: true });
+      console.log('updated', updated);
+      if (updated) {
+        response.send({ asistencia: updated });
+      } else {
+        response.send({ asistencia: null });
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno'));
+    }
+  };
+  private actualizarTema = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    console.log('id', id);
+    const tema = request.body.tema;
+    const ini = new Date(moment(tema.fecha).format('YYYY-MM-DD'));
+    tema.fecha = ini;
+    try {
+      const updated = await this.tema.findByIdAndUpdate(id, tema, { new: true });
+      console.log('updated', updated);
+      if (updated) {
+        response.send({ tema: updated });
+      } else {
+        response.send({ tema: null });
+      }
+    } catch (e4) {
+      console.log('[ERROR], ', e4);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
   private obtenerTemaPorPlanillaTaller = async (request: Request, response: Response, next: NextFunction) => {
     const id = escapeStringRegexp(request.params.id);
     try {
@@ -61,6 +108,27 @@ class TemaController implements Controller {
             console.log('unaPlanillaTaller NO existe', x.id_planilla_taller);
             return null;
           } else {
+            let caracterClase = null;
+            switch (x.CaracterClase) {
+              case 'Por Dictar':
+                caracterClase = 'SIN DICTAR';
+                break;
+              case 'Practica':
+                caracterClase = 'PRACTICA';
+                break;
+              case 'Sin Dictar':
+                caracterClase = 'SIN DICTAR';
+                break;
+              case 'Teorico':
+                caracterClase = 'TEORICO';
+                break;
+              case 'Teorico-Practic':
+                caracterClase = 'TEORICO-PRACTICO';
+                break;
+
+              default:
+                break;
+            }
             // console.log('unaPlanillaTaller', unaPlanillaTaller);
             const unaTema: ITema & any = {
               temaNro: 100 + index,
@@ -72,7 +140,7 @@ class TemaController implements Controller {
               temasProximaClase: x.Temas_Proxima_Clase,
               nroClase: x.NroClase,
               unidad: x.Unidad,
-              caracterClase: x.CaracterClase,
+              caracterClase,
               observacionJefe: x.ObservacionJefe,
 
               fechaCreacion: hoy,

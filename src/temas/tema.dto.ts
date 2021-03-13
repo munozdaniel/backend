@@ -69,7 +69,7 @@ class CrearTemaDto {
   @IsString({
     message: "La observacion del jefe de taller no ha sido ingresado",
   })
-  @MinLength(7, {
+  @MinLength(4, {
     message: "La observacion del jefe de taller  es muy corto",
   })
   @MaxLength(100, {
