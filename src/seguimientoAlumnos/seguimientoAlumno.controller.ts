@@ -32,12 +32,159 @@ class SeguimientoAlumnoController implements Controller {
     console.log('SeguimientoAlumnoController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.post(`${this.path}/resueltos`, this.resueltos);
-    this.router.post(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
+    // this.router.post(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
+    this.router.get(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
+    this.router.get(`${this.path}/por-planilla-alumno/:id/:alumnoId`, this.obtenerPorPlanillaYAlumno);
+    this.router.put(`${this.path}`, this.agregarSeguimientoAlumno);
+    this.router.patch(`${this.path}/:id`, this.actualizarSeguimientoAlumno);
+    this.router.delete(`${this.path}/:id`, this.eliminar);
   }
+  private eliminar = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const successResponse = await this.seguimientoAlumno.findByIdAndDelete(id);
+      if (successResponse) {
+        response.send({
+          status: 200,
+          success: true,
+          message: 'Operación Exitosa',
+        });
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+  private agregarSeguimientoAlumno = async (request: Request, response: Response, next: NextFunction) => {
+    const seguimientoData: CreateSeguimientoAlumnoDto = request.body;
+    console.log('¿seguimientoData', seguimientoData.fecha);
+    const ini = new Date(moment.utc(seguimientoData.fecha).format('YYYY-MM-DD')); // Se hace esto para que no pase al siguient dia
+    seguimientoData.fecha = ini;
+    console.log('¿seguimientoData', seguimientoData.fecha);
+    const match = {
+      alumno: ObjectId(seguimientoData.alumno._id),
+      planillaTaller: ObjectId(seguimientoData.planillaTaller._id),
+      fecha: {
+        $eq: ini.toISOString(),
+      },
+      // fecha: {
+      //   $gte: new Date(seguimientoData.fecha).toISOString(),
+      //   $lt: moment(seguimientoData.fecha).add('59', 'seconds').add('59', 'minutes').add('23', 'hours').toDate().toISOString(),
+      // },
+    };
+    // const ini = new Date(moment(seguimientoData.fecha).utc().format('YYYY-MM-DD'));
+    // seguimientoData.fecha = ini;
+
+    try {
+      const updated = await this.seguimientoAlumno.findOne(match);
+      console.log('updated', updated);
+      if (updated) {
+        response.send({
+          tema: updated,
+          success: false,
+          message: 'Ya existe cargado un seguimiento en la fecha: ' + moment.utc(ini).format('DD/MM/YYYY').toString(),
+        });
+      } else {
+        const created = new this.seguimientoAlumno({
+          ...seguimientoData,
+        });
+        const saved = await created.save();
+        response.send({ seguimiento: saved, success: true, message: 'Seguimiento agregado correctamente' });
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno'));
+    }
+  };
+  private actualizarSeguimientoAlumno = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    const seguimiento = request.body;
+    console.log('id', id);
+    const fechadate = new Date(seguimiento.fecha);
+    const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
+    seguimiento.fecha = fecha;
+    try {
+      const updated = await this.seguimientoAlumno.findByIdAndUpdate(id, seguimiento, { new: true });
+      console.log('updated', updated);
+      if (updated) {
+        response.send({ seguimiento: updated });
+      } else {
+        response.send({ seguimiento: null });
+      }
+    } catch (e4) {
+      console.log('[ERROR], ', e4);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+  private obtenerPorPlanillaYAlumno = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    const alumnoId = request.params.alumnoId;
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'alumnos',
+          localField: 'alumno',
+          foreignField: '_id',
+          as: 'alumno',
+        },
+      },
+      {
+        $unwind: {
+          path: '$alumno',
+        },
+      },
+      {
+        $match: {
+          planillaTaller: ObjectId(id),
+          'alumno._id': ObjectId(alumnoId),
+        },
+      },
+    ];
+    try {
+      const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
+      console.log(id, 'seguimientos', seguimientos);
+      response.send(seguimientos);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas en el servidor'));
+    }
+  };
   private obtenerSeguimientoAlumnoPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
+    try {
+      const opciones: any = [
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'cicloLectivo',
+            foreignField: '_id',
+            as: 'cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$cicloLectivo',
+          },
+        },
+        {
+          $match: {
+            planillaTaller: ObjectId(id),
+          },
+        },
+      ];
+
+      const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
+      response.send(seguimientos);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas en el servidor'));
+    }
+  };
+  private obtenerSeguimientoAlumnoPorPlanilla2 = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
     const { alumnoId, ciclo } = request.body;
-    console.log('alumno, cilco', alumnoId, ciclo);
     try {
       const opciones: any = [
         {
@@ -61,13 +208,8 @@ class SeguimientoAlumnoController implements Controller {
           },
         },
       ];
-      console.log({
-        planillaTaller: ObjectId(id),
-        alumno: ObjectId(alumnoId),
-        'cicloLectivo.anio': Number(ciclo),
-      });
+
       const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
-      console.log(id, 'seguimientos', seguimientos);
       if (seguimientos && seguimientos.length > 0) {
         response.send(seguimientos[0]);
       } else {
@@ -100,7 +242,7 @@ class SeguimientoAlumnoController implements Controller {
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const now = new Date();
-    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
       const seguimientosOriginales: any = await this.seguimientoAlumnoOriginal.find();
 
@@ -122,12 +264,14 @@ class SeguimientoAlumnoController implements Controller {
           } catch (ero) {
             console.log('ero', ero);
           }
+          const fechadate = new Date(x.fecha);
+          const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
           const cl = await ciclosLectivos.filter((d) => Number(d.anio) === (x.ciclo_lectivo === 0 ? 2019 : Number(x.ciclo_lectivo)));
           const unSeguimientoAlumno: ISeguimientoAlumno & any = {
             seguimientoAlumnoNro: index,
             alumno: alumno,
             planillaTaller: planillataller,
-            fecha: x.fecha,
+            fecha,
             tipoSeguimiento: x.tipo_seguimiento,
             cicloLectivo: cl[0],
             resuelto: x.Resuelto === 'SI' ? true : false,
@@ -144,7 +288,6 @@ class SeguimientoAlumnoController implements Controller {
       );
 
       try {
-        console.log('seguimientoRefactorizados', seguimientoRefactorizados);
         const savedPlanillaTallers = await this.seguimientoAlumno.insertMany(seguimientoRefactorizados);
         response.send({
           savedPlanillaTallers,

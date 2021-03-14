@@ -22,7 +22,7 @@ export const seguimientoAlumnoSchema = new mongoose.Schema({
     ref: 'PlanillaTallere',
     required: false,
   },
-  fecha: { type: String },
+  fecha: { type: Date },
   tipoSeguimiento: { type: String },
   // cicloLectivo: { type: Number },
   resuelto: { type: Boolean },
