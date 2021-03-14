@@ -4,7 +4,6 @@ import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreateSeguimientoAlumnoDto from './seguimientoAlumno.dto';
-import SeguimientoAlumno from './seguimientoAlumno.interface';
 import seguimientoAlumnoModel from './seguimientoAlumno.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import ISeguimientoAlumno from './seguimientoAlumno.interface';
@@ -35,6 +34,7 @@ class SeguimientoAlumnoController implements Controller {
     // this.router.post(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
     this.router.get(`${this.path}/por-planilla-alumno/:id/:alumnoId`, this.obtenerPorPlanillaYAlumno);
+    this.router.get(`${this.path}/por-alumno/:alumnoId`, this.obtenerPorAlumno);
     this.router.put(`${this.path}`, this.agregarSeguimientoAlumno);
     this.router.patch(`${this.path}/:id`, this.actualizarSeguimientoAlumno);
     this.router.delete(`${this.path}/:id`, this.eliminar);
@@ -59,27 +59,32 @@ class SeguimientoAlumnoController implements Controller {
   };
   private agregarSeguimientoAlumno = async (request: Request, response: Response, next: NextFunction) => {
     const seguimientoData: CreateSeguimientoAlumnoDto = request.body;
-    console.log('¿seguimientoData', seguimientoData.fecha);
     const ini = new Date(moment.utc(seguimientoData.fecha).format('YYYY-MM-DD')); // Se hace esto para que no pase al siguient dia
     seguimientoData.fecha = ini;
-    console.log('¿seguimientoData', seguimientoData.fecha);
-    const match = {
+    let match: any = {
       alumno: ObjectId(seguimientoData.alumno._id),
-      planillaTaller: ObjectId(seguimientoData.planillaTaller._id),
       fecha: {
         $eq: ini.toISOString(),
       },
-      // fecha: {
-      //   $gte: new Date(seguimientoData.fecha).toISOString(),
-      //   $lt: moment(seguimientoData.fecha).add('59', 'seconds').add('59', 'minutes').add('23', 'hours').toDate().toISOString(),
-      // },
     };
+    if (seguimientoData.planillaTaller) {
+      match = {
+        alumno: ObjectId(seguimientoData.alumno._id),
+        planillaTaller: ObjectId(seguimientoData.planillaTaller._id),
+        fecha: {
+          $eq: ini.toISOString(),
+        },
+        // fecha: {
+        //   $gte: new Date(seguimientoData.fecha).toISOString(),
+        //   $lt: moment(seguimientoData.fecha).add('59', 'seconds').add('59', 'minutes').add('23', 'hours').toDate().toISOString(),
+        // },
+      };
+    }
     // const ini = new Date(moment(seguimientoData.fecha).utc().format('YYYY-MM-DD'));
     // seguimientoData.fecha = ini;
 
     try {
       const updated = await this.seguimientoAlumno.findOne(match);
-      console.log('updated', updated);
       if (updated) {
         response.send({
           tema: updated,
@@ -101,13 +106,11 @@ class SeguimientoAlumnoController implements Controller {
   private actualizarSeguimientoAlumno = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const seguimiento = request.body;
-    console.log('id', id);
     const fechadate = new Date(seguimiento.fecha);
     const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
     seguimiento.fecha = fecha;
     try {
       const updated = await this.seguimientoAlumno.findByIdAndUpdate(id, seguimiento, { new: true });
-      console.log('updated', updated);
       if (updated) {
         response.send({ seguimiento: updated });
       } else {
@@ -116,6 +119,64 @@ class SeguimientoAlumnoController implements Controller {
     } catch (e4) {
       console.log('[ERROR], ', e4);
       next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+  private obtenerPorAlumno = async (request: Request, response: Response, next: NextFunction) => {
+    const alumnoId = request.params.alumnoId;
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'alumnos',
+          localField: 'alumno',
+          foreignField: '_id',
+          as: 'alumno',
+        },
+      },
+      {
+        $unwind: {
+          path: '$alumno',
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $lookup: {
+          from: 'planillatalleres',
+          localField: 'planillaTaller',
+          foreignField: '_id',
+          as: 'planillaTaller',
+        },
+      },
+      {
+        $unwind: {
+          path: '$planillaTaller',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'cicloLectivo',
+          foreignField: '_id',
+          as: 'cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$cicloLectivo',
+        },
+      },
+      {
+        $match: {
+          'alumno._id': ObjectId(alumnoId),
+        },
+      },
+    ];
+    try {
+      const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
+      response.send(seguimientos);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas en el servidor'));
     }
   };
   private obtenerPorPlanillaYAlumno = async (request: Request, response: Response, next: NextFunction) => {
@@ -223,11 +284,58 @@ class SeguimientoAlumnoController implements Controller {
   private resueltos = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const { resuelto } = request.body;
-      let filtro = null;
+
+      const opciones: any = [
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+          },
+        },
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'cicloLectivo',
+            foreignField: '_id',
+            as: 'cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$cicloLectivo',
+          },
+        },
+      ];
+
       if (typeof resuelto === 'boolean') {
-        filtro = { resuelto };
+        // planillaTaller: null, Este campo se puede agregar si solo quieren los seguimientos sin planilla
+        opciones.push({
+          $match: {  resuelto: resuelto },
+        });
       }
-      const seguimientos = await this.seguimientoAlumno.find(filtro).sort('_id').populate('alumno');
+      const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
+      // const seguimientos = await this.seguimientoAlumno.find(filtro).sort('_id').populate('alumno');
 
       if (seguimientos) {
         response.send(seguimientos);

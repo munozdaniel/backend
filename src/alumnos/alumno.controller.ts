@@ -35,7 +35,6 @@ class AlumnoController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('AlumnoController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/todos`, this.obtenerTodos);
     this.router.get(`${this.path}/eliminar-coleccion`, this.eliminarColeccion);
@@ -71,8 +70,6 @@ class AlumnoController implements Controller {
     // Busco todos los alumnos por curso y division y ciclo.
     // Por cada alumno busco el estadocursada con el ciclo enviado si existe pasa a la lista de alumnoNoActualizado <NO
     // Por cada alumno buscamos el estadocursada con findOneAndUpdate (upsert, new) para que lo inserte si no existe
-    console.log('cicloAnterior', cicloAnterior);
-    console.log('cicloActual', ciclo);
     let match: any = {
       'estadoCursadas.activo': true,
       'estadoCursadas.cicloLectivo._id': ObjectId(cicloAnterior._id),
@@ -80,7 +77,6 @@ class AlumnoController implements Controller {
       'estadoCursadas.curso.division': { $in: divisiones },
     };
 
-    console.log('match', match);
     const opciones: any = [
       {
         $lookup: {
@@ -158,14 +154,10 @@ class AlumnoController implements Controller {
 
     const alumnosNoActualizados: any[] = [];
     const alumnosAggregate = await this.alumno.aggregate(opciones);
-    console.log('alumnosAggregate', alumnosAggregate.length);
     if (alumnosAggregate) {
       const alumnosActualizados = await Promise.all(
         alumnosAggregate.map(async (x: IAlumno, index: number) => {
           const indice = await x.estadoCursadas.findIndex((x: IEstadoCursada) => {
-            if (ObjectId(x.cicloLectivo._id) === ObjectId(ciclo._id)) {
-              console.log(' EXISTE: ', x.cicloLectivo._id, ciclo._id);
-            }
             // return ObjectId(x.cicloLectivo._id) === ObjectId(ciclo._id);
             return x.cicloLectivo.anio === ciclo.anio;
           });
@@ -202,7 +194,6 @@ class AlumnoController implements Controller {
             );
             return alumnoActualizado;
           } else {
-            console.log('YA ESTAMOS', x.estadoCursadas);
             alumnosNoActualizados.push(x);
           }
         })
@@ -292,7 +283,6 @@ class AlumnoController implements Controller {
    */
   private obtenerAlumnosPorCursoDivisionesCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, divisiones, cicloLectivo } = request.body;
-    console.log('obtenerAlumnosPorCursoDivisionesCiclo BODY', cicloLectivo);
     let match: any = {
       'estadoCursadas.activo': true,
       'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
@@ -300,7 +290,6 @@ class AlumnoController implements Controller {
       'estadoCursadas.curso.division': { $in: divisiones },
     };
 
-    console.log('match2', match);
     const opciones: any = [
       {
         $lookup: {
@@ -365,14 +354,12 @@ class AlumnoController implements Controller {
    */
   private obtenerAlumnosPorCursoDivisionCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, division, ciclo } = request.body;
-    console.log('obtenerAlumnosPorCursoDivisionCiclo BODY', curso, division);
     let match: any = {
       'estadoCursadas.curso.curso': Number(curso),
       'estadoCursadas.curso.division': Number(division),
       'estadoCursadas.cicloLectivo.anio': Number(ciclo),
     };
 
-    console.log('match', match);
     const opciones: any = [
       {
         $lookup: {
@@ -431,7 +418,6 @@ class AlumnoController implements Controller {
   };
   private obtenerAlumnosPorCursoCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, comision, division, ciclo } = request.body;
-    console.log('obtenerAlumnosPorCursoCiclo BODY', curso, comision, division);
     let match: any = {
       'estadoCursadas.curso.curso': Number(curso),
       'estadoCursadas.curso.comision': comision,
@@ -445,7 +431,6 @@ class AlumnoController implements Controller {
         'estadoCursadas.cicloLectivo.anio': Number(ciclo),
       };
     }
-    console.log('match', match);
     const opciones: any = [
       {
         $lookup: {
@@ -496,7 +481,6 @@ class AlumnoController implements Controller {
       },
     ];
     const alumnosAggregate = await this.alumno.aggregate(opciones);
-    console.log('=========================>');
     if (alumnosAggregate) {
       response.send(alumnosAggregate);
     } else {
@@ -505,7 +489,6 @@ class AlumnoController implements Controller {
   };
   private obtenerAlumnosPorCurso = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, comision, division } = request.body;
-    console.log('obtenerAlumnosPorCurso BODY', curso, comision, division);
     let match: any = {
       'estadoCursadas.curso.curso': curso,
       'estadoCursadas.curso.comision': comision,
@@ -554,7 +537,6 @@ class AlumnoController implements Controller {
       },
     ];
     const alumnosAggregate = await this.alumno.aggregate(opciones);
-    console.log('alumno', alumnosAggregate);
     if (alumnosAggregate) {
       response.send(alumnosAggregate);
     } else {
@@ -562,11 +544,9 @@ class AlumnoController implements Controller {
     }
   };
   private getFichaAlumnos = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('getFichaAlumnos');
 
     try {
       let { cicloLectivo, division, curso } = request.body;
-      console.log('cicloLectivo, division, curso', cicloLectivo, division, curso);
 
       const opciones = [
         // { $unwind: '$estadoComisiones' },
@@ -628,7 +608,6 @@ class AlumnoController implements Controller {
       //   select: 'cicloLectivo division curso',
       // });
       // .populate("estadoComisiones");
-      console.log('alumnos', alumnos);
       if (alumnos) {
         response.send(alumnos);
       } else {
@@ -653,7 +632,6 @@ class AlumnoController implements Controller {
     const id = request.params.id;
     try {
       const alumno = await this.alumno.findById(id).populate('comisiones');
-      console.log(alumno);
       if (alumno) {
         response.send(alumno);
       } else {
@@ -672,7 +650,6 @@ class AlumnoController implements Controller {
     await ConnectionService.getConnection()
       .db.listCollections({ name: 'alumnos' })
       .next((err: any, collinfo: any) => {
-        console.log('collinfo1', collinfo);
         if (collinfo) {
           // The collection exists
           alumnoModel.collection.drop();
@@ -681,17 +658,14 @@ class AlumnoController implements Controller {
     await ConnectionService.getConnection()
       .db.listCollections({ name: 'estadocursadas' })
       .next((err: any, collinfo: any) => {
-        console.log('collinfo2', collinfo);
         if (collinfo) {
           // The collection exists
-          console.log('collinfo2');
           estadoCursadaModel.collection.drop();
         }
       });
     await ConnectionService.getConnection()
       .db.listCollections({ name: 'cursos' })
       .next((err: any, collinfo: any) => {
-        console.log('collinfo3', collinfo);
         if (collinfo) {
           // The collection exists
           cursoModel.collection.drop();
@@ -711,10 +685,7 @@ class AlumnoController implements Controller {
 
       // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
 
-      // console.log(
-      //   'alumnos2',alumnos,
-
-      // );
+    
       const alumnosRefactorizados: IAlumno[] = await Promise.all(
         alumnos.map(async (x: any, index: number) => {
           const padre = {
@@ -787,9 +758,7 @@ class AlumnoController implements Controller {
             }
           }
           // Recupero las comisiones para guardarla
-          // if (!dniMod) {
-          //   console.log('dniMod', x);
-          // }
+         
           let estadoCursadas: any = [];
           try {
             //  Recorro las comisiones originales
@@ -820,7 +789,6 @@ class AlumnoController implements Controller {
                         // 'cicloLectivo._id': ObjectId(nuevoCiclo._id),
                       };
                     }
-                    console.log('match', match);
 
                     try {
                       const nuevo = {
@@ -836,7 +804,6 @@ class AlumnoController implements Controller {
                         new: true,
                         setDefaultsOnInsert: true,
                       });
-                      console.log('ciursp', savedCurso);
 
                       // crear estadocursada
 
@@ -869,9 +836,7 @@ class AlumnoController implements Controller {
               })
             );
           } catch (ero) {
-            // console.log('ero', ero.errmsg);
             if (!ero.errmsg) {
-              // console.log('ero', ero);
             }
           }
 
@@ -936,17 +901,12 @@ class AlumnoController implements Controller {
     }
   };
   // private getAllAlumnosPag = async (request: Request, response: Response) => {
-  //   // console.log('====================================================');
-  //   // console.log('request body', request.body);
-  //   console.log("request ", request.query);
-  //   // console.log('escapeStringRegexp ', escapeStringRegexp(request.query));
   //   const parametros: IQueryAlumnoPag = request.query;
 
   //   const criterios = request.query.query
   //     ? JSON.parse(request.query.query)
   //     : {};
 
-  //   console.log("query criterios", criterios);
 
   //   await this.alumno.paginate(
   //     {},
@@ -959,7 +919,6 @@ class AlumnoController implements Controller {
   //       if (err) {
   //         console.log("[ERROR]", err);
   //       }
-  //       console.log("result", result);
   //       // result.docs
   //       // result.totalDocs = 100
   //       // result.limit = 10
@@ -1029,8 +988,6 @@ class AlumnoController implements Controller {
   };
   private createAlumnoComplete = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar foto
-    console.log('datos archio', request.file.filename);
-    console.log('datos body', request.body);
     // Agregar datos
     const alumnoData: CreateAlumnoDto = request.body;
     const createdAlumno = new this.alumno({
@@ -1047,7 +1004,6 @@ class AlumnoController implements Controller {
     response.send(savedAlumno);
   };
   private deleteAlumno = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deleteAlumno');
     const id = request.params.id;
     try {
       const successResponse = await this.alumno.findByIdAndDelete(id);

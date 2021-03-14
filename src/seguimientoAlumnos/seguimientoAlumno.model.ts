@@ -15,7 +15,7 @@ export const seguimientoAlumnoSchema = new mongoose.Schema({
   alumno: {
     type: Schema.Types.ObjectId,
     ref: 'Alumno',
-    required: false,
+    required: true,
   },
   planillaTaller: {
     type: Schema.Types.ObjectId,

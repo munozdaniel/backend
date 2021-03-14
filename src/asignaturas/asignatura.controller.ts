@@ -23,7 +23,6 @@ class AsignaturaController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('AsignaturaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}`, this.getAllAsignaturas);
@@ -61,17 +60,14 @@ class AsignaturaController implements Controller {
       activo: true,
       fechaCreacion: hoy,
     };
-    console.log('asignaturaData', asignaturaData);
 
     try {
       const createdAsignatura = new this.asignatura({
         ...asignaturaData,
         // author: request.user ? request.user._id : null,
       });
-      console.log('createdAsignatura', createdAsignatura);
       const saved = await createdAsignatura.save();
       // await savedProfesor.populate('author', '-password').execPopulate();
-      console.log('saved', saved);
       response.send(saved);
     } catch (error) {
       console.log('ERROR', error);
@@ -90,10 +86,8 @@ class AsignaturaController implements Controller {
   };
   private obtenerAsignaturaPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log('id', id);
     try {
       const asignatura = await this.asignatura.findById(id);
-      console.log(asignatura);
       if (asignatura) {
         response.send(asignatura);
       } else {
@@ -113,7 +107,6 @@ class AsignaturaController implements Controller {
       const asignaturasRefactorizados: IAsignatura[] = await Promise.all(
         asignaturas.map(async (x: any, index: number) => {
           // const cursos = await this.curso.find({ curso: Number(x.Tcurso) });
-          // console.log('cursos', cursos);
           const unaAsignatura: IAsignatura & any = {
             // _id: x._id,
             // asignaturaNro: 100 + index,
@@ -197,8 +190,6 @@ class AsignaturaController implements Controller {
   };
   private createAsignaturaComplete = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar foto
-    console.log('datos archio', request.file.filename);
-    console.log('datos body', request.body);
     // Agregar datos
     const asignaturaData: CreateAsignaturaDto = request.body;
     const createdAsignatura = new this.asignatura({
@@ -215,7 +206,6 @@ class AsignaturaController implements Controller {
     response.send(savedAsignatura);
   };
   private deleteAsignatura = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deleteAsignatura');
     const id = request.params.id;
     try {
       const successResponse = await this.asignatura.findByIdAndDelete(id);
@@ -234,7 +224,6 @@ class AsignaturaController implements Controller {
     }
   };
   private deshabilitarAsignatura = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
       const successResponse = await this.asignatura.findByIdAndUpdate(id, {
@@ -255,7 +244,6 @@ class AsignaturaController implements Controller {
     }
   };
   private habilitarAsignatura = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
       const successResponse = await this.asignatura.findByIdAndUpdate(id, {

@@ -26,7 +26,6 @@ class AsistenciaController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('AsistenciaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrarMultiples);
     this.router.post(`${this.path}/por-alumno/:id`, this.obtenerAsistenciasPorAlumnoId);
     this.router.post(`${this.path}/por-alumno-curso`, this.obtenerAsistenciasPorAlumnosCurso);
@@ -68,7 +67,6 @@ class AsistenciaController implements Controller {
     asistencia.fecha = ini;
     try {
       const updated = await this.asistencia.findOneAndUpdate(match, asistencia, { upsert: true, new: true });
-      console.log('updated', updated);
       if (updated) {
         response.send({ asistencia: updated });
       } else {
@@ -81,13 +79,11 @@ class AsistenciaController implements Controller {
   };
   private actualizarAsistencia = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log('id', id);
     const asistencia = request.body.asistencia;
     const ini = new Date(moment(asistencia.fecha).format('YYYY-MM-DD'));
     asistencia.fecha = ini;
     try {
       const updated = await this.asistencia.findByIdAndUpdate(id, asistencia, { new: true });
-      console.log('updated', updated);
       if (updated) {
         response.send({ asistencia: updated });
       } else {
@@ -134,9 +130,7 @@ class AsistenciaController implements Controller {
         },
       },
     ];
-    console.log('opciones', opciones);
     const asistencias = await this.asistencia.aggregate(opciones);
-    console.log(asistencias);
     if (asistencias) {
       return response.send(asistencias);
     } else {
@@ -193,7 +187,6 @@ class AsistenciaController implements Controller {
         },
       },
     ];
-    console.log('opciones', opciones);
     const alumnos = await this.alumno.aggregate(opciones);
     console.log(alumnos);
     if (alumnos) {
@@ -205,7 +198,6 @@ class AsistenciaController implements Controller {
   private obtenerAsistenciasPorAlumnoId = async (request: Request, response: Response, next: NextFunction) => {
     const id = escapeStringRegexp(request.params.id);
     const planillaId = escapeStringRegexp(request.body.planillaId);
-    console.log('id', id);
     try {
       const opciones: any = [
         {
@@ -228,7 +220,6 @@ class AsistenciaController implements Controller {
           },
         },
       ];
-      console.log('opciones para obtener las asistencia de un usuario:', opciones);
       const asistenciasAggregate = await this.asistencia.aggregate(opciones);
       if (asistenciasAggregate) {
         response.send(asistenciasAggregate);
