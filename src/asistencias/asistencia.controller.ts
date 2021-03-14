@@ -275,12 +275,13 @@ class AsistenciaController implements Controller {
         } catch (ero) {
           console.log('ero', ero);
         }
-
+        const fechadate = new Date(x.Fecha);
+         const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
         const unaAsistencia: IAsistencia & any = {
           id_planilla_de_asistencia: x.id_planilla_de_asistencia, // solo para migrar
           planillaTaller: planillataller,
           alumno: alumno,
-          fecha: x.Fecha,
+          fecha,
           presente: x.Presente === 'SI' ? true : false,
           llegoTarde: x.LlegoTarde === 'SI' ? true : false,
 

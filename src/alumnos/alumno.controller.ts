@@ -220,7 +220,6 @@ class AlumnoController implements Controller {
    */
   private obtenerAlumnosPorCursoEspecifico = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, comision, division, cicloLectivo } = request.body;
-    console.log('obtenerAlumnosPorCursoEspecifico BODY', request.body);
     let match: any = {
       'estadoCursadas.activo': true,
       'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
@@ -229,7 +228,6 @@ class AlumnoController implements Controller {
       'estadoCursadas.curso.division': Number(division),
     };
 
-    console.log('match2', match);
     const opciones: any = [
       {
         $lookup: {

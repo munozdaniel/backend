@@ -604,8 +604,13 @@ class PlanillaTallerController implements Controller {
           }
 
           const cl = await ciclosLectivos.filter((d) => Number(d.anio) === Number(x.ciclo_lectivo));
-          const ini = new Date(moment(x.FechaInicio).format('YYYY-MM-DD'));
-          const fin = new Date(moment(x.FechaFinalizacion).format('YYYY-MM-DD'));
+          const fechadateIni = new Date(x.FechaInicio);
+          const ini = new Date(moment(fechadateIni).format('YYYY-MM-DD'));
+          const fechadateFin = new Date(x.FechaFinalizacion);
+          const fin = new Date(moment(fechadateFin).format('YYYY-MM-DD'));
+
+          // const ini = new Date(moment(x.FechaInicio).format('YYYY-MM-DD'));
+          // const fin = new Date(moment(x.FechaFinalizacion).format('YYYY-MM-DD'));
           const unaPlanillaTaller: IPlanillaTaller & any = {
             planillaTallerNro: 100 + index,
             planillaTallerId: x.id_planilla_de_taller,

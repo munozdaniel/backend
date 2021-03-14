@@ -34,7 +34,6 @@ class CalendarioController implements Controller {
     const now = new Date();
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const cicloLectivoActual = await this.cicloLectivo.findOne({ anio: moment().year() });
-    console.log('cicloLectivoActual', cicloLectivoActual);
     const existentes = await this.calendario.aggregate([
       {
         $lookup: {
@@ -55,14 +54,11 @@ class CalendarioController implements Controller {
         },
       },
     ]);
-    console.log('existentes', existentes);
     const calendarioEliminado = await Promise.all(
       existentes.map(async (x: any, index: number) => {
         const eliminados = await this.calendario.findByIdAndDelete(x._id);
       })
     );
-    console.log('calendarioEliminado', calendarioEliminado.length);
-    console.log('request.body', request.body);
     // Obtengo por parametro la fecha de inicio de clases
 
     const fechaFinal = request.body.fechaFinal;
@@ -70,13 +66,12 @@ class CalendarioController implements Controller {
     const calendarioNuevo = [];
     let normal = true;
     let fechaInicio = moment(request.body.fechaInicio).add(-1, 'day');
-    console.log('fechaInicio', fechaInicio);
-    console.log('diff', moment(fechaFinal, 'YYYY-MM-DD').isSameOrAfter(fechaInicio));
     while (moment(fechaFinal, 'YYYY-MM-DD').isSameOrAfter(fechaInicio)) {
-      // while (fechaFinal.isSameOrAfter(fechaInicio)) {
       if (normal) {
         for (let i = 0; i < 3; i++) {
           fechaInicio = moment(fechaInicio).add(1, 'day');
+
+          let fecha = new Date(moment(fechaInicio).format('YYYY-MM-DD'));
           calendarioNuevo.push({
             cicloLectivo: cicloLectivoActual,
             comisionA: 1,
@@ -87,13 +82,15 @@ class CalendarioController implements Controller {
             comisionF: 0,
             comisionG: 0,
             comisionH: 0,
-            fecha: moment(fechaInicio).format('YYYY-MM-DD'),
+            fecha,
             fechaCreacion: hoy,
             activo: true,
           });
         }
         for (let i = 0; i < 2; i++) {
           fechaInicio = moment(fechaInicio).add(1, 'day');
+
+          let fecha = new Date(moment(fechaInicio).format('YYYY-MM-DD'));
           calendarioNuevo.push({
             cicloLectivo: cicloLectivoActual,
             comisionA: 0,
@@ -104,7 +101,7 @@ class CalendarioController implements Controller {
             comisionF: 1,
             comisionG: 1,
             comisionH: 1,
-            fecha: moment(fechaInicio).format('YYYY-MM-DD'),
+            fecha,
             fechaCreacion: hoy,
             activo: true,
           });
@@ -112,6 +109,8 @@ class CalendarioController implements Controller {
       } else {
         for (let i = 0; i < 2; i++) {
           fechaInicio = moment(fechaInicio).add(1, 'day');
+
+          let fecha = new Date(moment(fechaInicio).format('YYYY-MM-DD'));
           calendarioNuevo.push({
             cicloLectivo: cicloLectivoActual,
             comisionA: 1,
@@ -122,13 +121,16 @@ class CalendarioController implements Controller {
             comisionF: 0,
             comisionG: 0,
             comisionH: 0,
-            fecha: moment(fechaInicio).format('YYYY-MM-DD'),
+            fecha,
             fechaCreacion: hoy,
             activo: true,
           });
         }
         for (let i = 0; i < 3; i++) {
           fechaInicio = moment(fechaInicio).add(1, 'day');
+
+          let fecha = new Date(moment(fechaInicio).format('YYYY-MM-DD'));
+          console.log('fecha', fecha);
           calendarioNuevo.push({
             cicloLectivo: cicloLectivoActual,
             comisionA: 0,
@@ -139,7 +141,7 @@ class CalendarioController implements Controller {
             comisionF: 1,
             comisionG: 1,
             comisionH: 1,
-            fecha: moment(fechaInicio).format('YYYY-MM-DD'),
+            fecha,
             fechaCreacion: hoy,
             activo: true,
           });
@@ -201,7 +203,6 @@ class CalendarioController implements Controller {
       const now = new Date();
       const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const calendariosOriginales: any = await this.calendarioOriginal.find();
-      console.log('calendariosOriginales>', calendariosOriginales);
 
       const calendariosOriginalesRefactorizados: ICalendario[] = await Promise.all(
         calendariosOriginales.map(async (x: any, index: number) => {
@@ -217,11 +218,12 @@ class CalendarioController implements Controller {
           } catch (ero) {
             console.log('ero', ero);
           }
-
+          const fechadate = new Date(x.fechas);
+          const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
           const unaCalendario: ICalendario & any = {
             calendarioNro: index,
             id_calendario: x.id_calendario,
-            fecha: x.fechas,
+            fecha,
             cicloLectivo: cicloLectivo,
             comisionA: x.A,
             comisionB: x.B,
