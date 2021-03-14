@@ -53,24 +53,36 @@ class TemaController implements Controller {
   };
   private guardarTema = async (request: Request, response: Response, next: NextFunction) => {
     const temaData: CreateTemaDto = request.body;
-    console.log('¿temaData', temaData);
+
+    const ini = new Date(moment.utc(temaData.fecha).format('YYYY-MM-DD')); // Se hace esto para que no pase al siguient dia
+    temaData.fecha = ini;
+    // const fechadate = new Date(temaData.fecha);
+    // const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
+    // temaData.fecha = fecha;
     const match = {
       planillaTaller: ObjectId(temaData.planillaTaller._id),
       fecha: {
-        $gte: new Date(temaData.fecha).toISOString(),
-        $lt: moment(temaData.fecha).add('59', 'seconds').add('59', 'minutes').add('23', 'hours').toDate().toISOString(),
+        $eq: ini.toISOString(),
       },
+      // fecha: {
+      //   $gte: moment(temaData.fecha, 'YYYY-MM-DD').hours(0).minutes(0).seconds(0).toDate().toISOString(),
+      //   $lt: moment(temaData.fecha, 'YYYY-MM-DD').utcOffset(0).hours(23).minutes(59).seconds(59).toDate().toISOString(),
+      // },
     };
-    const ini = new Date(moment(temaData.fecha).utc().format('YYYY-MM-DD'));
-    temaData.fecha = ini;
-
     try {
-      const updated = await this.tema.findOneAndUpdate(match, temaData, { upsert: true, new: true });
-      console.log('updated', updated);
+      const updated = await this.tema.findOne(match);
       if (updated) {
-        response.send({ asistencia: updated });
+        response.send({
+          tema: updated,
+          success: false,
+          message: 'Ya existe cargado un tema en la fecha: ' + moment.utc(temaData.fecha).format('DD/MM/YYYY'),
+        });
       } else {
-        response.send({ asistencia: null });
+        const created = new this.tema({
+          ...temaData,
+        });
+        const saved = await created.save();
+        response.send({ tema: saved, success: true, message: 'Tema agregado correctamente' });
       }
     } catch (error) {
       console.log('[ERROR]', error);
@@ -81,8 +93,11 @@ class TemaController implements Controller {
     const id = request.params.id;
     console.log('id', id);
     const tema = request.body.tema;
-    const ini = new Date(moment(tema.fecha).format('YYYY-MM-DD'));
-    tema.fecha = ini;
+    // const ini = new Date(moment(tema.fecha).format('YYYY-MM-DD'));
+    // tema.fecha = ini;
+    const fechadate = new Date(tema.fecha);
+    const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
+    tema.fecha = fecha;
     try {
       const updated = await this.tema.findByIdAndUpdate(id, tema, { new: true });
       console.log('updated', updated);
@@ -148,12 +163,14 @@ class TemaController implements Controller {
               default:
                 break;
             }
+            const fechadate = new Date(x.Fecha);
+            const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
             // console.log('unaPlanillaTaller', unaPlanillaTaller);
             const unaTema: ITema & any = {
               temaNro: 100 + index,
               id_planilla_temas: x.id_planilla_temas, // solo para migrar
               planillaTaller: unaPlanillaTaller,
-              fecha: x.Fecha,
+              fecha,
               temaDelDia: x.Temas_del_dia,
               tipoDesarrollo: x.Tipo_de_desarrollo,
               temasProximaClase: x.Temas_Proxima_Clase,
