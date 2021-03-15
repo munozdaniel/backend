@@ -36,9 +36,72 @@ class SeguimientoAlumnoController implements Controller {
     this.router.get(`${this.path}/por-planilla-alumno/:id/:alumnoId`, this.obtenerPorPlanillaYAlumno);
     this.router.get(`${this.path}/por-alumno/:alumnoId`, this.obtenerPorAlumno);
     this.router.put(`${this.path}`, this.agregarSeguimientoAlumno);
+    this.router.get(`${this.path}/:id`, this.obtenerSeguimientoPorId);
     this.router.patch(`${this.path}/:id`, this.actualizarSeguimientoAlumno);
     this.router.delete(`${this.path}/:id`, this.eliminar);
   }
+  private obtenerSeguimientoPorId = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const opciones: any = [
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'cicloLectivo',
+            foreignField: '_id',
+            as: 'cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$cicloLectivo',
+          },
+        },
+        {
+          $match: {
+            _id: ObjectId(id),
+          },
+        },
+      ];
+      const successResponse = await this.seguimientoAlumno.aggregate(opciones);
+      if (successResponse) {
+        response.send({ seguimiento: successResponse && successResponse.length > 0 ? successResponse[0] : null });
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
   private eliminar = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
@@ -205,7 +268,6 @@ class SeguimientoAlumnoController implements Controller {
     ];
     try {
       const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
-      console.log(id, 'seguimientos', seguimientos);
       response.send(seguimientos);
     } catch (error) {
       console.log('[ERROR]', error);
@@ -243,44 +305,7 @@ class SeguimientoAlumnoController implements Controller {
       next(new HttpException(500, 'Problemas en el servidor'));
     }
   };
-  private obtenerSeguimientoAlumnoPorPlanilla2 = async (request: Request, response: Response, next: NextFunction) => {
-    const id = request.params.id;
-    const { alumnoId, ciclo } = request.body;
-    try {
-      const opciones: any = [
-        {
-          $lookup: {
-            from: 'ciclolectivos',
-            localField: 'cicloLectivo',
-            foreignField: '_id',
-            as: 'cicloLectivo',
-          },
-        },
-        {
-          $unwind: {
-            path: '$cicloLectivo',
-          },
-        },
-        {
-          $match: {
-            planillaTaller: ObjectId(id),
-            alumno: ObjectId(alumnoId),
-            'cicloLectivo.anio': Number(ciclo),
-          },
-        },
-      ];
 
-      const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
-      if (seguimientos && seguimientos.length > 0) {
-        response.send(seguimientos[0]);
-      } else {
-        response.send([]);
-      }
-    } catch (error) {
-      console.log('[ERROR]', error);
-      next(new HttpException(500, 'Problemas en el servidor'));
-    }
-  };
   private resueltos = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const { resuelto } = request.body;
@@ -331,7 +356,7 @@ class SeguimientoAlumnoController implements Controller {
       if (typeof resuelto === 'boolean') {
         // planillaTaller: null, Este campo se puede agregar si solo quieren los seguimientos sin planilla
         opciones.push({
-          $match: {  resuelto: resuelto },
+          $match: { resuelto: resuelto },
         });
       }
       const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
