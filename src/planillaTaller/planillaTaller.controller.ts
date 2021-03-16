@@ -625,7 +625,7 @@ class PlanillaTallerController implements Controller {
             observacion: x.Observacion,
             fechaInicio: ini,
             fechaFinalizacion: fin,
-            bimestre: x.Bimestre ? x.Bimestre : 'SIN REGISTRAR',
+            bimestre: x.Bimestre ? x.Bimestre : 'Sin Registrar',
 
             fechaCreacion: hoy,
             activo: true,

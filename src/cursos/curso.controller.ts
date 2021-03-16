@@ -149,13 +149,13 @@ class CursoController implements Controller {
             // _id: x._id,
             // alumnoId: x.id_alumnos,
             cursoNro: 100 + index,
-            comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
+            comision: x.comision ? x.comision.toUpperCase() : 'Sin Registrar',
             cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
             curso: x.Tcurso ? Number(x.Tcurso) : null,
             division: x.Division ? Number(x.Division) : null,
             // condicion: x.Condicion
             //   ? x.Condicion.toUpperCase()
-            //   : 'SIN REGISTRAR',
+            //   : 'Sin Registrar',
 
             fechaCreacion: hoy,
             activo: true,
@@ -201,11 +201,11 @@ class CursoController implements Controller {
             // alumnoId: x.id_alumnos,
             alumno: alo,
             cursoNro: 100 + index,
-            comision: x.comision ? x.comision.toUpperCase() : 'SIN REGISTRAR',
+            comision: x.comision ? x.comision.toUpperCase() : 'Sin Registrar',
             cicloLectivo: x.ciclo_lectivo ? Number(x.ciclo_lectivo) : null,
             curso: x.Tcurso ? Number(x.Tcurso) : null,
             division: x.Division ? Number(x.Division) : null,
-            condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
+            condicion: x.Condicion ? x.Condicion.toUpperCase() : 'Sin Registrar',
 
             fechaCreacion: hoy,
             activo: true,

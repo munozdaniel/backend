@@ -47,7 +47,7 @@ class AlumnoController implements Controller {
     this.router
       .all(`${this.path}/*`)
       .patch(`${this.path}/:id`, validationMiddleware(CreateAlumnoDto, true), this.modifyAlumno)
-      .get(`${this.path}/:id`, this.obtenerAlumnoPorId)
+      .get(`${this.path}/:id`, this.getAlumnoById)
       .delete(`${this.path}/:id`, this.deleteAlumno)
       .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
       .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
@@ -544,47 +544,86 @@ class AlumnoController implements Controller {
     }
   };
   private getFichaAlumnos = async (request: Request, response: Response, next: NextFunction) => {
-
     try {
       let { cicloLectivo, division, curso } = request.body;
+      let match: any = {
+        'estadoCursadas.activo': true,
+        'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
+        'estadoCursadas.curso.curso': Number(curso),
+        'estadoCursadas.curso.division': Number(division),
+      };
 
-      const opciones = [
-        // { $unwind: '$estadoComisiones' },
+      const opciones: any = [
         {
           $lookup: {
             from: 'estadocursadas',
-            localField: 'estadoComisiones',
+            localField: 'estadoCursadas',
             foreignField: '_id',
-            as: 'eComisiones',
+            as: 'estadoCursadas',
           },
         },
         {
           $unwind: {
-            path: '$eComisiones',
-            // preserveNullAndEmptyArrays: false,
+            path: '$estadoCursadas',
+            preserveNullAndEmptyArrays: true,
           },
         },
         {
           $lookup: {
-            from: 'comisiones',
-            localField: 'eComisiones.comision',
+            from: 'ciclolectivos',
+            localField: 'estadoCursadas.cicloLectivo',
             foreignField: '_id',
-            as: 'comisiones',
+            as: 'estadoCursadas.cicloLectivo',
           },
         },
         {
           $unwind: {
-            path: '$comisiones',
-            // preserveNullAndEmptyArrays: false,
+            path: '$estadoCursadas.cicloLectivo',
           },
         },
-        // { $match: { 'eComisiones._id': ObjectId('6021bc2361109b26bc504b27') } },
-
         {
-          $match: {
-            $and: [{ 'comisiones.cicloLectivo': cicloLectivo }, { 'comisiones.curso': curso }, { 'comisiones.division': division }],
+          $lookup: {
+            from: 'cursos',
+            localField: 'estadoCursadas.curso',
+            foreignField: '_id',
+            as: 'estadoCursadas.curso',
           },
-          //
+        },
+        {
+          $unwind: {
+            path: '$estadoCursadas.curso',
+          },
+        },
+        {
+          $group: {
+            _id: '$_id',
+            root: {
+              $mergeObjects: '$$ROOT',
+            },
+            estadoCursadas: {
+              $push: '$estadoCursadas',
+            },
+          },
+        },
+        {
+          $replaceRoot: {
+            newRoot: {
+              $mergeObjects: ['$root', '$$ROOT'],
+            },
+          },
+        },
+        {
+          $project: {
+            root: 0,
+          },
+        },
+        {
+          $match: match,
+        },
+        {
+          $sort: {
+            _id: -1,
+          },
         },
       ];
       const alumnos = await this.alumno.aggregate(opciones);
@@ -643,9 +682,6 @@ class AlumnoController implements Controller {
     }
   };
 
-  private actualizarInsertarCurso = async () => {};
-  private insertarEstadoCursada = async () => {};
-
   private eliminarColeccion = async (request: Request, response: Response, next: NextFunction) => {
     await ConnectionService.getConnection()
       .db.listCollections({ name: 'alumnos' })
@@ -685,7 +721,6 @@ class AlumnoController implements Controller {
 
       // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
 
-    
       const alumnosRefactorizados: IAlumno[] = await Promise.all(
         alumnos.map(async (x: any, index: number) => {
           const padre = {
@@ -758,7 +793,7 @@ class AlumnoController implements Controller {
             }
           }
           // Recupero las comisiones para guardarla
-         
+
           let estadoCursadas: any = [];
           try {
             //  Recorro las comisiones originales
@@ -811,9 +846,9 @@ class AlumnoController implements Controller {
                         estadoCursadaNro: 100 + index2,
                         curso: {
                           ...savedCurso,
-                          comision: savedCurso.comision ? savedCurso.comision : 'SIN REGISTRAR',
+                          comision: savedCurso.comision ? savedCurso.comision : 'Sin Registrar',
                         },
-                        condicion: x.Condicion ? x.Condicion.toUpperCase() : 'SIN REGISTRAR',
+                        condicion: x.Condicion ? x.Condicion.toUpperCase() : 'Sin Registrar',
                         cicloLectivo: nuevoCiclo,
                         fechaCreacion: hoy,
                         activo: true,
@@ -846,7 +881,7 @@ class AlumnoController implements Controller {
             legajo: x.id_alumno,
             // alumnoNro: index + 100,
             adultos,
-            dni: dniMod ? dniMod : 'SIN REGISTRAR',
+            dni: dniMod ? dniMod : 'Sin Registrar',
             tipoDni: tipoDniMod,
             nombreCompleto: x.ApellidoyNombre,
             fechaNacimiento: x.fecha_nacimiento,
@@ -854,20 +889,20 @@ class AlumnoController implements Controller {
             observacionTelefono: '',
             sexo:
               x.sexo.trim().length === 0
-                ? 'SIN ESPECIFICAR'
+                ? 'Sin Registrar'
                 : x.sexo.toUpperCase() === 'MASCULINO' || x.sexo.toUpperCase() === 'M'
                 ? 'MASCULINO'
                 : 'FEMENINO',
             nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : 'ARGENTINA',
             telefono,
             celular,
-            email: x.mail ? x.mail : 'SIN REGISTRAR',
-            fechaIngreso: x.fecha_ingreso ? x.fecha_ingreso : 'SIN REGISTRAR',
-            procedenciaColegioPrimario: x.procedencia_colegio_primario ? x.procedencia_colegio_primario : 'SIN REGISTRAR',
-            procedenciaColegioSecundario: x.procedencia_colegio_secundario ? x.procedencia_colegio_secundario : 'SIN REGISTRAR',
+            email: x.mail ? x.mail : 'Sin Registrar',
+            fechaIngreso: x.fecha_ingreso ? x.fecha_ingreso : 'Sin Registrar',
+            procedenciaColegioPrimario: x.procedencia_colegio_primario ? x.procedencia_colegio_primario : 'Sin Registrar',
+            procedenciaColegioSecundario: x.procedencia_colegio_secundario ? x.procedencia_colegio_secundario : 'Sin Registrar',
             fechaDeBaja: x.fecha_de_baja,
             motivoDeBaja: x.motivo_de_baja ? x.motivo_de_baja : null,
-            domicilio: x.domicilio ? x.domicilio : 'SIN REGISTRAR',
+            domicilio: x.domicilio ? x.domicilio : 'Sin Registrar',
 
             cantidadIntegranteGrupoFamiliar: x.cantidad_integrantes_grupo_familiar,
             seguimientoEtap: x.SeguimientoETAP,
@@ -907,7 +942,6 @@ class AlumnoController implements Controller {
   //     ? JSON.parse(request.query.query)
   //     : {};
 
-
   //   await this.alumno.paginate(
   //     {},
   //     {
@@ -939,10 +973,82 @@ class AlumnoController implements Controller {
 
   private getAlumnoById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'estadoCursadas.cicloLectivo',
+          foreignField: '_id',
+          as: 'estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $group: {
+          _id: '$_id',
+          root: {
+            $mergeObjects: '$$ROOT',
+          },
+          estadoCursadas: {
+            $push: '$estadoCursadas',
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ['$root', '$$ROOT'],
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ['$root', '$$ROOT'],
+          },
+        },
+      },
+      {
+        $match: {
+          _id: ObjectId(id),
+        },
+      },
+    ];
     try {
-      const alumno = await this.alumno.findById(id).populate('imagenes');
-      if (alumno) {
-        response.send(alumno);
+      const alumno = await this.alumno.aggregate(opciones);
+      if (alumno && alumno.length > 0) {
+        response.send(alumno[0]);
       } else {
         next(new NotFoundException(id));
       }
@@ -986,23 +1092,7 @@ class AlumnoController implements Controller {
       next(new HttpException(500, 'Error Interno'));
     }
   };
-  private createAlumnoComplete = async (request: Request, response: Response, next: NextFunction) => {
-    // Agregar foto
-    // Agregar datos
-    const alumnoData: CreateAlumnoDto = request.body;
-    const createdAlumno = new this.alumno({
-      ...alumnoData,
-      // author: request.user ? request.user._id : null,
-    });
-    const savedAlumno = await createdAlumno.save();
-    //     const imagen: ImagenDto = {
-    //       descripcion:''
-    // posicion:.posicion,
-    // src:''
-    //     }
-    // await savedAlumno.populate('author', '-password').execPopulate();
-    response.send(savedAlumno);
-  };
+
   private deleteAlumno = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {

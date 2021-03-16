@@ -16,7 +16,7 @@ export const estadoCursadaSchema = new mongoose.Schema({
     type: String,
     required: true,
     uppercase: true,
-    default: 'SIN REGISTRAR',
+    default: 'Sin Registrar',
   },
   cicloLectivo: {
     type: Schema.Types.ObjectId,
