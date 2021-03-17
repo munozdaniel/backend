@@ -973,6 +973,8 @@ class AlumnoController implements Controller {
 
   private getAlumnoById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
+    console.log('getAlumnoById', id);
+
     const opciones: any = [
       {
         $lookup: {
@@ -999,6 +1001,7 @@ class AlumnoController implements Controller {
       {
         $unwind: {
           path: '$estadoCursadas.cicloLectivo',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -1012,6 +1015,7 @@ class AlumnoController implements Controller {
       {
         $unwind: {
           path: '$estadoCursadas.curso',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
