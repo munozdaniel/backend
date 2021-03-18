@@ -10,10 +10,17 @@ import ConnectionService from './services/Connection';
 // import alumnoModel from './alumnos/alumno.model';
 // import estadoCursadaModel from './alumnos/estadoCursada/estadoCursada.model';
 // import cursoModel from './cursos/curso.model';
+import passport from 'passport';
+import passportJWT from 'passport-jwt';
+import passportLocal from 'passport-local';
+const JWTStrategy = passportJWT.Strategy;
+const ExtractJWT = passportJWT.ExtractJwt;
+const LocalStrategy = passportLocal.Strategy;
+import { config } from './passport/config';
+import usuarioModel from './usuario/usuario.model';
 
 const methodOverride = require('method-override');
 // Config
-const config = require('./utils/server/config');
 const API_URL = '*';
 class App {
   public app: express.Application;
@@ -23,7 +30,7 @@ class App {
     this.configurarCors();
     this.connectToTheDatabase();
     // Apply strategy to passport
-    // applyPassportStrategy(passport);
+    this.estrategiaPassport();
     this.initializeMiddlewares();
     this.initializeControllers(controllers);
     this.initializeErrorHandling();
@@ -40,6 +47,47 @@ class App {
       next();
     });
     this.app.use(cors());
+  }
+  public estrategiaPassport() {
+    this.app.use(passport.initialize());
+    // se hace la siguiente asignacion para que reconozca los metodos del plugin en el model
+    const usuarioPassportModel: any = usuarioModel;
+    passport.use(
+      new LocalStrategy(
+        {
+          usernameField: 'email',
+          passwordField: 'password',
+          passReqToCallback: false,
+          session: false,
+        },
+        usuarioPassportModel.authenticate() // typescript no reconce las funciones del plugin asignado
+        // usuarioPassportModel.createStrategy() // typescript no reconce las funciones del plugin asignado
+      )
+    );
+    passport.serializeUser(usuarioPassportModel.serializeUser()); // typescript no reconce las funciones del plugin asignado
+    passport.deserializeUser(usuarioPassportModel.deserializeUser()); // typescript no reconce las funciones del plugin asignado
+    passport.use(
+      new JWTStrategy(
+        {
+          jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+          secretOrKey: config.passport.secret,
+        },
+        (jwtPayload, cb) => {
+          console.log('jwtPayload, ', jwtPayload);
+          // find the user in db if needed.
+          // This functionality may be omitted if you store everything you'll need in JWT payload.
+          return usuarioModel
+            .findById(jwtPayload.usuarioId)
+            .then((user) => {
+              return cb(null, user);
+            })
+            .catch((err) => {
+              console.log('[ERROR]', err);
+              return cb(err);
+            });
+        }
+      )
+    );
   }
   public listen() {
     this.app.listen(process.env.PORT, () => {
