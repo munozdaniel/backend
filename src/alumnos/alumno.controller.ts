@@ -18,6 +18,7 @@ import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
 import estadoCursadaModel from './estadoCursada/estadoCursada.model';
 import ConnectionService from '../services/Connection';
 import IEstadoCursada from './estadoCursada/estadoCursada.interface';
+import axios, { AxiosRequestConfig } from 'axios';
 import moment from 'moment';
 const ObjectId = require('mongoose').Types.ObjectId;
 class AlumnoController implements Controller {
@@ -55,6 +56,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/por-curso-divisiones-ciclo`, this.obtenerAlumnosPorCursoDivisionesCiclo)
       .post(`${this.path}/por-curso-especifico`, this.obtenerAlumnosPorCursoEspecifico)
       .post(`${this.path}/actualizar-nuevo-ciclo`, this.actualizarAlNuevoCiclo)
+      .post(`${this.path}/informar-ausencia`, this.informarAusencia)
       .put(
         this.path,
         validationMiddleware(CreateAlumnoDto),
@@ -62,6 +64,55 @@ class AlumnoController implements Controller {
         this.createAlumno
       );
   }
+  private informarAusencia = async (request: Request, response: Response, next: NextFunction) => {
+    const { observacion, nombreAdulto, fechaInasitencia, faltas, nombreAlumno, emailAdulto } = request.body;
+    //     Hola { usuario.NAME },
+    // Le informamos que el dia de la fecha {usuario.fecha} el/la alumno/a {usuario.nombreCompleto} no se ha presentado al establecimiento, obteniendo un total de {usuario.faltas} falta/s.
+    // Atte. La Administración
+    // Enviar Email
+    const { SENDINBLUE_API, ENTORNO, MI_EMAIL } = process.env;
+    const url = 'https://api.sendinblue.com/v3/smtp/email';
+    const options = {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': SENDINBLUE_API,
+      },
+      body: JSON.stringify({
+        sender: {
+          name: 'Notificación de Ausencia - CET 30',
+          email: 'no-reply@propet.com',
+        },
+        to: [
+          {
+            email: ENTORNO === 'desarrollo' ? MI_EMAIL : emailAdulto,
+            name: nombreAdulto,
+          },
+        ],
+        subject: 'Notificación de Ausencia',
+        params: {
+          nombreAdulto: nombreAdulto ? nombreAdulto : '',
+          fechaInasitencia,
+          faltas,
+          nombreAlumno,
+          observacion,
+        },
+        templateId: 3,
+        // textContent:
+        //   "Please confirm your email address by clicking on the link https://text.domain.com",
+      }),
+    };
+
+    const headers: AxiosRequestConfig = { headers: options.headers };
+    try {
+      const resultado = await axios.post(url, options.body, headers);
+      response.status(200).send({ success: true });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      response.status(200).send({ success: false });
+    }
+  };
   private actualizarAlNuevoCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
