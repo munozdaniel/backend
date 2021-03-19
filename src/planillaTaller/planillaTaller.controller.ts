@@ -38,18 +38,49 @@ class PlanillaTallerController implements Controller {
   private initializeRoutes() {
     console.log('PlanillaTallerController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrarPlanillaTalleres);
-    this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/paginar`, this.paginar);
     this.router.get(`${this.path}/ciclo/:ciclo`, this.obtenerPlanillaTalleresPorCiclo);
     this.router.get(`${this.path}/filtro/:id/:ciclo`, this.obtenerPlanillaTallerPorIdCiclo);
     this.router.get(`${this.path}/:id`, this.obtenerPlanillaTallerPorId);
     this.router.get(`${this.path}/:id/total-asistencias`, this.buscarTotalAsistenciaPorPlanilla);
     this.router.put(`${this.path}`, this.agregar);
+    this.router.patch(`${this.path}/:id`, this.actualizar);
   }
-  private test = async (request: Request, response: Response, next: NextFunction) => {
-    response.send({
-      test: 'savedPlanillaTallers',
-    });
+
+  private actualizar = async (request: Request, response: Response, next: NextFunction) => {
+    const id = escapeStringRegexp(request.params.id);
+    try {
+      const planillaTaller = request.body;
+      // Si cambia las fechas buscar el ciclo
+      const cicloLectivo = await this.ciclolectivo.findOne({ anio: planillaTaller.anio });
+      // Buscar el curso por comision, division, curso
+      const { cursoNro, division, comision } = planillaTaller;
+      const cursoEncontrado = await this.curso.findOne({ curso: Number(cursoNro), division, comision });
+      planillaTaller.curso = Number(planillaTaller.curso);
+      const planillaUpdate: IPlanillaTaller & any = {
+        asignatura: planillaTaller.asignatura,
+        profesor: planillaTaller.profesor,
+        curso: cursoEncontrado,
+        cicloLectivo: cicloLectivo,
+        fechaInicio: moment(planillaTaller.fechaInicio).utc().format('YYYY-MM-DD'),
+        fechaFinalizacion: moment(planillaTaller.fechaFinalizacion).utc().format('YYYY-MM-DD'),
+        observacion: planillaTaller.observacion,
+        bimestre: planillaTaller.bimestre,
+        fechaCreacion: planillaTaller.fechaCreacion,
+        fechaModificacion: new Date(),
+        activo: planillaTaller.activo,
+      };
+      const update = await this.planillaTaller.findByIdAndUpdate(id, planillaUpdate, { new: true });
+      console.log('update', update);
+      if (update) {
+        return response.send(update);
+      } else {
+        return response.send(null);
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un problema interno'));
+    }
   };
   private agregar = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
