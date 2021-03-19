@@ -9,9 +9,6 @@ import usuarioModel from '../usuario/usuario.model';
 import UsuarioDto from '../usuario/usuario.dto';
 import UserWithThatEmailAlreadyExistsException from '../exceptions/UserWithThatEmailAlreadyExistsException';
 import passport from 'passport';
-import nodemailer from 'nodemailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { google } from 'googleapis';
 import HttpException from '../exceptions/HttpException';
 import axios, { AxiosRequestConfig } from 'axios';
 
@@ -43,12 +40,12 @@ class AuthenticationController implements Controller {
       // Envio el email con un link y ahi se redirecciona para que setee la nueva contraseña
       // Con passport-mongoose-local recuperamos la contraseña
       try {
-        const resultado: any = await this.enviarEmail(email);
-        if (resultado) {
-          response.status(200).send({ usuario: user });
-        } else {
-          next(new HttpException(400, 'No se pudo enviar el email'));
-        }
+        // const resultado: any = await this.enviarEmail(email);
+        // if (resultado) {
+        //   response.status(200).send({ usuario: user });
+        // } else {
+        next(new HttpException(400, 'No se pudo enviar el email'));
+        // }
       } catch (error) {
         console.log('[ERROR]', error);
         next(new HttpException(400, 'Ocurrió un error'));
@@ -67,56 +64,7 @@ class AuthenticationController implements Controller {
   };
 
   // ---------
-  private async enviarEmail(email: string) {
-    const { CLIENT_ID_OAUTH2, CLIENT_SECRET_OAUTH2, REDIRECT_URI_OAUTH2, REFRESH_TOKEN_OAUTH2, CORREO, URL_FRONT } = process.env;
-    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID_OAUTH2, CLIENT_SECRET_OAUTH2, REDIRECT_URI_OAUTH2);
-    oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN_OAUTH2 });
-    try {
-      const accessToken: any = await oAuth2Client.getAccessToken();
-      // enviar email
-      const transporterOptiones: SMTPTransport.Options = {
-        service: 'gmail',
-        auth: {
-          type: 'OAuth2',
-          user: email,
-          clientId: CLIENT_ID_OAUTH2,
-          clientSecret: CLIENT_SECRET_OAUTH2,
-          refreshToken: REFRESH_TOKEN_OAUTH2,
-          accessToken,
-        },
-      };
-      const transporter = nodemailer.createTransport(transporterOptiones);
-      const mailOptions = {
-        from: `PROPET - Tienda de Mascotas  `,
-        to: CORREO, // Cambia esta parte por el destinatario usuarioCreado.email
-        subject: 'Reestablecer contraseña',
-        html: `
-            <h3> Haga click en el siguiente link para reestablecer una nueva contraseña</h3>
-              <br/>
-              <a href="${URL_FRONT}/autenticacion/set-lost-password"> >> Click Aqui <<</a>
-            
-            `,
-      };
-      // send mail with defined transport object
-      const resultado = await transporter.sendMail(mailOptions, (err, info: SMTPTransport.SentMessageInfo) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        console.log('Message sent: %s', info.messageId);
-        // Preview only available when sending through an Ethereal account
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 
-        // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@blurdybloop.com>
-        // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
-      });
-      // retornar valores
-      return resultado;
-    } catch (error) {
-      console.log('[ERROR]', error);
-      return null;
-    }
-  }
   // ----------
   private registration = async (request: Request, response: Response, next: NextFunction) => {
     console.log('registro');
