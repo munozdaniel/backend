@@ -405,7 +405,7 @@ class PlanillaTallerController implements Controller {
   };
   private paginar = async (request: Request, response: Response, next: NextFunction) => {
     const parametros = request.query;
-    let campo = null;
+    let campo: any = null;
     switch (parametros.sortField) {
       case 'cicloLectivo':
         campo = 'comision.cicloLectivo';
