@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IEstadoCursada from './estadoCursada.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import moment from 'moment';

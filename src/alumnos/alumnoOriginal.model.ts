@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IAlumnoOriginal from './alumnoOriginal.interface';
 
 export const alumnoOriginalSchema = new mongoose.Schema({

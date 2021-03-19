@@ -1,11 +1,11 @@
+import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreateCalificacionDto from './calificacion.dto';
-import Calificacion from './calificacion.interface';
-import calificacionModel from './calificacion.model';
+ import calificacionModel from './calificacion.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import ICalificacion from './calificacion.interface';
 import calificacionOriginalModel from './calificacionOriginal.model';
@@ -13,7 +13,7 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import profesorModel from '../profesores/profesor.model';
 import moment from 'moment';
-const ObjectId = require('mongoose').Types.ObjectId;
+const ObjectId = mongoose.Types.ObjectId;
 
 class CalificacionController implements Controller {
   public path = '/calificacion';

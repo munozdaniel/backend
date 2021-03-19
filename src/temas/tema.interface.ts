@@ -1,5 +1,5 @@
-import * as mongoose from "mongoose";
-import IPlanillaTaller from "planillaTaller/planillaTaller.interface";
+import mongoose from 'mongoose';
+import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
 interface ITema extends mongoose.Document {
   _id: string;
   planillaTaller: IPlanillaTaller;

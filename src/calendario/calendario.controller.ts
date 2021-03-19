@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
@@ -8,8 +9,7 @@ import calendarioModel from './calendario.model';
 import calendarioOriginalModel from './calendarioOriginal.model';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import moment from 'moment';
-import comisionesOriginalModel from 'comisiones/comisionOriginal.model';
-const ObjectId = require('mongoose').Types.ObjectId;
+ const ObjectId = mongoose.Types.ObjectId;
 
 class CalendarioController implements Controller {
   public path = '/calendario';

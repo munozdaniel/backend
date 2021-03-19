@@ -1,6 +1,7 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IAsignaturaOriginal from './asignaturaOriginal.interface';
- 
+
 export const asignaturaOriginalSchema = new mongoose.Schema({
   // _id: { type: String },
   IdAsignarutas: { type: Number },
@@ -15,9 +16,6 @@ export const asignaturaOriginalSchema = new mongoose.Schema({
 });
 
 // Modelo
-const asignaturaOriginalModel = mongoose.model<IAsignaturaOriginal>(
-  'AsignaturaOriginal',
-  asignaturaOriginalSchema
-);
+const asignaturaOriginalModel = mongoose.model<IAsignaturaOriginal>('AsignaturaOriginal', asignaturaOriginalSchema);
 
 export default asignaturaOriginalModel;

@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import ITema from './tema.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 const Schema = mongoose.Schema;

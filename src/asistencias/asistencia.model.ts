@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IAsistencia from './asistencia.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';

@@ -1,4 +1,5 @@
- import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 interface ISeguimientoAlumnoOriginal extends mongoose.Document {
   _id: number;
   id_seguimiento: number; // para migrarc
@@ -11,7 +12,6 @@ interface ISeguimientoAlumnoOriginal extends mongoose.Document {
   Resuelto: string;
   Observacion2: string;
   ObservacionJefe: string;
-
 }
 
 export default ISeguimientoAlumnoOriginal;

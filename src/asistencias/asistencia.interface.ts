@@ -1,5 +1,6 @@
 import IAlumno from 'alumnos/alumno.interface';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
 interface IAsistencia extends mongoose.Document {
   _id: string;

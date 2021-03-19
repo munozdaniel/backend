@@ -1,14 +1,14 @@
- import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 interface IComisionOriginal extends mongoose.Document {
   _id: number;
   id_comisiones: number;
-  comision: string ;
+  comision: string;
   id_alumnos: number;
   ciclo_lectivo: number;
   Tcurso: number;
   Division: number;
   Condicion: string;
-
 }
 
 export default IComisionOriginal;

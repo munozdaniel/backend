@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import ICalendarioOriginal from './calendarioOriginal.interface';
 
 export const calendarioOriginalSchema = new mongoose.Schema({

@@ -1,5 +1,6 @@
 import IAdulto from '../adulto/adulto.interface';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 interface ICurso extends mongoose.Document {
   _id: string;
   cursoNro: number;

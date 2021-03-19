@@ -2,11 +2,6 @@ import { Router, Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
 import usuarioModel from './usuario.model';
-// tslint:disable-next-line: no-var-requires
-const hbs = require('nodemailer-express-handlebars');
-import path from 'path';
-
-//
 import HttpException from '../exceptions/HttpException';
 class UsuarioController implements Controller {
   public path = '/usuarios';

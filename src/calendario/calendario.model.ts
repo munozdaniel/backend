@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import { autoIncrement } from 'mongoose-plugin-autoinc';
 import ICalendario from './calendario.interface';
 

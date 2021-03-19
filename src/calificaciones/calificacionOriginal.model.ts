@@ -1,5 +1,5 @@
-import * as mongoose from "mongoose";
-import ICalificacionOriginal from "./calificacionOriginal.interface";
+import mongoose from 'mongoose';
+import ICalificacionOriginal from './calificacionOriginal.interface';
 
 export const calificacionesOriginalSchema = new mongoose.Schema({
   // _id: { type: Number },
@@ -16,7 +16,7 @@ export const calificacionesOriginalSchema = new mongoose.Schema({
 
 // Modelo
 const calificacionesOriginalModel = mongoose.model<ICalificacionOriginal>(
-  "planilla_de_calificaciones_por_alumno",
+  'planilla_de_calificaciones_por_alumno',
   calificacionesOriginalSchema
 );
 

@@ -1,10 +1,11 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IAlumno from './alumno.interface';
 import { adultoSchema } from '../adulto/adulto.model';
 import { autoIncrement } from 'mongoose-plugin-autoinc';
 import moment from 'moment';
 const Schema = mongoose.Schema;
-const mongoosePaginate = require('mongoose-paginate-v2');
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 export const alumnoSchema = new mongoose.Schema({
   alumnoNro: { type: Number, unique: true, required: false },

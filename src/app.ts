@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import mongoose from 'mongoose';
@@ -19,8 +18,8 @@ const ExtractJWT = passportJWT.ExtractJwt;
 const LocalStrategy = passportLocal.Strategy;
 import { config } from './passport/config';
 import usuarioModel from './usuario/usuario.model';
-
-const methodOverride = require('method-override');
+import methodOverride from 'method-override';
+import bodyParser from 'body-parser';
 // Config
 const API_URL = '*';
 class App {
@@ -103,6 +102,7 @@ class App {
   private initializeMiddlewares() {
     this.app.use(bodyParser.json({ limit: '10mb' }));
     this.app.use(cookieParser());
+    const __dirname = path.resolve(path.dirname('')); 
     this.app.use('/public', express.static(__dirname + '/public'));
     this.app.set('view engine', '.hbs');
     this.app.set('views', path.join(__dirname, 'views'));

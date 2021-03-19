@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IPlanillaTallerOriginal from './planillaTallerOriginal.interface';
 
 export const planillaTallerOriginalSchema = new mongoose.Schema({
@@ -14,13 +15,9 @@ export const planillaTallerOriginalSchema = new mongoose.Schema({
   Observacion: { type: String },
   FechaFinalizacion: { type: String },
   Bimestre: { type: String },
-
 });
 
 // Modelo
-const planillaTallerOriginalModel = mongoose.model<IPlanillaTallerOriginal>(
-  'planilla_de_taller',
-  planillaTallerOriginalSchema
-);
+const planillaTallerOriginalModel = mongoose.model<IPlanillaTallerOriginal>('planilla_de_taller', planillaTallerOriginalSchema);
 
 export default planillaTallerOriginalModel;

@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IAdulto from './adulto.interface';
 
 export const adultoSchema = new mongoose.Schema({
@@ -6,11 +7,11 @@ export const adultoSchema = new mongoose.Schema({
   telefono: { type: String },
   celular: { type: String },
   email: { type: String },
-  tipoAdulto:{ type: String },
+  tipoAdulto: { type: String },
 
-  fechaCreacion: { type: Date, default: Date.now},
-  fechaModificacion: { type: Date},
-  activo: { type: Boolean, default: true }
+  fechaCreacion: { type: Date, default: Date.now },
+  fechaModificacion: { type: Date },
+  activo: { type: Boolean, default: true },
 });
 
 // Modelo

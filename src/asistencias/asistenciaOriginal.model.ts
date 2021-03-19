@@ -1,5 +1,5 @@
-import * as mongoose from "mongoose";
-import IAsistenciaOriginal from "./asistenciaOriginal.interface";
+import mongoose from 'mongoose';
+import IAsistenciaOriginal from './asistenciaOriginal.interface';
 
 export const asistenciaOriginalSchema = new mongoose.Schema({
   // _id: { type: Number },
@@ -12,9 +12,6 @@ export const asistenciaOriginalSchema = new mongoose.Schema({
 });
 
 // Modelo
-const asistenciaOriginalModel = mongoose.model<IAsistenciaOriginal>(
-  "planilla_de_asistencia_por_alumnos",
-  asistenciaOriginalSchema
-);
+const asistenciaOriginalModel = mongoose.model<IAsistenciaOriginal>('planilla_de_asistencia_por_alumnos', asistenciaOriginalSchema);
 
 export default asistenciaOriginalModel;

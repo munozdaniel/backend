@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IAsignatura from './curso.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import ICurso from './curso.interface';

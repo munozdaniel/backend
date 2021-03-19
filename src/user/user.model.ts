@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import User from './user.interface';
 
 const addressSchema = new mongoose.Schema({
@@ -34,7 +35,7 @@ userSchema.virtual('fullName').get((firstName: string, lastName: string) => {
 userSchema.virtual('posts', {
   ref: 'Post', // Modelo a copiar
   localField: '_id', // llave primaria
-  foreignField: 'author',// llave secundaria
+  foreignField: 'author', // llave secundaria
 });
 
 const userModel = mongoose.model<User & mongoose.Document>('User', userSchema);

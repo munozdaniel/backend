@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IPlanillaTaller from './planillaTaller.interface';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { autoIncrement } from 'mongoose-plugin-autoinc';

@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 interface IProfesor extends mongoose.Document {
   _id: string;
   profesorNro: string;

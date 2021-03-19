@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 export interface IUsuario extends mongoose.Document {
   email: string;
   password: string;

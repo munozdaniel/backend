@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import ISeguimientoAlumno from './seguimientoAlumno.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import { autoIncrement } from 'mongoose-plugin-autoinc';

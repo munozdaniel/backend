@@ -1,5 +1,4 @@
-// tslint:disable-next-line: no-var-requires
-const envalid = require('envalid');
+import envalid from 'envalid';
 const { cleanEnv, str, port } = envalid;
 
 function validateEnv() {

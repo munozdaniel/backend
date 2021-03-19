@@ -1,4 +1,4 @@
-import * as mongoose from "mongoose";
+import mongoose from 'mongoose';
 interface ITemaOriginal extends mongoose.Document {
   _id: string;
   id_planilla_temas: number;

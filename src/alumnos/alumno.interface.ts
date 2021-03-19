@@ -1,10 +1,11 @@
 import IAdulto from '../adulto/adulto.interface';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IEstadoCursada from './estadoCursada/estadoCursada.interface';
 interface IAlumno extends mongoose.Document {
   // _id: string;
   alumnoNro: number;
-  legajo:string;
+  legajo: string;
   alumnoId: number; // para migrar
   adultos: IAdulto[];
   estadoCursadas: IEstadoCursada[];

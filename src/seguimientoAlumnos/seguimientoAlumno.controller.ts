@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
@@ -13,7 +14,7 @@ import alumnoModel from '../alumnos/alumno.model';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 import moment from 'moment';
-const ObjectId = require('mongoose').Types.ObjectId;
+const ObjectId = mongoose.Types.ObjectId;
 class SeguimientoAlumnoController implements Controller {
   public path = '/seguimiento-alumnos';
   public router = Router();

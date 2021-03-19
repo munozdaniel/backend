@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import Controller from '../interfaces/controller.interface';
@@ -10,8 +11,7 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import NotFoundException from '../exceptions/NotFoundException';
 import moment from 'moment';
-const ObjectId = require('mongoose').Types.ObjectId;
-var isodate = require('isodate');
+const ObjectId = mongoose.Types.ObjectId;
 
 class AsistenciaController implements Controller {
   public path = '/asistencia';
@@ -267,7 +267,7 @@ class AsistenciaController implements Controller {
           console.log('ero', ero);
         }
         const fechadate = new Date(x.Fecha);
-         const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
+        const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
         const unaAsistencia: IAsistencia & any = {
           id_planilla_de_asistencia: x.id_planilla_de_asistencia, // solo para migrar
           planillaTaller: planillataller,

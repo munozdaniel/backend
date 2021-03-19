@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 interface ICalendarioOriginal extends mongoose.Document {
   _id: number;
   id_calendario: number;

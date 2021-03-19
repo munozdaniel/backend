@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IComisionOriginal from './comisionOriginal.interface';
 
 export const comisionesOriginalSchema = new mongoose.Schema({
@@ -13,9 +14,6 @@ export const comisionesOriginalSchema = new mongoose.Schema({
 });
 
 // Modelo
-const comisionesOriginalModel = mongoose.model<IComisionOriginal>(
-  'Alumnos_por_comisione',
-  comisionesOriginalSchema
-);
+const comisionesOriginalModel = mongoose.model<IComisionOriginal>('Alumnos_por_comisione', comisionesOriginalSchema);
 
 export default comisionesOriginalModel;

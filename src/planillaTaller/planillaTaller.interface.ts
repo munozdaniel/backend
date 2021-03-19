@@ -1,5 +1,6 @@
 import IAsignatura from '../asignaturas/asignatura.interface';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IProfesor from '../profesores/profesor.interface';
 import ICurso from 'cursos/curso.interface';
 import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';

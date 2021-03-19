@@ -1,4 +1,4 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
@@ -20,7 +20,7 @@ import ConnectionService from '../services/Connection';
 import IEstadoCursada from './estadoCursada/estadoCursada.interface';
 import axios, { AxiosRequestConfig } from 'axios';
 import moment from 'moment';
-const ObjectId = require('mongoose').Types.ObjectId;
+const ObjectId = mongoose.Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
   public router = Router();

@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 interface IAdulto extends mongoose.Document {
   nombreCompleto: string;
   telefono?: string;

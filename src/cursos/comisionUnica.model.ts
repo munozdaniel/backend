@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IComisionUnica from './comisionUnica.interface';
 
 export const comisionesUnicaSchema = new mongoose.Schema({
@@ -12,9 +13,6 @@ export const comisionesUnicaSchema = new mongoose.Schema({
 });
 
 // Modelo
-const comisionesUnicaModel = mongoose.model<IComisionUnica>(
-  'Comisiones_sql',
-  comisionesUnicaSchema
-);
+const comisionesUnicaModel = mongoose.model<IComisionUnica>('Comisiones_sql', comisionesUnicaSchema);
 
 export default comisionesUnicaModel;

@@ -1,6 +1,7 @@
 import IAlumno from 'alumnos/alumno.interface';
 import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
 interface ISeguimientoAlumno extends mongoose.Document {
   _id: string;

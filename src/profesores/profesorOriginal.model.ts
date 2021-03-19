@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import IProfesorOriginal from './profesorOriginal.interface';
 
 export const profesoresOriginalSchema = new mongoose.Schema({
@@ -12,9 +13,6 @@ export const profesoresOriginalSchema = new mongoose.Schema({
 });
 
 // Modelo
-const profesoresOriginalModel = mongoose.model<IProfesorOriginal>(
-  'Profesoresoriginal',
-  profesoresOriginalSchema
-);
+const profesoresOriginalModel = mongoose.model<IProfesorOriginal>('Profesoresoriginal', profesoresOriginalSchema);
 
 export default profesoresOriginalModel;

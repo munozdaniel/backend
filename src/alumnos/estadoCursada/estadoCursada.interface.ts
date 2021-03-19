@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 import ICurso from 'cursos/curso.interface';
 import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
 interface IEstadoCursada extends mongoose.Document {

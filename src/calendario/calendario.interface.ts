@@ -1,5 +1,6 @@
 import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 interface ICalendario extends mongoose.Document {
   _id: number;
   id_calendario: number; // para migrar

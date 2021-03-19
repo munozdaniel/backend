@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import Controller from '../interfaces/controller.interface';
@@ -18,7 +19,7 @@ import NotFoundException from '../exceptions/NotFoundException';
 import calendarioModel from '../calendario/calendario.model';
 import moment from 'moment';
 
-const ObjectId = require('mongoose').Types.ObjectId;
+const ObjectId = mongoose.Types.ObjectId;
 class PlanillaTallerController implements Controller {
   public path = '/planilla-taller';
   public router = Router();

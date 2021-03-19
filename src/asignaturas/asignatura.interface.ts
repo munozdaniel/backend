@@ -1,5 +1,6 @@
 import IAdulto from '../adulto/adulto.interface';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+
 interface IAsignatura extends mongoose.Document {
   _id: string;
   asignaturaNro: number;

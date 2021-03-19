@@ -1,5 +1,5 @@
-import * as mongoose from "mongoose";
-import ITemaOriginal from "./temaOriginal.interface";
+import mongoose from 'mongoose';
+import ITemaOriginal from './temaOriginal.interface';
 
 export const temaOriginalSchema = new mongoose.Schema({
   // _id: { type: Number },
@@ -17,9 +17,6 @@ export const temaOriginalSchema = new mongoose.Schema({
 });
 
 // Modelo
-const temaOriginalModel = mongoose.model<ITemaOriginal>(
-  "planilla_temario_por_dia",
-  temaOriginalSchema
-);
+const temaOriginalModel = mongoose.model<ITemaOriginal>('planilla_temario_por_dia', temaOriginalSchema);
 
 export default temaOriginalModel;

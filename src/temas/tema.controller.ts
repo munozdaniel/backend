@@ -1,17 +1,17 @@
+import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreateTemaDto from './tema.dto';
-import Tema from './tema.interface';
 import temaModel from './tema.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import ITema from './tema.interface';
 import temaOriginalModel from './temaOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import moment from 'moment';
-const ObjectId = require('mongoose').Types.ObjectId;
+const ObjectId = mongoose.Types.ObjectId;
 
 class TemaController implements Controller {
   public path = '/tema';
