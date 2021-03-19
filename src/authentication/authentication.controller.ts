@@ -119,6 +119,7 @@ class AuthenticationController implements Controller {
   }
   // ----------
   private registration = async (request: Request, response: Response, next: NextFunction) => {
+    console.log('registro');
     const userData: UsuarioDto = request.body;
     if (await this.usuario.findOne({ email: userData.email })) {
       next(new UserWithThatEmailAlreadyExistsException(userData.email));
