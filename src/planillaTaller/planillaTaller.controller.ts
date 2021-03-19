@@ -404,8 +404,7 @@ class PlanillaTallerController implements Controller {
     response.send(planillaTallerAggregate);
   };
   private paginar = async (request: Request, response: Response, next: NextFunction) => {
-    const parametros: IQueryPaginator = request.query;
-    console.log('parametros, ', parametros);
+    const parametros = request.query;
     let campo = null;
     switch (parametros.sortField) {
       case 'cicloLectivo':
@@ -430,16 +429,6 @@ class PlanillaTallerController implements Controller {
           from: 'comisiones', //otherCollection
           localField: 'comision',
           foreignField: '_id',
-          // let: { curso: "$curso", com: "$comision", div: "$division" },
-          // pipeline: [
-          //   {
-          //     $addFields: {
-          //       comisionCompleta: {
-          //         $concat: ["0", "$$curso", "/", "$$com", "/", "0", "$$div"],
-          //       },
-          //     },
-          //   },
-          // ],
           as: 'comision',
         },
       },
@@ -483,23 +472,7 @@ class PlanillaTallerController implements Controller {
       });
       match.push({ bimestre: { $regex: parametros.filter, $options: 'i' } });
       match.push({ planillaTallerNroString: { $regex: parametros.filter, $options: 'i' } });
-      //  match.push({
-      //     "comision.cicloLectivo": {
-      //       $eq: Number(parametros.filter),
-      //     },
-      //   });
-      // match.push({
-      //   // $regexFindAll: {
-      //   //   input: { $toString: "$comision.cicloLectivo" },
-      //   //   regex: parametros.filter,
-      //   // },
-      //   // {
-      //   "comision.cicloLectivo": {
-      //     // input: { $toString: "$comision.cicloLectivo" },
-      //     $regex: Number(parametros.filter),
-      //     // $options: "m",
-      //   },
-      // });
+
       match.push({
         comisionCompleta: {
           $regex: parametros.filter,
@@ -525,7 +498,6 @@ class PlanillaTallerController implements Controller {
           $options: 'g',
         },
       });
-      console.log('match', match);
       opciones.push({
         $addFields: {
           fechaInicioString: {
@@ -548,7 +520,6 @@ class PlanillaTallerController implements Controller {
       });
       opciones.push({ $match: { $or: match } });
     }
-    console.log('opciones', opciones);
     const aggregate = this.planillaTaller.aggregate(opciones);
     this.planillaTaller.aggregatePaginate(
       aggregate,
@@ -564,7 +535,6 @@ class PlanillaTallerController implements Controller {
         if (err) {
           console.log('[ERROR]', err);
         }
-        console.log('result', result);
         // result.docs
         // result.total
         // result.limit - 10
