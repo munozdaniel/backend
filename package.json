@@ -79,7 +79,7 @@
     "lint": "tslint -p tsconfig.json -c tslint.json",
     "tsc": "tsc",
     "prod": "tsc && node ./build/app.js",
-    "pm2": "NODE_ENV=production pm2 start tsc && node ./build/app.js --watch -i max"
+    "pm2": "NODE_ENV=production pm2 start tsc && node ./dist/app.js --watch -i max"
   },
   "author": "Muñoz Daniel Eduardo",
   "license": "MIT",
