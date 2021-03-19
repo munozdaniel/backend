@@ -14,7 +14,7 @@ export const cursoSchema = new mongoose.Schema({
     type: String,
     required: false,
     uppercase: true,
-    default: null,  
+    default: null,
   },
   // cicloLectivo: { type: Number, required: true },
   // cicloLectivo: [
@@ -37,7 +37,7 @@ cursoSchema.index({ comision: 1, curso: 1, division: 1 }, { unique: true });
 // cursoSchema.plugin(mongoosePaginate);
 const cursoModel = mongoose.model<ICurso>('Curso', cursoSchema);
 
-cursoSchema.pre('update', function (this: ICurso, next: any) {
+cursoSchema.pre<any>('update', function (this: ICurso, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;

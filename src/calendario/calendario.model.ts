@@ -35,7 +35,7 @@ calendarioSchema.plugin(autoIncrement, {
 });
 const calendarioModel = mongoose.model('Calendario', calendarioSchema);
 
-calendarioSchema.pre('update', function (this: ICalendario, next: any) {
+calendarioSchema.pre<any>('update', function (this: ICalendario, next: any) {
   const now = new Date();
   next();
 });

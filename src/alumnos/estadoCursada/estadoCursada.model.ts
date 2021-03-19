@@ -48,7 +48,7 @@ const estadoCursadaModel = mongoose.model('EstadoCursada', estadoCursadaSchema);
 //   }
 //   next();
 // });
-estadoCursadaSchema.pre('update', function (this: IEstadoCursada, next: any) {
+estadoCursadaSchema.pre<any>('update', function (this: IEstadoCursada, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;

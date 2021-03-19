@@ -38,7 +38,7 @@ const profesorModel = mongoose.model('Profesore', profesorSchema);
 //   incrementBy: 1,
 // });
 
-profesorSchema.pre('update', function (this: IProfesor, next: any) {
+profesorSchema.pre<any>('update', function (this: IProfesor, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;

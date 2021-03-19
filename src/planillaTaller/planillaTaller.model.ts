@@ -53,7 +53,7 @@ planillaTallerSchema.plugin(autoIncrement, {
 });
 const planillaTallerModel = mongoose.model('PlanillaTallere', planillaTallerSchema);
 
-planillaTallerSchema.pre('update', function (this: IPlanillaTaller, next: any) {
+planillaTallerSchema.pre<any>('update', function (this: IPlanillaTaller, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;

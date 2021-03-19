@@ -39,7 +39,7 @@ asignaturaSchema.plugin(autoIncrement, {
 });
 const asignaturaModel = mongoose.model('Asignatura', asignaturaSchema);
 
-asignaturaSchema.pre('update', function (this: IAsignatura, next: any) {
+asignaturaSchema.pre<any>('update', function (this: IAsignatura, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;

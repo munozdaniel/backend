@@ -44,7 +44,7 @@ calificacionSchema.plugin(autoIncrement, {
 });
 const calificacionModel = mongoose.model('Calificacione', calificacionSchema);
 
-calificacionSchema.pre('update', function (this: ICalificacion, next: any) {
+calificacionSchema.pre<any>('update', function (this: ICalificacion, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;

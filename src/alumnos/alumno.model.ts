@@ -59,7 +59,7 @@ alumnoSchema.plugin(autoIncrement, {
 const alumnoModel = mongoose.model('Alumno', alumnoSchema);
 //  alumnoModel.paginate();
 
-alumnoSchema.pre('update', function (this: IAlumno, next: any) {
+alumnoSchema.pre<any>('update', function (this: IAlumno, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;

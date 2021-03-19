@@ -39,7 +39,7 @@ asistenciaSchema.index({ planillaTaller: 1, alumno: 1, fecha: 1 }, { unique: tru
 
 const asistenciaModel = mongoose.model('Asistencia', asistenciaSchema);
 
-asistenciaSchema.pre('update', function (this: IAsistencia, next: any) {
+asistenciaSchema.pre<any>('update', function (this: IAsistencia, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;
@@ -59,7 +59,7 @@ asistenciaSchema.pre('update', function (this: IAsistencia, next: any) {
 //         })
 //     } else {
 //         next()
-//     } 
+//     }
 // })
 //   next();
 // });

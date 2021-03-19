@@ -35,7 +35,7 @@ temaSchema.plugin(autoIncrement, {
 });
 const temaModel = mongoose.model('Tema', temaSchema);
 
-temaSchema.pre('update', function (this: ITema, next: any) {
+temaSchema.pre<any>('update', function (this: ITema, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;

@@ -44,7 +44,7 @@ seguimientoAlumnoSchema.plugin(autoIncrement, {
 });
 const seguimientoAlumnoModel = mongoose.model('SeguimientoAlumno', seguimientoAlumnoSchema);
 
-seguimientoAlumnoSchema.pre('update', function (this: ISeguimientoAlumno, next: any) {
+seguimientoAlumnoSchema.pre<any>('update', function (this: ISeguimientoAlumno, next: any) {
   const now = new Date();
   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
   this.fechaModificacion = hoy;
