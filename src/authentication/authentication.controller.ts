@@ -36,7 +36,7 @@ class AuthenticationController implements Controller {
   // -----
   private forgotPassword = async (request: Request, response: Response, next: NextFunction) => {
     const { email } = request.body;
-    this.usuario.findOne({ email }, async (err, user) => {
+    this.usuario.findOne({ email }, async (err: any, user: any) => {
       if (err || !user) {
         return response.status(400).json({ error: 'El usuario con el email ingresado no existe' });
       }
