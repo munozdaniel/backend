@@ -13,13 +13,13 @@ export const temaSchema = new mongoose.Schema({
     ref: 'PlanillaTallere',
     required: true,
   },
-  fecha: { type: Date, required: true },
-  temaDelDia: { type: String, required: true },
-  tipoDesarrollo: { type: String, required: true },
-  temasProximaClase: { type: String, required: false },
-  nroClase: { type: Number, required: true },
-  unidad: { type: Number, required: true },
-  caracterClase: { type: String, required: true },
+  fecha: { type: Date, required: false }, // requerido pero en migraion no
+  temaDelDia: { type: String, required: false }, // requerido pero en migraion no
+  tipoDesarrollo: { type: String, required: false }, // requerido pero en migraion no
+  temasProximaClase: { type: String, false: false }, // requerido pero en migraion no
+  nroClase: { type: Number, required: true }, // requerido pero en migraion no
+  unidad: { type: Number, required: false }, // requerido pero en migraion no
+  caracterClase: { type: String, required: false }, // requerido pero en migraion no
   observacionJefe: { type: String },
 
   fechaCreacion: { type: Date, default: Date.now },
