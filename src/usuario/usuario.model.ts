@@ -1,12 +1,10 @@
-import * as mongoose from 'mongoose';
-import { rolesEnum } from '../utils/roles.enum';
+import mongoose from 'mongoose';
 import { IUsuario } from './iUsuario';
 import passportLocalMongoose from 'passport-local-mongoose';
+const Schema = mongoose.Schema;
 
-export const usuarioSchema = new mongoose.Schema({
+export const usuarioSchema = new Schema({
   email: { type: String, required: true, unique: true },
-  //  passport-local-mongoose genera un hash y salt por la contraseña
-  // password: { type: String, required: true },
   nombre: { type: String, required: true },
   apellido: { type: String, required: true },
   rol: { type: String },
