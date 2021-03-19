@@ -113,6 +113,15 @@ class AlumnoController implements Controller {
       response.status(200).send({ success: false });
     }
   };
+  /**
+   * Los alumnos pasan al siguiente ciclo.
+   * 1. Busco todos los alumnos del ciclo anterior, curso y divisiones seleccionadas por el usuario.
+   * 2. Si existe en el nuevo ciclo deberia pisarlo sino lo inserta
+   * @param request
+   * @param response
+   * @param next
+   * @returns
+   */
   private actualizarAlNuevoCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
@@ -207,9 +216,10 @@ class AlumnoController implements Controller {
     const alumnosAggregate = await this.alumno.aggregate(opciones);
     if (alumnosAggregate) {
       const alumnosActualizados = await Promise.all(
+        // Por cada alumno
         alumnosAggregate.map(async (x: IAlumno, index: number) => {
+          // Veo si existe la cursada
           const indice = await x.estadoCursadas.findIndex((x: IEstadoCursada) => {
-            // return ObjectId(x.cicloLectivo._id) === ObjectId(ciclo._id);
             return x.cicloLectivo.anio === ciclo.anio;
           });
 
@@ -269,7 +279,6 @@ class AlumnoController implements Controller {
       'estadoCursadas.curso.curso': Number(curso),
       'estadoCursadas.curso.division': Number(division),
     };
-
     const opciones: any = [
       {
         $lookup: {
@@ -282,6 +291,7 @@ class AlumnoController implements Controller {
       {
         $unwind: {
           path: '$estadoCursadas',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -308,6 +318,7 @@ class AlumnoController implements Controller {
       {
         $unwind: {
           path: '$estadoCursadas.curso',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
