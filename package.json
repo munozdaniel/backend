@@ -76,7 +76,7 @@
     "dev": "ts-node ./src/server.ts",
     "lint": "tslint -p tsconfig.json -c tslint.json",
     "tsc": "tsc",
-    "prod": "tsc && node ./build/server.js",
+    "prod": "tsc && node ./dist/server.js",
     "pm2": "NODE_ENV=production pm2 start tsc && node ./dist/server.js --watch -i max --es-module-specifier-resolution=node"
   },
   "author": "Muñoz Daniel Eduardo",
