@@ -9,7 +9,7 @@ import calendarioModel from './calendario.model';
 import calendarioOriginalModel from './calendarioOriginal.model';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import moment from 'moment';
- const ObjectId = mongoose.Types.ObjectId;
+const ObjectId = mongoose.Types.ObjectId;
 
 class CalendarioController implements Controller {
   public path = '/calendario';
@@ -32,7 +32,7 @@ class CalendarioController implements Controller {
 
   private crearCalendario = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
-    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    const hoy = new Date(moment(now).utc().format('YYYY-MM-DD'));
     const cicloLectivoActual = await this.cicloLectivo.findOne({ anio: moment().year() });
     const existentes = await this.calendario.aggregate([
       {
@@ -65,94 +65,100 @@ class CalendarioController implements Controller {
     // cicloLectivoActual
     const calendarioNuevo = [];
     let normal = true;
-    let fechaInicio = moment(request.body.fechaInicio).add(-1, 'day');
-    while (moment(fechaFinal, 'YYYY-MM-DD').isSameOrAfter(fechaInicio)) {
+    let fechaInicio = moment(request.body.fechaInicio).utc().add(-1, 'day');
+    //let fechaInicio = moment(request.body.fechaInicio).utc();
+    while (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio)) {
       if (normal) {
         for (let i = 0; i < 3; i++) {
-          fechaInicio = moment(fechaInicio).add(1, 'day');
-
-          let fecha = new Date(moment(fechaInicio).format('YYYY-MM-DD'));
-          calendarioNuevo.push({
-            cicloLectivo: cicloLectivoActual,
-            comisionA: 1,
-            comisionB: 1,
-            comisionC: 1,
-            comisionD: 1,
-            comisionE: 0,
-            comisionF: 0,
-            comisionG: 0,
-            comisionH: 0,
-            fecha,
-            fechaCreacion: hoy,
-            activo: true,
-          });
+          fechaInicio = moment(fechaInicio).utc().add(1, 'day');
+          if (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio)) {
+            let fecha = new Date(moment(fechaInicio).utc().format('YYYY-MM-DD'));
+            calendarioNuevo.push({
+              cicloLectivo: cicloLectivoActual,
+              comisionA: 1,
+              comisionB: 1,
+              comisionC: 1,
+              comisionD: 1,
+              comisionE: 0,
+              comisionF: 0,
+              comisionG: 0,
+              comisionH: 0,
+              fecha,
+              fechaCreacion: hoy,
+              activo: true,
+            });
+          }
         }
         for (let i = 0; i < 2; i++) {
-          fechaInicio = moment(fechaInicio).add(1, 'day');
-
-          let fecha = new Date(moment(fechaInicio).format('YYYY-MM-DD'));
-          calendarioNuevo.push({
-            cicloLectivo: cicloLectivoActual,
-            comisionA: 0,
-            comisionB: 0,
-            comisionC: 0,
-            comisionD: 0,
-            comisionE: 1,
-            comisionF: 1,
-            comisionG: 1,
-            comisionH: 1,
-            fecha,
-            fechaCreacion: hoy,
-            activo: true,
-          });
+          fechaInicio = moment(fechaInicio).utc().add(1, 'day');
+          if (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio)) {
+            let fecha = new Date(moment(fechaInicio).utc().format('YYYY-MM-DD'));
+            calendarioNuevo.push({
+              cicloLectivo: cicloLectivoActual,
+              comisionA: 0,
+              comisionB: 0,
+              comisionC: 0,
+              comisionD: 0,
+              comisionE: 1,
+              comisionF: 1,
+              comisionG: 1,
+              comisionH: 1,
+              fecha,
+              fechaCreacion: hoy,
+              activo: true,
+            });
+          }
         }
       } else {
         for (let i = 0; i < 2; i++) {
-          fechaInicio = moment(fechaInicio).add(1, 'day');
-
-          let fecha = new Date(moment(fechaInicio).format('YYYY-MM-DD'));
-          calendarioNuevo.push({
-            cicloLectivo: cicloLectivoActual,
-            comisionA: 1,
-            comisionB: 1,
-            comisionC: 1,
-            comisionD: 1,
-            comisionE: 0,
-            comisionF: 0,
-            comisionG: 0,
-            comisionH: 0,
-            fecha,
-            fechaCreacion: hoy,
-            activo: true,
-          });
+          fechaInicio = moment(fechaInicio).utc().add(1, 'day');
+          if (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio)) {
+            let fecha = new Date(moment(fechaInicio).utc().format('YYYY-MM-DD'));
+            calendarioNuevo.push({
+              cicloLectivo: cicloLectivoActual,
+              comisionA: 1,
+              comisionB: 1,
+              comisionC: 1,
+              comisionD: 1,
+              comisionE: 0,
+              comisionF: 0,
+              comisionG: 0,
+              comisionH: 0,
+              fecha,
+              fechaCreacion: hoy,
+              activo: true,
+            });
+          }
         }
         for (let i = 0; i < 3; i++) {
-          fechaInicio = moment(fechaInicio).add(1, 'day');
-
-          let fecha = new Date(moment(fechaInicio).format('YYYY-MM-DD'));
-          console.log('fecha', fecha);
-          calendarioNuevo.push({
-            cicloLectivo: cicloLectivoActual,
-            comisionA: 0,
-            comisionB: 0,
-            comisionC: 0,
-            comisionD: 0,
-            comisionE: 1,
-            comisionF: 1,
-            comisionG: 1,
-            comisionH: 1,
-            fecha,
-            fechaCreacion: hoy,
-            activo: true,
-          });
+          fechaInicio = moment(fechaInicio).utc().add(1, 'day');
+          if (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio)) {
+            let fecha = new Date(moment(fechaInicio).utc().format('YYYY-MM-DD'));
+            calendarioNuevo.push({
+              cicloLectivo: cicloLectivoActual,
+              comisionA: 0,
+              comisionB: 0,
+              comisionC: 0,
+              comisionD: 0,
+              comisionE: 1,
+              comisionF: 1,
+              comisionG: 1,
+              comisionH: 1,
+              fecha,
+              fechaCreacion: hoy,
+              activo: true,
+            });
+          }
         }
       }
       normal = !normal;
+      //    fechaInicio = moment(fechaInicio).utc().add(1, 'day');
     }
     try {
+      console.log('calendarioNuevi', calendarioNuevo);
       const saved = await this.calendario.insertMany(calendarioNuevo);
 
-      response.send({ calendario: saved });
+      response.send(saved);
     } catch (e) {
       // [ 'errors', '_message', 'message', 'name' ]
       console.log('[ERROR]', e);
