@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IUsuario } from './iUsuario';
+import { IUsuario } from './usuario.interface';
 import passportLocalMongoose from 'passport-local-mongoose';
 const Schema = mongoose.Schema;
 
@@ -7,7 +7,7 @@ export const usuarioSchema = new Schema({
   email: { type: String, required: true, unique: true },
   nombre: { type: String, required: true },
   apellido: { type: String, required: true },
-  rol: { type: String },
+  rol: { type: String }, // Deberia ser una coleccion aparte pero vamos a probar asi
   observacion: { type: String },
 
   fechaCreacion: { type: Date, default: Date.now },

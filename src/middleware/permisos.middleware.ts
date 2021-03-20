@@ -1,7 +1,7 @@
 import NotAuthorizedException from '../exceptions/NotAuthorizedException';
 import NotFoundException from '../exceptions/NotFoundException';
 import { NextFunction, Request, Response } from 'express';
-import { IUsuario } from 'usuario/iUsuario';
+import { IUsuario } from 'usuario/usuario.interface';
 import AuthenticationTokenMissingException from '../exceptions/AuthenticationTokenMissingException';
 /**
  *
