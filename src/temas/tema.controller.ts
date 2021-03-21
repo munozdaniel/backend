@@ -40,7 +40,6 @@ class TemaController implements Controller {
     const now = new Date();
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const tipo = escapeStringRegexp(request.body.tipo);
-    console.log('tipo', tipo);
     try {
       const planillaId = request.body.planillaId;
       console.log('planillaId', planillaId);
@@ -73,7 +72,6 @@ class TemaController implements Controller {
         const planilla = planillaAggregate[0];
 
         // Obtener calendario de taller
-        console.log('matchtipo', tipo.toString() === 'TALLER');
         if (tipo.toString() === 'TALLER') {
           let matchComision: any = null;
           switch (planilla.curso.comision) {
@@ -149,7 +147,6 @@ class TemaController implements Controller {
             },
           ];
 
-          console.log('opciones', opciones[2]);
 
           const calendario = await this.calendario.aggregate(opciones);
           const temasInsertar: ITema[] & any = await Promise.all(
@@ -172,13 +169,9 @@ class TemaController implements Controller {
         }
         // Cargar todos los dias
         if (tipo.toString() === 'MATERIAS') {
-          console.log('planilla.fechaInicio', planilla.fechaInicio);
-          console.log('planilla.fechaInicio', planilla.fechaFinalizacion);
           let fechaInicio = planilla.fechaInicio;
           let fechaFinal = planilla.fechaFinalizacion;
           const calendarioMaterias = [];
-          console.log('moment(fechaFinhaInicio)', moment(fechaInicio, 'YYYY-MM-DD').utc());
-          console.log('moment(fechaFinal)', moment(fechaFinal, 'YYYY-MM-DD').utc());
           while (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(moment(fechaInicio, 'YYYY-MM-DD').utc())) {
             calendarioMaterias.push({
               planillaTaller: planilla,
