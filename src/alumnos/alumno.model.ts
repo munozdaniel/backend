@@ -19,7 +19,7 @@ export const alumnoSchema = new mongoose.Schema({
       required: false,
     },
   ],
-  legajo: { type: String, required: true },
+  legajo: { type: String, required: true, unique: true },
   alumnoId: { type: Number, required: false },
   dni: { type: String, required: false }, // Para migrar sin required
   tipoDni: { type: String, default: 'DNI', uppercase: true },

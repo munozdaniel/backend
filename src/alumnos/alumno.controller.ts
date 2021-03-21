@@ -50,6 +50,7 @@ class AlumnoController implements Controller {
       .patch(`${this.path}/:id`, validationMiddleware(CreateAlumnoDto, true), this.modifyAlumno)
       .get(`${this.path}/:id`, this.getAlumnoById)
       .delete(`${this.path}/:id`, this.deleteAlumno)
+      .get(`${this.path}/disponible-legajo/:legajo`, this.disponibleLegajo)
       .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
       .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
       .post(`${this.path}/por-curso-division-ciclo`, this.obtenerAlumnosPorCursoDivisionCiclo)
@@ -57,6 +58,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/por-curso-especifico`, this.obtenerAlumnosPorCursoEspecifico)
       .post(`${this.path}/actualizar-nuevo-ciclo`, this.actualizarAlNuevoCiclo)
       .post(`${this.path}/informar-ausencia`, this.informarAusencia)
+      .put(`${this.path}/guardar-masivo`, this.guardarMasivo)
       .put(
         this.path,
         validationMiddleware(CreateAlumnoDto),
@@ -64,6 +66,30 @@ class AlumnoController implements Controller {
         this.createAlumno
       );
   }
+  private guardarMasivo = async (request: Request, response: Response, next: NextFunction) => {
+    const alumnos = request.body;
+    try {
+      const alumnosSaved = await this.alumno.insertMany(alumnos);
+      response.send(alumnosSaved);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+  private disponibleLegajo = async (request: Request, response: Response, next: NextFunction) => {
+    const legajo = escapeStringRegexp(request.params.legajo);
+    try {
+      const alumno = await this.alumno.findOne({ legajo });
+      if (alumno) {
+        response.send(true);
+      } else {
+        response.send(false);
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
   private informarAusencia = async (request: Request, response: Response, next: NextFunction) => {
     const { observacion, nombreAdulto, fechaInasitencia, faltas, nombreAlumno, emailAdulto } = request.body;
     //     Hola { usuario.NAME },
