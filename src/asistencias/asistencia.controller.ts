@@ -11,8 +11,8 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import NotFoundException from '../exceptions/NotFoundException';
 import moment from 'moment';
+import calendarioModel from '../calendario/calendario.model';
 const ObjectId = mongoose.Types.ObjectId;
-
 class AsistenciaController implements Controller {
   public path = '/asistencia';
   public router = Router();
@@ -20,6 +20,7 @@ class AsistenciaController implements Controller {
   private planillaTaller = planillaTallerModel;
   private alumno = alumnoModel;
   private asistenciaOriginal = asistenciaOriginalModel;
+  private calendario = calendarioModel;
 
   constructor() {
     this.initializeRoutes();
@@ -30,11 +31,157 @@ class AsistenciaController implements Controller {
     this.router.post(`${this.path}/por-alumno/:id`, this.obtenerAsistenciasPorAlumnoId);
     this.router.post(`${this.path}/por-alumno-curso`, this.obtenerAsistenciasPorAlumnosCurso);
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerAsistenciasPorPlanilla);
+    this.router.post(`${this.path}/informe-plantillas-entre-fechas`, this.informeAsistenciasPlantillasEntreFechas);
     this.router.put(`${this.path}`, this.guardarAsistencia);
     this.router.patch(`${this.path}/:id`, this.actualizarAsistencia);
     this.router.delete(`${this.path}/:id`, this.eliminar);
   }
 
+  private informeAsistenciasPlantillasEntreFechas = async (request: Request, response: Response, next: NextFunction) => {
+    const comision = request.body.comision;
+    const fechaInicio: any = new Date(moment.utc(request.body.fechaInicio).format('YYYY-MM-DD'));
+    // moment(request.body.fechaInicio).utc();
+    const fechaFinalizacion: any = new Date(moment.utc(request.body.fechaFinalizacion).format('YYYY-MM-DD'));
+    // moment(request.body.fechaFinalizacion).utc(); //.format('YYYY-MM-DD');
+    const match = {
+      $match: {
+        'planillaTaller.fechaInicio': {
+          $eq: fechaInicio,
+        },
+        'planillaTaller.fechaFinalizacion': {
+          $eq: fechaFinalizacion,
+        },
+      },
+    };
+
+    try {
+      const opciones = [
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'asignaturas',
+            localField: 'planillaTaller.asignatura',
+            foreignField: '_id',
+            as: 'planillaTaller.asignatura',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.asignatura',
+          },
+        },
+        { ...match },
+      ];
+
+      const asistenciasAggregate = await this.asistencia.aggregate(opciones);
+      // Calendario. Obtener todos los dias de un calendario por planilla y comision.
+      let matchComision: any = null;
+      switch (comision) {
+        case 'A':
+          matchComision = {
+            comisionA: 1,
+          };
+          break;
+        case 'B':
+          matchComision = {
+            comisionB: 1,
+          };
+          break;
+        case 'C':
+          matchComision = {
+            comisionC: 1,
+          };
+          break;
+        case 'D':
+          matchComision = {
+            comisionD: 1,
+          };
+          break;
+        case 'E':
+          matchComision = {
+            comisionE: 1,
+          };
+          break;
+        case 'F':
+          matchComision = {
+            comisionF: 1,
+          };
+          break;
+        case 'G':
+          matchComision = {
+            comisionG: 1,
+          };
+          break;
+        case 'H':
+          matchComision = {
+            comisionH: 1,
+          };
+          break;
+
+        default:
+          console.log('BNONE');
+
+          break;
+      }
+      const match2 = {
+        $match: {
+          fecha: {
+            $gte: fechaInicio, // funciona sin isodate
+            $lt: fechaFinalizacion, // funciona sin isodate
+          },
+          ...matchComision,
+        },
+      };
+      const opcionesC: any = [
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'cicloLectivo',
+            foreignField: '_id',
+            as: 'cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$cicloLectivo',
+          },
+        },
+        { ...match2 },
+      ];
+      const calendario = await this.calendario.aggregate(opcionesC);
+      return response.send({ asistencias: asistenciasAggregate, calendario });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
   private eliminar = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
