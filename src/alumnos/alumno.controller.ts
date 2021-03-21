@@ -1036,7 +1036,9 @@ class AlumnoController implements Controller {
   private getAlumnoById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     console.log('getAlumnoById', id);
-
+    let match: any = {
+      _id: ObjectId(id),
+    };
     const opciones: any = [
       {
         $lookup: {
@@ -1099,21 +1101,31 @@ class AlumnoController implements Controller {
         },
       },
       {
-        $replaceRoot: {
-          newRoot: {
-            $mergeObjects: ['$root', '$$ROOT'],
-          },
+        $project: {
+          root: 0,
         },
       },
       {
-        $match: {
-          _id: ObjectId(id),
+        $match: match,
+      },
+      {
+        $sort: {
+          _id: -1,
         },
       },
     ];
+
     try {
+      console.log('opciones', opciones);
       const alumno = await this.alumno.aggregate(opciones);
+      // Si no tiene cursadas, lo guarda como un objeto vacia {}
+
       if (alumno && alumno.length > 0) {
+        if (alumno[0].estadoCursadas && alumno[0].estadoCursadas.length > 0 && Object.keys(alumno[0].estadoCursadas[0]).length === 0) {
+          console.log('No properties');
+          alumno[0].estadoCursadas = [];
+        }
+        console.log('alumno', alumno);
         response.send(alumno[0]);
       } else {
         next(new NotFoundException(id));
