@@ -11,12 +11,14 @@ import ITema from './tema.interface';
 import temaOriginalModel from './temaOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import moment from 'moment';
+import calendarioModel from '../calendario/calendario.model';
 const ObjectId = mongoose.Types.ObjectId;
 
 class TemaController implements Controller {
   public path = '/tema';
   public router = Router();
   private tema = temaModel;
+  private calendario = calendarioModel;
   private planillaTaller = planillaTallerModel;
   private temaOriginal = temaOriginalModel;
 
@@ -28,11 +30,176 @@ class TemaController implements Controller {
     console.log('TemaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerTemaPorPlanillaTaller);
+    this.router.post(`${this.path}/temas-calendario`, this.obtenerTemasCalendario);
     this.router.put(`${this.path}`, this.guardarTema);
     this.router.patch(`${this.path}/:id`, this.actualizarTema);
     this.router.delete(`${this.path}/:id`, this.eliminar);
   }
 
+  private obtenerTemasCalendario = async (request: Request, response: Response, next: NextFunction) => {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    const tipo = escapeStringRegexp(request.body.tipo);
+    console.log('tipo', tipo);
+    try {
+      const planillaId = request.body.planillaId;
+      console.log('planillaId', planillaId);
+
+      const opcionesP: any = [
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'curso',
+            foreignField: '_id',
+            as: 'curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$curso',
+          },
+        },
+        {
+          $match: {
+            _id: ObjectId(planillaId),
+          },
+        },
+      ];
+      const planillaAggregate = await this.planillaTaller.aggregate(opcionesP);
+      try {
+        if (!planillaAggregate || planillaAggregate.length < 1) {
+          return next(new HttpException(400, 'Parametros Incorrectos'));
+        }
+        const planilla = planillaAggregate[0];
+
+        // Obtener calendario de taller
+        console.log('matchtipo', tipo.toString() === 'TALLER');
+        if (tipo.toString() === 'TALLER') {
+          let matchComision: any = null;
+          switch (planilla.curso.comision) {
+            case 'A':
+              matchComision = {
+                comisionA: 1,
+              };
+              break;
+            case 'B':
+              matchComision = {
+                comisionB: 1,
+              };
+              break;
+            case 'C':
+              matchComision = {
+                comisionC: 1,
+              };
+              break;
+            case 'D':
+              matchComision = {
+                comisionD: 1,
+              };
+              break;
+            case 'E':
+              matchComision = {
+                comisionE: 1,
+              };
+              break;
+            case 'F':
+              matchComision = {
+                comisionF: 1,
+              };
+              break;
+            case 'G':
+              matchComision = {
+                comisionG: 1,
+              };
+              break;
+            case 'H':
+              matchComision = {
+                comisionH: 1,
+              };
+              break;
+
+            default:
+              console.log('BNONE');
+
+              break;
+          }
+          const opciones: any = [
+            {
+              $lookup: {
+                from: 'ciclolectivos',
+                localField: 'cicloLectivo',
+                foreignField: '_id',
+                as: 'cicloLectivo',
+              },
+            },
+            {
+              $unwind: {
+                path: '$cicloLectivo',
+              },
+            },
+            {
+              $match: {
+                'cicloLectivo._id': ObjectId(planilla.cicloLectivo._id),
+                fecha: {
+                  $gte: planilla.fechaInicio, // funciona sin isodate
+                  $lt: planilla.fechaFinalizacion, // funciona sin isodate
+                },
+                ...matchComision,
+              },
+            },
+          ];
+
+          console.log('opciones', opciones[2]);
+
+          const calendario = await this.calendario.aggregate(opciones);
+          const temasInsertar: ITema[] & any = await Promise.all(
+            calendario.map((x) => {
+              return {
+                planillaTaller: planilla,
+                fecha: x.fecha,
+                activo: true,
+                fechaCreacion: hoy,
+              };
+            })
+          );
+          try {
+            // const temasSaved = await this.tema.insertMany(temasInsertar);
+            response.send({ status: 200, message: 'Calendario Academico (Taller)', temasDelCalendario: temasInsertar });
+          } catch (error) {
+            console.log('[ERROR]', error);
+            next(new HttpException(500, 'Error Interno al insertar los temas'));
+          }
+        }
+        // Cargar todos los dias
+        if (tipo.toString() === 'MATERIAS') {
+          console.log('planilla.fechaInicio', planilla.fechaInicio);
+          console.log('planilla.fechaInicio', planilla.fechaFinalizacion);
+          let fechaInicio = planilla.fechaInicio;
+          let fechaFinal = planilla.fechaFinalizacion;
+          const calendarioMaterias = [];
+          console.log('moment(fechaFinhaInicio)', moment(fechaInicio, 'YYYY-MM-DD').utc());
+          console.log('moment(fechaFinal)', moment(fechaFinal, 'YYYY-MM-DD').utc());
+          while (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(moment(fechaInicio, 'YYYY-MM-DD').utc())) {
+            calendarioMaterias.push({
+              planillaTaller: planilla,
+              fecha: fechaInicio,
+              activo: true,
+              fechaCreacion: hoy,
+            });
+            fechaInicio = moment(fechaInicio).utc().add(1, 'day');
+          }
+          // const temasSaved = await this.tema.insertMany(calendarioMaterias);
+          response.send({ status: 200, message: 'Calendario Academico (Taller)', temasDelCalendario: calendarioMaterias });
+        }
+      } catch (error) {
+        console.log('[ERROR]', error);
+        next(new HttpException(500, 'Error Interno al recuperar los temas'));
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno al recuperar la planilla'));
+    }
+  };
   private eliminar = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
@@ -91,16 +258,21 @@ class TemaController implements Controller {
   };
   private actualizarTema = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log('id', id);
     const tema = request.body.tema;
     // const ini = new Date(moment(tema.fecha).format('YYYY-MM-DD'));
     // tema.fecha = ini;
-    const fechadate = new Date(tema.fecha);
-    const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
-    tema.fecha = fecha;
+
     try {
-      const updated = await this.tema.findByIdAndUpdate(id, tema, { new: true });
-      console.log('updated', updated);
+      let updated;
+      if (id && id !== 'undefined') {
+        const fechadate = new Date(tema.fecha);
+        const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
+        tema.fecha = fecha;
+        updated = await this.tema.findByIdAndUpdate(id, tema, { new: true });
+      } else {
+        const created = new this.tema({ ...tema });
+        updated = await created.save();
+      }
       if (updated) {
         response.send({ tema: updated });
       } else {

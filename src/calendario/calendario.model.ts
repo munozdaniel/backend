@@ -11,7 +11,7 @@ export const calendarioSchema = new mongoose.Schema({
   fecha: { type: Date },
   cicloLectivo: {
     type: Schema.Types.ObjectId,
-    ref: 'EstadoCursada',
+    ref: 'CicloLectivo',
     required: false,
   },
   comisionA: { type: Number, required: true },
