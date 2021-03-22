@@ -147,7 +147,6 @@ class TemaController implements Controller {
             },
           ];
 
-
           const calendario = await this.calendario.aggregate(opciones);
           const temasInsertar: ITema[] & any = await Promise.all(
             calendario.map((x) => {
@@ -169,10 +168,10 @@ class TemaController implements Controller {
         }
         // Cargar todos los dias
         if (tipo.toString() === 'MATERIAS') {
-          let fechaInicio = planilla.fechaInicio;
-          let fechaFinal = planilla.fechaFinalizacion;
+          let fechaInicio = moment(planilla.fechaInicio, 'YYYY-MM-DD').utc();
+          let fechaFinal = moment(planilla.fechaFinalizacion, 'YYYY-MM-DD').utc();
           const calendarioMaterias = [];
-          while (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(moment(fechaInicio, 'YYYY-MM-DD').utc())) {
+          while (fechaFinal.isSameOrAfter(fechaInicio)) {
             calendarioMaterias.push({
               planillaTaller: planilla,
               fecha: fechaInicio,
