@@ -13,6 +13,7 @@ import NotFoundException from '../exceptions/NotFoundException';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
 import * as _ from 'lodash';
+import asignaturaModel from 'asignaturas/asignatura.model';
 
 const ObjectId = mongoose.Types.ObjectId;
 class AsistenciaController implements Controller {
@@ -35,11 +36,143 @@ class AsistenciaController implements Controller {
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerAsistenciasPorPlanilla);
     // this.router.post(`${this.path}/informe-plantillas-entre-fechas`, this.informeAsistenciasPlantillasEntreFechas);
     this.router.post(`${this.path}/informe-plantillas-entre-fechas`, this.informeAsistenciasGeneral);
+    this.router.post(`${this.path}/informe-por-planilla`, this.informeAsistenciasPorPlanilla);
     this.router.put(`${this.path}`, this.guardarAsistencia);
     this.router.patch(`${this.path}/:id`, this.actualizarAsistencia);
     this.router.delete(`${this.path}/:id`, this.eliminar);
   }
+  private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {
+    const opciones: any = [
+      {
+        $match: {
+          fecha: {
+            $gte: fechaInicio, // funciona sin isodate
+            $lt: fechaFinalizacion, // funciona sin isodate
+          },
+        },
+      },
+    ];
 
+    return await this.calendario.aggregate(opciones);
+  }
+  private async obtenerAlumnosPorCCD(ciclo: number, curso: Number, comision: string, division: Number) {
+    let match: any = {
+      'estadoCursadas.curso.curso': Number(curso),
+      'estadoCursadas.curso.division': Number(division),
+      'estadoCursadas.curso.comision': comision.toString(),
+      'estadoCursadas.cicloLectivo.anio': Number(ciclo),
+    };
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'estadoCursadas.cicloLectivo',
+          foreignField: '_id',
+          as: 'estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $match: match,
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+    ];
+    return await this.alumno.aggregate(opciones);
+  }
+  private informeAsistenciasPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    const planilla = request.body.planillaTaller;
+    let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
+    const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
+    // Obtenemos el calendario
+    const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
+    // console.log('calenda rio', calendario);
+    // Obtenemos los alumnos
+    const { curso, comision, division } = planilla.curso;
+    const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
+    // console.log('alumnos', alumnos);
+    //
+
+    const asistenciasPorAlumno = await Promise.all(
+      alumnos.map(async (alumno: any) => {
+        const asistenciasArray = await Promise.all(
+          calendario.map(async (x: any) => {
+            const f: any = new Date(moment.utc(x.fecha).format('YYYY-MM-DD'));
+            const opciones: any[] = [
+              {
+                $match: {
+                  planillaTaller: ObjectId(planilla._id),
+                  alumno: ObjectId(alumno._id),
+                  fecha: f,
+                },
+              },
+            ];
+            const asistencias = await this.asistencia.aggregate(opciones);
+            console.log('asistencias', asistencias);
+            if (asistencias && asistencias.length > 0) {
+              return {
+                // legajo: alumno.legajo,
+                // alumnoId: alumno._id,
+                // alumnoNombre: alumno.nombreCompleto,
+                tarde: asistencias[0].tarde,
+                presente: asistencias[0].presente,
+                fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+              };
+            } else {
+              return {
+                // legajo: alumno.legajo,
+                // alumnoId: alumno._id,
+                // alumnoNombre: alumno.nombreCompleto,
+                tarde: null,
+                presente: null,
+                fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+              };
+            }
+          })
+        );
+        return {
+          legajo: alumno.legajo,
+          alumnoId: alumno._id,
+          alumnoNombre: alumno.nombreCompleto,
+          asistenciasArray,
+        };
+      })
+    );
+    return response.send({ asistenciasPorAlumno, calendario, alumnos });
+  };
   private informeAsistenciasGeneral = async (request: Request, response: Response, next: NextFunction) => {
     const planillaTaller = request.body.planillaTaller;
     // const curso = Number(request.body.curso);
