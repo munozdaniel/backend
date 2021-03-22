@@ -12,6 +12,8 @@ import alumnoModel from '../alumnos/alumno.model';
 import NotFoundException from '../exceptions/NotFoundException';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
+import * as _ from 'lodash';
+
 const ObjectId = mongoose.Types.ObjectId;
 class AsistenciaController implements Controller {
   public path = '/asistencia';
@@ -98,6 +100,19 @@ class AsistenciaController implements Controller {
           },
         },
         { ...match },
+        {
+          $project: {
+            _id: 1,
+            alumnoId: '$alumno._id',
+            alumno: '$alumno.nombreCompleto',
+            asignatura: '$planillaTaller.asignatura.detalle',
+            fecha: 1,
+            presente: 1,
+            llegoTarde: 1,
+            planillaTaller: '$planillaTaller._id',
+          },
+        },
+        { $sort: { fecha: 1 } },
       ];
 
       const asistenciasAggregate = await this.asistencia.aggregate(opciones);
@@ -174,9 +189,17 @@ class AsistenciaController implements Controller {
           },
         },
         { ...match2 },
+        { $sort: { fecha: 1 } },
       ];
       const calendario = await this.calendario.aggregate(opcionesC);
-      return response.send({ asistencias: asistenciasAggregate, calendario });
+      const merge = _.chain(asistenciasAggregate)
+        // Group the elements of Array based on `color` property
+        .groupBy('alumno')
+        // `key` is group's name (color), `value` is the array of objects
+        .map((value, key) => ({ alumno: key, asistencias: value }))
+        .value();
+
+      return response.send({ asistencias: merge, calendario, merge });
     } catch (error) {
       console.log('[ERROR]', error);
       next(new HttpException(400, 'Parametros Incorrectos'));
