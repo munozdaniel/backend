@@ -20,6 +20,7 @@ import ConnectionService from '../services/Connection';
 import IEstadoCursada from './estadoCursada/estadoCursada.interface';
 import axios, { AxiosRequestConfig } from 'axios';
 import moment from 'moment';
+import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 const ObjectId = mongoose.Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
@@ -30,6 +31,7 @@ class AlumnoController implements Controller {
   private estadoCursada = estadoCursadaModel;
   private comisionOriginal = comisionesOriginalModel;
   private ciclolectivo = ciclolectivoModel;
+  private planillaTaller = planillaTallerModel;
 
   constructor() {
     this.initializeRoutes();
@@ -58,6 +60,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/por-curso-especifico`, this.obtenerAlumnosPorCursoEspecifico)
       .post(`${this.path}/actualizar-nuevo-ciclo`, this.actualizarAlNuevoCiclo)
       .post(`${this.path}/informar-ausencia`, this.informarAusencia)
+      .get(`${this.path}/informe-por-planilla/:id`, this.obtenerInformeAlumnosPorPlanilla)
       .put(`${this.path}/guardar-masivo`, this.guardarMasivo)
       .put(
         this.path,
@@ -66,6 +69,125 @@ class AlumnoController implements Controller {
         this.createAlumno
       );
   }
+  private obtenerInformeAlumnosPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    const planillaId = request.params.id;
+    try {
+      const opcionesP: any[] = [
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'curso',
+            foreignField: '_id',
+            as: 'curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$curso',
+          },
+        },
+        {
+          $match: {
+            _id: ObjectId(planillaId),
+          },
+        },
+      ];
+      const planilla = await this.planillaTaller.aggregate(opcionesP);
+      if (!planilla) {
+        next(new NotFoundException());
+      } else {
+        console.log('planilla', planilla);
+        let match: any = {
+          'estadoCursadas.activo': true,
+          'estadoCursadas.cicloLectivo._id': ObjectId(planilla[0].cicloLectivo),
+          'estadoCursadas.curso.curso': Number(planilla[0].curso.curso),
+          'estadoCursadas.curso.division': Number(planilla[0].curso.division),
+          'estadoCursadas.curso.comision': planilla[0].curso.comision,
+        };
+
+        const opciones: any = [
+          {
+            $lookup: {
+              from: 'estadocursadas',
+              localField: 'estadoCursadas',
+              foreignField: '_id',
+              as: 'estadoCursadas',
+            },
+          },
+          {
+            $unwind: {
+              path: '$estadoCursadas',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: 'ciclolectivos',
+              localField: 'estadoCursadas.cicloLectivo',
+              foreignField: '_id',
+              as: 'estadoCursadas.cicloLectivo',
+            },
+          },
+          {
+            $unwind: {
+              path: '$estadoCursadas.cicloLectivo',
+            },
+          },
+          {
+            $lookup: {
+              from: 'cursos',
+              localField: 'estadoCursadas.curso',
+              foreignField: '_id',
+              as: 'estadoCursadas.curso',
+            },
+          },
+          {
+            $unwind: {
+              path: '$estadoCursadas.curso',
+            },
+          },
+          {
+            $group: {
+              _id: '$_id',
+              root: {
+                $mergeObjects: '$$ROOT',
+              },
+              estadoCursadas: {
+                $push: '$estadoCursadas',
+              },
+            },
+          },
+          {
+            $replaceRoot: {
+              newRoot: {
+                $mergeObjects: ['$root', '$$ROOT'],
+              },
+            },
+          },
+          {
+            $project: {
+              root: 0,
+            },
+          },
+          {
+            $match: match,
+          },
+          {
+            $sort: {
+              _id: -1,
+            },
+          },
+        ];
+        // Busco todos los alumnos por ciclo y
+
+        const alumnosAggregate = await this.alumno.aggregate(opciones);
+        response.send({ alumnos: alumnosAggregate });
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas  interno'));
+    }
+  };
   private guardarMasivo = async (request: Request, response: Response, next: NextFunction) => {
     const alumnos = request.body;
     try {
