@@ -13,7 +13,6 @@ import NotFoundException from '../exceptions/NotFoundException';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
 import * as _ from 'lodash';
-import asignaturaModel from 'asignaturas/asignatura.model';
 
 const ObjectId = mongoose.Types.ObjectId;
 class AsistenciaController implements Controller {
@@ -125,7 +124,8 @@ class AsistenciaController implements Controller {
     const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
     // console.log('alumnos', alumnos);
     //
-
+    let totalAsistencias = 0;
+    let totalAusentes = 0;
     const asistenciasPorAlumno = await Promise.all(
       alumnos.map(async (alumno: any) => {
         const asistenciasArray = await Promise.all(
@@ -143,6 +143,8 @@ class AsistenciaController implements Controller {
             const asistencias = await this.asistencia.aggregate(opciones);
             console.log('asistencias', asistencias);
             if (asistencias && asistencias.length > 0) {
+              totalAsistencias += asistencias[0].presente ? 1 : 0;
+              totalAusentes += !asistencias[0].presente ? 1 : 0;
               return {
                 // legajo: alumno.legajo,
                 // alumnoId: alumno._id,
@@ -150,8 +152,11 @@ class AsistenciaController implements Controller {
                 tarde: asistencias[0].tarde,
                 presente: asistencias[0].presente,
                 fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+                encontrada: true,
               };
             } else {
+              // totalAsistencias += asistencias[0].presente ? 1 : 0;
+              // totalAusentes += !asistencias[0].presente ? 1 : 0;
               return {
                 // legajo: alumno.legajo,
                 // alumnoId: alumno._id,
@@ -159,6 +164,7 @@ class AsistenciaController implements Controller {
                 tarde: null,
                 presente: null,
                 fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+                encontrada: false, // No se agendó la asistencia
               };
             }
           })
@@ -168,6 +174,8 @@ class AsistenciaController implements Controller {
           alumnoId: alumno._id,
           alumnoNombre: alumno.nombreCompleto,
           asistenciasArray,
+          totalAsistencias,
+          totalAusentes,
         };
       })
     );

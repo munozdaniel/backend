@@ -5,7 +5,7 @@ import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreateCalificacionDto from './calificacion.dto';
- import calificacionModel from './calificacion.model';
+import calificacionModel from './calificacion.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import ICalificacion from './calificacion.interface';
 import calificacionOriginalModel from './calificacionOriginal.model';
@@ -35,7 +35,93 @@ class CalificacionController implements Controller {
     this.router.put(`${this.path}`, this.guardarCalificacion);
     this.router.delete(`${this.path}/:id`, this.eliminar);
     this.router.patch(`${this.path}/:id`, this.actualizarCalificacion);
+    this.router.post(`${this.path}/informe-por-planilla`, this.informeCalificacionesPorPlanilla);
   }
+  private async obtenerAlumnosPorCCD(ciclo: number, curso: Number, comision: string, division: Number) {
+    let match: any = {
+      'estadoCursadas.curso.curso': Number(curso),
+      'estadoCursadas.curso.division': Number(division),
+      'estadoCursadas.curso.comision': comision.toString(),
+      'estadoCursadas.cicloLectivo.anio': Number(ciclo),
+    };
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'estadocursadas',
+          localField: 'estadoCursadas',
+          foreignField: '_id',
+          as: 'estadoCursadas',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas',
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'estadoCursadas.cicloLectivo',
+          foreignField: '_id',
+          as: 'estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.cicloLectivo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'estadoCursadas.curso',
+          foreignField: '_id',
+          as: 'estadoCursadas.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$estadoCursadas.curso',
+        },
+      },
+      {
+        $match: match,
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+    ];
+    return await this.alumno.aggregate(opciones);
+  }
+  private informeCalificacionesPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    const planilla = request.body.planillaTaller;
+    const { curso, comision, division } = planilla.curso;
+    const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
+    let totalCalifaciones = 0;
+    const asistenciasPorAlumno = await Promise.all(
+      alumnos.map(async (alumno: any) => {
+        // Por cada alumno y planilla buscamos el
+        const opciones: any[] = [
+          {
+            $match: {
+              planillaTaller: ObjectId(planilla._id),
+              alumno: ObjectId(alumno._id),
+            },
+          },
+        ];
+        const calificaciones = await this.calificacion.aggregate(opciones);
+        return {
+          alumnoId: alumno._id,
+          alumnoNombre: alumno.nombreCompleto,
+          legajo: alumno.legajo,
+          calificaciones,
+        };
+      })
+    );
+    return response.send({ asistenciasPorAlumno });
+  };
   private eliminar = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
