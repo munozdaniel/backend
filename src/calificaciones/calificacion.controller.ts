@@ -13,6 +13,8 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import profesorModel from '../profesores/profesor.model';
 import moment from 'moment';
+import asistenciaModel from '../asistencias/asistencia.model';
+import calendarioModel from '../calendario/calendario.model';
 const ObjectId = mongoose.Types.ObjectId;
 
 class CalificacionController implements Controller {
@@ -23,6 +25,8 @@ class CalificacionController implements Controller {
   private alumno = alumnoModel;
   private profesor = profesorModel;
   private calificacionOriginal = calificacionOriginalModel;
+  private asistencia = asistenciaModel;
+  private calendario = calendarioModel;
 
   constructor() {
     this.initializeRoutes();
@@ -36,7 +40,126 @@ class CalificacionController implements Controller {
     this.router.delete(`${this.path}/:id`, this.eliminar);
     this.router.patch(`${this.path}/:id`, this.actualizarCalificacion);
     this.router.post(`${this.path}/informe-por-planilla`, this.informeCalificacionesPorPlanilla);
+    this.router.post(`${this.path}/informe-alumnos-por-taller`, this.informeAlumnosPorTaller);
   }
+  private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {
+    const opciones: any = [
+      {
+        $match: {
+          fecha: {
+            $gte: fechaInicio, // funciona sin isodate
+            $lt: fechaFinalizacion, // funciona sin isodate
+          },
+        },
+      },
+    ];
+
+    return await this.calendario.aggregate(opciones);
+  }
+  private informeAlumnosPorTaller = async (request: Request, response: Response, next: NextFunction) => {
+    const planilla = request.body.planillaTaller;
+    let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
+    const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
+    // Obtenemos el calendario
+    const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
+    // console.log('calenda rio', calendario);
+    // Obtenemos los alumnos
+    const { curso, comision, division } = planilla.curso;
+    const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
+
+    const reporteAlumnos = await Promise.all(
+      alumnos.map(async (alumno: any) => {
+        let alumnoRetorno: any = null;
+        // Obtengo las calificaciones por alumno
+        const opcionesC: any[] = [
+          {
+            $match: {
+              planillaTaller: ObjectId(planilla._id),
+              alumno: ObjectId(alumno._id),
+            },
+          },
+        ];
+        let llegadasTardes = 0;
+        let totalAsistencias = 0;
+        let totalAusentes = 0;
+        const calificaciones = await this.calificacion.aggregate(opcionesC);
+        alumnoRetorno = {
+          alumnoId: alumno._id,
+          alumnoNombre: alumno.nombreCompleto,
+          legajo: alumno.legajo,
+          calificaciones,
+        };
+        // Obtengo las asistencias por alumno y dia
+        const inasistencias: any[] = [];
+        const asistenciasArray = await Promise.all(
+          calendario.map(async (x: any) => {
+            const f: any = new Date(moment.utc(x.fecha).format('YYYY-MM-DD'));
+            const opciones: any[] = [
+              {
+                $match: {
+                  planillaTaller: ObjectId(planilla._id),
+                  alumno: ObjectId(alumno._id),
+                  fecha: f,
+                },
+              },
+            ];
+
+            const asistencias = await this.asistencia.aggregate(opciones);
+            if (asistencias && asistencias.length > 0) {
+              console.log('asistencias[0].presente ', asistencias[0].presente);
+              totalAsistencias += asistencias[0].presente ? 1 : 0;
+              totalAusentes += !asistencias[0].presente ? 1 : 0;
+              llegadasTardes += !asistencias[0].tarde ? 1 : 0;
+              const retorno = {
+                // legajo: alumno.legajo,
+                // alumnoId: alumno._id,
+                // alumnoNombre: alumno.nombreCompleto,
+                tarde: asistencias[0].tarde,
+                presente: asistencias[0].presente,
+                fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+                encontrada: true,
+              };
+              if (!asistencias[0].presente) {
+                inasistencias.push(retorno);
+              }
+              return retorno;
+            } else {
+              // totalAsistencias += asistencias[0].presente ? 1 : 0;
+              // totalAusentes += !asistencias[0].presente ? 1 : 0;
+              return {
+                // legajo: alumno.legajo,
+                // alumnoId: alumno._id,
+                // alumnoNombre: alumno.nombreCompleto,
+                tarde: null,
+                presente: null,
+                fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+                encontrada: false, // No se agendó la asistencia
+              };
+            }
+          })
+        );
+        // console.log('totalAsistencias', totalAsistencias);
+        // console.log('totalAusentes', totalAusentes);
+        // console.log(' calendario.length', calendario.length);
+
+        return {
+          legajo: alumno.legajo,
+          alumnoId: alumno._id,
+          alumnoNombre: alumno.nombreCompleto,
+          calificaciones,
+          asistenciasArray,
+          totalAsistencias,
+          totalAusentes,
+          inasistencias,
+          porcentajeAsistencias: ((totalAsistencias * 100) / calendario.length).toFixed(2),
+          llegadasTardes,
+          porcentajeInasistencias: ((totalAusentes * 100) / calendario.length).toFixed(2),
+          totalClases: calendario.length,
+        };
+      })
+    );
+    response.send({ reporteAlumnos });
+  };
   private async obtenerAlumnosPorCCD(ciclo: number, curso: Number, comision: string, division: Number) {
     let match: any = {
       'estadoCursadas.curso.curso': Number(curso),
@@ -99,8 +222,7 @@ class CalificacionController implements Controller {
     const planilla = request.body.planillaTaller;
     const { curso, comision, division } = planilla.curso;
     const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
-    let totalCalifaciones = 0;
-    const asistenciasPorAlumno = await Promise.all(
+    const calificacionesPorAlumno = await Promise.all(
       alumnos.map(async (alumno: any) => {
         // Por cada alumno y planilla buscamos el
         const opciones: any[] = [
@@ -120,7 +242,7 @@ class CalificacionController implements Controller {
         };
       })
     );
-    return response.send({ asistenciasPorAlumno });
+    return response.send({ calificaciones: calificacionesPorAlumno });
   };
   private eliminar = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;

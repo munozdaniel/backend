@@ -726,6 +726,11 @@ class AsistenciaController implements Controller {
             planillaTaller: ObjectId(planillaId),
           },
         },
+        {
+          $sort: {
+            fecha: -1,
+          },
+        },
       ];
       const asistenciasAggregate = await this.asistencia.aggregate(opciones);
       if (asistenciasAggregate) {
