@@ -8,6 +8,7 @@ import CicloLectivo from './ciclolectivo.interface';
 import ciclolectivoModel from './ciclolectivo.model';
 import ICicloLectivo from './ciclolectivo.interface';
 import alumnoModel from '../alumnos/alumno.model';
+import moment from 'moment';
 class CicloLectivoController implements Controller {
   public path = '/ciclolectivos';
   public router = Router();
@@ -25,7 +26,19 @@ class CicloLectivoController implements Controller {
     );
 
     this.router.get(`${this.path}`, this.listar);
+    this.router.get(`${this.path}/actual`, this.actual);
   }
+  private actual = async (request: Request, response: Response, next: NextFunction) => {
+    const now = new Date();
+    const hoy: string = moment(now).format('YYYY');
+    try {
+      const ciclolectivo = await this.ciclolectivo.findOne({ anio: Number(hoy) }).sort('_id');
+      response.send(ciclolectivo);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno'));
+    }
+  };
 
   private listar = async (request: Request, response: Response) => {
     const ciclolectivos = await this.ciclolectivo.find().sort('_id');

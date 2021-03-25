@@ -45,9 +45,90 @@ class PlanillaTallerController implements Controller {
     this.router.get(`${this.path}/:id`, this.obtenerPlanillaTallerPorId);
     this.router.get(`${this.path}/:id/total-asistencias`, this.buscarTotalAsistenciaPorPlanilla);
     this.router.put(`${this.path}`, this.agregar);
+    this.router.post(`${this.path}/por-curso-ciclo`, this.obtenerPlanillasPorCursoCiclo);
     this.router.patch(`${this.path}/:id`, this.actualizar);
   }
 
+  private obtenerPlanillasPorCursoCiclo = async (request: Request, response: Response, next: NextFunction) => {
+    const { curso, comision, division, cicloLectivo } = request.body;
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'profesores',
+          localField: 'profesor',
+          foreignField: '_id',
+          as: 'profesor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$profesor',
+        },
+      },
+      {
+        $lookup: {
+          from: 'asignaturas',
+          localField: 'asignatura',
+          foreignField: '_id',
+          as: 'asignatura',
+        },
+      },
+      {
+        $unwind: {
+          path: '$asignatura',
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'curso',
+          foreignField: '_id',
+          as: 'curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$curso',
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'cicloLectivo',
+          foreignField: '_id',
+          as: 'cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$cicloLectivo',
+        },
+      },
+      {
+        $match: {
+          'curso.curso': Number(curso),
+          'curso.comision': comision,
+          'curso.division': Number(division),
+          'cicloLectivo._id': ObjectId(cicloLectivo._id),
+        },
+      },
+      { $sort: { _id: -1 } },
+    ];
+    console.log({
+      'curso.curso': Number(curso),
+      'curso.comision': comision,
+      'curso.division': Number(division),
+      'cicloLectivo._id': ObjectId(cicloLectivo._id),
+    });
+    const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
+    try {
+      console.log('planillaTallerAggregate', planillaTallerAggregate);
+      response.send({ planillasTaller: planillaTallerAggregate });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno'));
+    }
+  };
   private actualizar = async (request: Request, response: Response, next: NextFunction) => {
     const id = escapeStringRegexp(request.params.id);
     try {
