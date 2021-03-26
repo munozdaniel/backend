@@ -114,15 +114,9 @@ class PlanillaTallerController implements Controller {
       },
       { $sort: { _id: -1 } },
     ];
-    console.log({
-      'curso.curso': Number(curso),
-      'curso.comision': comision,
-      'curso.division': Number(division),
-      'cicloLectivo._id': ObjectId(cicloLectivo._id),
-    });
+
     const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
     try {
-      console.log('planillaTallerAggregate', planillaTallerAggregate);
       response.send({ planillasTaller: planillaTallerAggregate });
     } catch (error) {
       console.log('[ERROR]', error);
