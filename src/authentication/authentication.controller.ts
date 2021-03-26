@@ -67,7 +67,6 @@ class AuthenticationController implements Controller {
 
   // ----------
   private registration = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('registro');
     const userData: UsuarioDto = request.body;
     if (await this.usuario.findOne({ email: userData.email })) {
       next(new UserWithThatEmailAlreadyExistsException(userData.email));
@@ -150,11 +149,17 @@ class AuthenticationController implements Controller {
               const token = jwt.sign({ usuarioId: usuario._id, email: usuario.email }, config.passport.secret, { expiresIn: '24h' });
               delete usuario.hash;
               delete usuario.salt;
-
+              const usuarioFiltrado = {
+                nombre: usuario.nombre,
+                apellido: usuario.apellido,
+                email: usuario.email,
+                rol: usuario.rol,
+                picture: usuario.picture,
+              };
               //.populate('author', '-password') populate con imagen
               response.json({
                 token,
-                usuario,
+                ...usuarioFiltrado,
                 success: true,
                 message: 'Authentication successful',
               });
@@ -234,7 +239,6 @@ class AuthenticationController implements Controller {
     const headers: AxiosRequestConfig = { headers: options.headers };
     try {
       const resultado = await axios.post(url, options.body, headers);
-      console.log('resultado', resultado);
       response.status(200).send({ usuario: user });
     } catch (error) {
       console.log('[ERROR]', error);
