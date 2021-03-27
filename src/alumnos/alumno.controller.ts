@@ -58,7 +58,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/por-curso-division-ciclo`, this.obtenerAlumnosPorCursoDivisionCiclo)
       .post(`${this.path}/por-curso-divisiones-ciclo`, this.obtenerAlumnosPorCursoDivisionesCiclo)
       .post(`${this.path}/por-curso-especifico`, this.obtenerAlumnosPorCursoEspecifico)
-      .post(`${this.path}/actualizar-nuevo-ciclo`, this.actualizarAlNuevoCiclo)
+      .post(`${this.path}`, this.actualizarAlNuevoCiclo)
       .post(`${this.path}/informar-ausencia`, this.informarAusencia)
       .get(`${this.path}/informe-por-planilla/:id`, this.obtenerInformeAlumnosPorPlanilla)
       .put(`${this.path}/guardar-masivo`, this.guardarMasivo)
