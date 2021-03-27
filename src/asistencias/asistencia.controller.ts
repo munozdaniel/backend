@@ -533,7 +533,7 @@ class AsistenciaController implements Controller {
         // Group the elements of Array based on `color` property
         .groupBy('alumno')
         // `key` is group's name (color), `value` is the array of objects
-        .map((value, key) => ({ alumno: key, asistencias: value }))
+        .map((value: any, key: any) => ({ alumno: key, asistencias: value }))
         .value();
 
       return response.send({ asistencias: merge, calendario, merge });
