@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, Router } from 'express';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { config } from '../passport/config';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
