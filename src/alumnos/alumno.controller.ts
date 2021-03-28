@@ -192,7 +192,7 @@ class AlumnoController implements Controller {
     const alumnos = request.body;
     try {
       const alumnosSaved = await this.alumno.insertMany(alumnos);
-      response.send(alumnosSaved);
+      response.send({ status: 200, alumnos: alumnosSaved });
     } catch (error) {
       console.log('[ERROR]', error);
       next(new HttpException(500, 'Ocurrió un error interno'));
@@ -202,10 +202,11 @@ class AlumnoController implements Controller {
     const legajo = escapeStringRegexp(request.params.legajo);
     try {
       const alumno = await this.alumno.findOne({ legajo });
+      console.log('alumno', alumno);
       if (alumno) {
-        response.send(true);
-      } else {
         response.send(false);
+      } else {
+        response.send(true);
       }
     } catch (error) {
       console.log('[ERROR]', error);

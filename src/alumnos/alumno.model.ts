@@ -49,6 +49,7 @@ export const alumnoSchema = new mongoose.Schema({
   fechaCreacion: { type: Date },
   fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
+  incompleto: { type: Boolean, default: false },
 });
 
 // Modelo

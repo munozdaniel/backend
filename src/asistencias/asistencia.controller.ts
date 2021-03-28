@@ -352,11 +352,11 @@ class AsistenciaController implements Controller {
             // Group the elements of Array based on `color` property
             .groupBy('alumnoId')
             // `key` is group's name (color), `value` is the array of objects
-            .map((value, key) => ({ alumnoId: key, asistencias: value }))
+            .map((value:any, key:any) => ({ alumnoId: key, asistencias: value }))
             .value();
           const alumnosConAsistencias = await Promise.all(
             alumnos.map((x) => {
-              const index = mergeAsistencias.findIndex((a) => ObjectId(a.alumnoId) === ObjectId(x._id));
+              const index = mergeAsistencias.findIndex((a:any) => ObjectId(a.alumnoId) === ObjectId(x._id));
               if (index === -1) {
                 return { ...x, asistencias: [] };
               } else {
