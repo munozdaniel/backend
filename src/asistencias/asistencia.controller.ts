@@ -181,200 +181,70 @@ class AsistenciaController implements Controller {
     );
     return response.send({ asistenciasPorAlumno, calendario, alumnos });
   };
+  // TODO: General
   private informeAsistenciasGeneral = async (request: Request, response: Response, next: NextFunction) => {
-    const planillaTaller = request.body.planillaTaller;
-    // const curso = Number(request.body.curso);
-    // const division = Number(request.body.division);
-    // const cicloLectivoId = Number(request.body.division);
-    const fechaInicio: any = new Date(moment.utc(planillaTaller.fechaInicio).format('YYYY-MM-DD'));
-    // moment(request.body.fechaInicio).utc();
-    const fechaFinalizacion: any = new Date(moment.utc(planillaTaller.fechaFinalizacion).format('YYYY-MM-DD'));
-    // Buscamos las planillas
-    const matchAs = {
-      $match: {
-        'planillaTaller.fechaInicio': {
-          $eq: fechaInicio,
-        },
-        'planillaTaller.fechaFinalizacion': {
-          $eq: fechaFinalizacion,
-        },
-      },
-    };
-
-    const opciones = [
-      {
-        $lookup: {
-          from: 'alumnos',
-          localField: 'alumno',
-          foreignField: '_id',
-          as: 'alumno',
-        },
-      },
-      {
-        $unwind: {
-          path: '$alumno',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'planillatalleres',
-          localField: 'planillaTaller',
-          foreignField: '_id',
-          as: 'planillaTaller',
-        },
-      },
-      {
-        $unwind: {
-          path: '$planillaTaller',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'asignaturas',
-          localField: 'planillaTaller.asignatura',
-          foreignField: '_id',
-          as: 'planillaTaller.asignatura',
-        },
-      },
-      {
-        $unwind: {
-          path: '$planillaTaller.asignatura',
-        },
-      },
-      { ...matchAs },
-      {
-        $project: {
-          _id: 1,
-          alumnoId: '$alumno._id',
-          alumno: '$alumno.nombreCompleto',
-          asignatura: '$planillaTaller.asignatura.detalle',
-          fecha: 1,
-          presente: 1,
-          llegoTarde: 1,
-          planillaTaller: '$planillaTaller._id',
-        },
-      },
-      { $sort: { fecha: 1 } },
-    ];
-
-    try {
-      const asistenciasAggregate = await this.asistencia.aggregate(opciones);
-
-      if (!asistenciasAggregate || asistenciasAggregate.length < 1) {
-        response.send({ asistencias: [], success: false, message: 'No hay planillas cargadas' });
-      } else {
-        let match: any = {
-          'estadoCursadas.activo': true,
-          'estadoCursadas.cicloLectivo._id': ObjectId(planillaTaller.cicloLectivo._id),
-          'estadoCursadas.curso.curso': Number(planillaTaller.curso.curso),
+    const planilla = request.body.planillaTaller;
+    let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
+    const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
+    // Obtenemos el calendario
+    const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
+    // console.log('calenda rio', calendario);
+    // Obtenemos los alumnos
+    const { curso, comision, division } = planilla.curso;
+    const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
+    // =================================
+    const asistenciasPorAlumno = await Promise.all(
+      alumnos.map(async (alumno: any) => {
+        const asistenciasArray = await Promise.all(
+          calendario.map(async (x: any) => {
+            const f: any = new Date(moment.utc(x.fecha).format('YYYY-MM-DD'));
+            const opciones: any[] = [
+              {
+                $match: {
+                  planillaTaller: ObjectId(planilla._id),
+                  alumno: ObjectId(alumno._id),
+                  fecha: f,
+                },
+              },
+            ];
+            const asistencias = await this.asistencia.aggregate(opciones);
+            console.log('asistencias', asistencias);
+            if (asistencias && asistencias.length > 0) {
+              return {
+                // legajo: alumno.legajo,
+                // alumnoId: alumno._id,
+                // alumnoNombre: alumno.nombreCompleto,
+                tarde: asistencias[0].tarde ? 'SI' : 'NO',
+                presente: asistencias[0].presente ? 'SI' : 'NO',
+                fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+                encontrada: true,
+              };
+            } else {
+              // totalAsistencias += asistencias[0].presente ? 1 : 0;
+              // totalAusentes += !asistencias[0].presente ? 1 : 0;
+              return {
+                // legajo: alumno.legajo,
+                // alumnoId: alumno._id,
+                // alumnoNombre: alumno.nombreCompleto,
+                tarde: '-',
+                presente: '-',
+                fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+                encontrada: false, // No se agendó la asistencia
+              };
+            }
+          })
+        );
+        return {
+          legajo: alumno.legajo,
+          alumnoId: alumno._id,
+          alumnoNombre: alumno.nombreCompleto,
+          asistenciasArray,
         };
-        const opciones: any = [
-          {
-            $lookup: {
-              from: 'estadocursadas',
-              localField: 'estadoCursadas',
-              foreignField: '_id',
-              as: 'estadoCursadas',
-            },
-          },
-          {
-            $unwind: {
-              path: '$estadoCursadas',
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          {
-            $lookup: {
-              from: 'ciclolectivos',
-              localField: 'estadoCursadas.cicloLectivo',
-              foreignField: '_id',
-              as: 'estadoCursadas.cicloLectivo',
-            },
-          },
-          {
-            $unwind: {
-              path: '$estadoCursadas.cicloLectivo',
-            },
-          },
-          {
-            $lookup: {
-              from: 'cursos',
-              localField: 'estadoCursadas.curso',
-              foreignField: '_id',
-              as: 'estadoCursadas.curso',
-            },
-          },
-          {
-            $unwind: {
-              path: '$estadoCursadas.curso',
-            },
-          },
-          {
-            $group: {
-              _id: '$_id',
-              root: {
-                $mergeObjects: '$$ROOT',
-              },
-              estadoCursadas: {
-                $push: '$estadoCursadas',
-              },
-            },
-          },
-          {
-            $replaceRoot: {
-              newRoot: {
-                $mergeObjects: ['$root', '$$ROOT'],
-              },
-            },
-          },
-          {
-            $project: {
-              root: 0,
-            },
-          },
-          {
-            $match: match,
-          },
-          {
-            $sort: {
-              _id: -1,
-            },
-          },
-        ];
-        try {
-          const alumnos = await this.alumno.aggregate(opciones);
-          if (!alumnos || alumnos.length < 1) {
-            return response.send({ asistencias: [], success: false, message: 'No hay alumnos cargados para el curso solicitado' });
-          }
-          const mergeAsistencias = _.chain(asistenciasAggregate)
-            // Group the elements of Array based on `color` property
-            .groupBy('alumnoId')
-            // `key` is group's name (color), `value` is the array of objects
-            .map((value:any, key:any) => ({ alumnoId: key, asistencias: value }))
-            .value();
-          const alumnosConAsistencias = await Promise.all(
-            alumnos.map((x) => {
-              const index = mergeAsistencias.findIndex((a:any) => ObjectId(a.alumnoId) === ObjectId(x._id));
-              if (index === -1) {
-                return { ...x, asistencias: [] };
-              } else {
-                return { ...x, asistencias: mergeAsistencias[index] };
-              }
-            })
-          );
+      })
+    );
+    // =================================
 
-          response.send({ asistencias: alumnosConAsistencias, success: true, message: 'Operación exitosa' });
-        } catch (error) {
-          console.log('[ERROR]', error);
-          next(new HttpException(500, 'Error Interno'));
-        }
-      }
-    } catch (error) {
-      console.log('[ERROR]', error);
-      next(new HttpException(500, 'Error Interno'));
-    }
+    return response.send({ asistenciasPorAlumno, calendario, alumnos });
   };
   private informeAsistenciasPlantillasEntreFechas = async (request: Request, response: Response, next: NextFunction) => {
     const comision = request.body.comision;
