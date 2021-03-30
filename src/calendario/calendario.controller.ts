@@ -155,8 +155,7 @@ class CalendarioController implements Controller {
       //    fechaInicio = moment(fechaInicio).utc().add(1, 'day');
     }
     try {
-      console.log('calendarioNuevi', calendarioNuevo);
-      const saved = await this.calendario.insertMany(calendarioNuevo);
+      const saved = await this.calendario.insertMany({calendarioNuevo, success:true});
 
       response.send(saved);
     } catch (e) {
