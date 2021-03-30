@@ -418,7 +418,6 @@ class TemaController implements Controller {
         const filtrados = temasOriginalesRefactorizados.filter((x) => {
           return x !== null && typeof x !== 'undefined';
         });
-        console.log('temasOriginalesRefactorizados', filtrados.length, temasOriginalesRefactorizados.length);
         const savedTemas = await this.tema.insertMany(filtrados);
         response.send({
           savedTemas,

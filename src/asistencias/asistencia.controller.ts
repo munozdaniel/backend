@@ -363,7 +363,6 @@ class AsistenciaController implements Controller {
           break;
 
         default:
-
           break;
       }
       const match2 = {
@@ -639,7 +638,7 @@ class AsistenciaController implements Controller {
           console.log('ero', ero);
         }
         const fechadate = new Date(x.Fecha);
-        const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
+        const fecha = new Date(moment.utc(fechadate).format('YYYY-MM-DD'));
         const unaAsistencia: IAsistencia & any = {
           id_planilla_de_asistencia: x.id_planilla_de_asistencia, // solo para migrar
           planillaTaller: planillataller,

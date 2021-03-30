@@ -107,6 +107,9 @@ class AsignaturaController implements Controller {
       const asignaturasRefactorizados: IAsignatura[] = await Promise.all(
         asignaturas.map(async (x: any, index: number) => {
           // const cursos = await this.curso.find({ curso: Number(x.Tcurso) });
+          if (!x.DetalleAsignatura || x.DetalleAsignatura.length < 1) {
+            return null;
+          }
           const unaAsignatura: IAsignatura & any = {
             // _id: x._id,
             // asignaturaNro: 100 + index,
@@ -129,7 +132,10 @@ class AsignaturaController implements Controller {
       );
 
       try {
-        const savedAsignaturas = await this.asignatura.insertMany(asignaturasRefactorizados);
+        const filtrados = asignaturasRefactorizados.filter((x) => {
+          return x !== null && typeof x !== 'undefined';
+        });
+        const savedAsignaturas = await this.asignatura.insertMany(filtrados);
         response.send({
           savedAsignaturas,
         });

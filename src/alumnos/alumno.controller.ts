@@ -1018,7 +1018,11 @@ class AlumnoController implements Controller {
               comisionesOriginales.map(async (x, index2) => {
                 // Por cada comision buscar si existe el curso por comision, curso, division
                 try {
+                  if (!x.ciclo_lectivo || x.ciclo_lectivo === 0) {
+                    return null;
+                  }
                   const nuevoCiclo: ICicloLectivo = ciclosLectivos.find((c: ICicloLectivo) => Number(c.anio) === Number(x.ciclo_lectivo));
+
                   if (x) {
                     let match: any = {
                       division: x.Division,
@@ -1084,7 +1088,9 @@ class AlumnoController implements Controller {
             if (!ero.errmsg) {
             }
           }
-
+          if (!x.ApellidoyNombre) {
+            return null;
+          }
           const retorno: any = {
             estadoCursadas: estadoCursadas,
             alumnoId: x.id_alumno,
@@ -1130,7 +1136,10 @@ class AlumnoController implements Controller {
       );
 
       try {
-        const savedAlumnos = await this.alumno.insertMany(alumnosRefactorizados);
+        const filtrados = alumnosRefactorizados.filter((x) => {
+          return x !== null && typeof x !== 'undefined';
+        });
+        const savedAlumnos = await this.alumno.insertMany(filtrados);
         response.send({
           savedAlumnos,
           cantidad: savedAlumnos.length,
