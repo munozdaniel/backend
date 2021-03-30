@@ -198,13 +198,11 @@ class AuthenticationController implements Controller {
     response.send(200);
   };
   private test = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('============>');
     const usuarios = await this.usuario.find();
     if (!usuarios || usuarios.length < 1) {
       return response.send(null);
     }
     const user = usuarios[0];
-    console.log('============>', user);
     const { SENDINBLUE_API, ENTORNO, MI_EMAIL } = process.env;
     const url = 'https://api.sendinblue.com/v3/smtp/email';
     const options = {

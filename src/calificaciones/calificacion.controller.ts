@@ -62,7 +62,6 @@ class CalificacionController implements Controller {
     const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
     // Obtenemos el calendario
     const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
-    // console.log('calenda rio', calendario);
     // Obtenemos los alumnos
     const { curso, comision, division } = planilla.curso;
     const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
@@ -106,7 +105,6 @@ class CalificacionController implements Controller {
 
             const asistencias = await this.asistencia.aggregate(opciones);
             if (asistencias && asistencias.length > 0) {
-              console.log('asistencias[0].presente ', asistencias[0].presente);
               totalAsistencias += asistencias[0].presente ? 1 : 0;
               totalAusentes += !asistencias[0].presente ? 1 : 0;
               llegadasTardes += !asistencias[0].tarde ? 1 : 0;
@@ -138,9 +136,6 @@ class CalificacionController implements Controller {
             }
           })
         );
-        // console.log('totalAsistencias', totalAsistencias);
-        // console.log('totalAusentes', totalAusentes);
-        // console.log(' calendario.length', calendario.length);
 
         return {
           legajo: alumno.legajo,
@@ -281,7 +276,6 @@ class CalificacionController implements Controller {
     const calificacion = request.body.calificacion;
     try {
       const updated = await this.calificacion.findByIdAndUpdate(id, calificacion, { new: true });
-      console.log('updated', updated);
       if (updated) {
         response.send({ calificacion: updated });
       } else {
@@ -295,7 +289,6 @@ class CalificacionController implements Controller {
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const calificacionsOriginales: any = await this.calificacionOriginal.find();
-      console.log('calificacionsOriginales>', calificacionsOriginales);
 
       const calificacionsOriginalesRefactorizados: ICalificacion[] = await Promise.all(
         calificacionsOriginales.map(async (x: any, index: number) => {
@@ -307,7 +300,6 @@ class CalificacionController implements Controller {
               planillaTallerId: x.id_planilla_de_taller,
             });
             if (!planillataller) {
-              console.log(' x.id_planilla_de_taller', x.id_planilla_de_taller);
               return null;
             }
           } catch (ero) {
@@ -326,7 +318,6 @@ class CalificacionController implements Controller {
                 alumnoId: x.Id_alumno,
               });
             } else {
-              console.log('&& x.Id_alumno', x.Id_alumno);
               return null;
             }
           } catch (ero) {
@@ -420,7 +411,6 @@ class CalificacionController implements Controller {
       );
 
       try {
-        console.log('======================>', calificacionsOriginalesRefactorizados.length);
         // console.log(
         //   "calificacionsOriginalesRefactorizados",
         //   calificacionsOriginalesRefactorizados

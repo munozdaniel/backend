@@ -118,11 +118,9 @@ class AsistenciaController implements Controller {
     const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
     // Obtenemos el calendario
     const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
-    // console.log('calenda rio', calendario);
     // Obtenemos los alumnos
     const { curso, comision, division } = planilla.curso;
     const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
-    // console.log('alumnos', alumnos);
     //
     let totalAsistencias = 0;
     let totalAusentes = 0;
@@ -141,7 +139,6 @@ class AsistenciaController implements Controller {
               },
             ];
             const asistencias = await this.asistencia.aggregate(opciones);
-            console.log('asistencias', asistencias);
             if (asistencias && asistencias.length > 0) {
               totalAsistencias += asistencias[0].presente ? 1 : 0;
               totalAusentes += !asistencias[0].presente ? 1 : 0;
@@ -188,7 +185,6 @@ class AsistenciaController implements Controller {
     const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
     // Obtenemos el calendario
     const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
-    // console.log('calenda rio', calendario);
     // Obtenemos los alumnos
     const { curso, comision, division } = planilla.curso;
     const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
@@ -208,7 +204,6 @@ class AsistenciaController implements Controller {
               },
             ];
             const asistencias = await this.asistencia.aggregate(opciones);
-            console.log('asistencias', asistencias);
             if (asistencias && asistencias.length > 0) {
               return {
                 // legajo: alumno.legajo,
@@ -368,7 +363,6 @@ class AsistenciaController implements Controller {
           break;
 
         default:
-          console.log('BNONE');
 
           break;
       }
@@ -565,7 +559,6 @@ class AsistenciaController implements Controller {
       },
     ];
     const alumnos = await this.alumno.aggregate(opciones);
-    console.log(alumnos);
     if (alumnos) {
       return response.send(alumnos);
     } else {
@@ -626,7 +619,6 @@ class AsistenciaController implements Controller {
             planillaTallerId: x.id_planilla_de_taller,
           });
           if (!planillataller) {
-            console.log(' x.id_planilla_de_taller', x.id_planilla_de_taller);
             return null;
           }
         } catch (ero) {
@@ -638,11 +630,9 @@ class AsistenciaController implements Controller {
               alumnoId: x.id_alumnos,
             });
             if (!alumno) {
-              console.log(' x.id_alumnos', x.id_alumnos);
               return null;
             }
           } else {
-            console.log('&& x.id_alumnos', x.id_alumnos);
             return null;
           }
         } catch (ero) {
@@ -726,7 +716,6 @@ class AsistenciaController implements Controller {
               planillaTallerId: x.id_planilla_de_taller,
             });
             if (!planillataller) {
-              console.log(' x.id_planilla_de_taller', x.id_planilla_de_taller);
               return null;
             }
           } catch (ero) {
@@ -738,11 +727,9 @@ class AsistenciaController implements Controller {
                 alumnoId: x.id_alumnos,
               });
               if (!alumno) {
-                console.log(' x.id_alumnos', x.id_alumnos);
                 return null;
               }
             } else {
-              console.log('&& x.id_alumnos', x.id_alumnos);
               return null;
             }
           } catch (ero) {
@@ -768,11 +755,9 @@ class AsistenciaController implements Controller {
       try {
         const filtrados = asistenciasOriginalesRefactorizados.filter((x) => {
           if (x.fecha === null) {
-            console.log('&&&& x.id_alumnos', x.alumno.alumnoId);
           }
           return x !== null && typeof x !== 'undefined' && x.fecha !== null;
         });
-        console.log('filtrados', filtrados.length);
         const savedAsistencias = await this.asistencia.insertMany(filtrados);
         response.send({
           savedAsistencias,

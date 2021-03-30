@@ -217,7 +217,6 @@ class CalendarioController implements Controller {
               anio: Number(x.ciclo_lectivo),
             });
             if (!cicloLectivo) {
-              console.log(' x.cicloLectivo', x);
               return null;
             }
           } catch (ero) {
@@ -248,7 +247,6 @@ class CalendarioController implements Controller {
       );
 
       try {
-        console.log('======================>', calendariosOriginalesRefactorizados.length);
         // console.log(
         //   "calendariosOriginalesRefactorizados",
         //   calendariosOriginalesRefactorizados
