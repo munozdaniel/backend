@@ -3,7 +3,6 @@ import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
-import validationMiddleware from '../middleware/validation.middleware';
 import CreateCalificacionDto from './calificacion.dto';
 import calificacionModel from './calificacion.model';
 import escapeStringRegexp from 'escape-string-regexp';

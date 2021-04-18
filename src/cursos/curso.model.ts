@@ -1,15 +1,9 @@
 import mongoose from 'mongoose';
 
-import IAsignatura from './curso.interface';
-import mongoosePaginate from 'mongoose-paginate-v2';
 import ICurso from './curso.interface';
 import moment from 'moment';
-// import AutoincrementFieldService from '../services/AutoincrementFieldService';
-// import AutoincrementService from "../services/AutoincrementService";
-const Schema = mongoose.Schema;
 
 export const cursoSchema = new mongoose.Schema({
-  // _id: {type:String, required:true},
   cursoNro: { type: Number },
   comision: {
     type: String,
@@ -17,14 +11,6 @@ export const cursoSchema = new mongoose.Schema({
     uppercase: true,
     default: null,
   },
-  // cicloLectivo: { type: Number, required: true },
-  // cicloLectivo: [
-  //   {
-  //     type: Schema.Types.ObjectId,
-  //     ref: 'CicloLectivo',
-  //     required: true,
-  //   },
-  // ],
   curso: { type: Number, required: true, default: 0, min: 0 },
   division: { type: Number, required: true, default: 0, min: 0 },
 

@@ -22,7 +22,7 @@ export const alumnoSchema = new mongoose.Schema({
   legajo: { type: String, required: true, unique: true },
   alumnoId: { type: Number, required: false },
   dni: { type: String, required: false }, // Para migrar sin required
-  tipoDni: { type: String, default: 'DNI', uppercase: true },
+  tipoDni: { type: String, default: 'DNI', uppercase: true, require: true },
   nombreCompleto: { type: String, required: true },
   fechaNacimiento: { type: String, required: false }, // Para migrar sin required
   sexo: { type: String, default: 'MASCULINO', uppercase: true },
@@ -37,7 +37,7 @@ export const alumnoSchema = new mongoose.Schema({
   motivoDeBaja: { type: String },
   domicilio: { type: String, required: true },
 
-  cantidadIntegranteGrupoFamiliar: { type: Number, required: true },
+  cantidadIntegranteGrupoFamiliar: { type: Number, required: false },
   seguimientoEtap: { type: String },
 
   nombreCompletoTae: { type: String },

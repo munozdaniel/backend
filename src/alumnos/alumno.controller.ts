@@ -7,7 +7,6 @@ import validationMiddleware from '../middleware/validation.middleware';
 import CreateAlumnoDto from './alumno.dto';
 import Alumno from './alumno.interface';
 import alumnoModel from './alumno.model';
-import { IQueryAlumnoPag } from '../utils/interfaces/iQueryAlumnoPag';
 import escapeStringRegexp from 'escape-string-regexp';
 import IAlumno from './alumno.interface';
 import alumnoOriginalModel from './alumnoOriginal.model';
@@ -53,6 +52,7 @@ class AlumnoController implements Controller {
       .get(`${this.path}/:id`, this.getAlumnoById)
       .delete(`${this.path}/:id`, this.deleteAlumno)
       .get(`${this.path}/disponible-legajo/:legajo`, this.disponibleLegajo)
+      .get(`${this.path}/disponible-legajo/:legajo`, this.disponibleDni)
       .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
       .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
       .post(`${this.path}/por-curso-division-ciclo`, this.obtenerAlumnosPorCursoDivisionCiclo)
@@ -201,7 +201,21 @@ class AlumnoController implements Controller {
     const legajo = escapeStringRegexp(request.params.legajo);
     try {
       const alumno = await this.alumno.findOne({ legajo });
-      console.log('alumno', alumno);
+      if (alumno) {
+        response.send(false);
+      } else {
+        response.send(true);
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+  private disponibleDni = async (request: Request, response: Response, next: NextFunction) => {
+    const dni = escapeStringRegexp(request.params.legajo);
+    try {
+      dni;
+      const alumno = await this.alumno.findOne({ dni });
       if (alumno) {
         response.send(false);
       } else {

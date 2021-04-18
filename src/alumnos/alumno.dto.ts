@@ -13,6 +13,8 @@ import {
 } from 'class-validator';
 
 class CrearAlumnoDto {
+  @IsString({ message: 'El legajo no ha sido ingresado' })
+  public legajo: string;
   @IsString({ message: 'El dni no ha sido ingresado' })
   @MinLength(7, {
     message: 'El dni es muy corto',
@@ -119,6 +121,7 @@ class CrearAlumnoDto {
   @MaxLength(50, {
     message: 'La procedencia del colegio primario debe contener 50 caracteres máximo',
   })
+  @IsOptional()
   public procedenciaColegioPrimario: string;
   @IsString()
   @MinLength(4, {
@@ -155,6 +158,7 @@ class CrearAlumnoDto {
       message: 'La cantidad de integrantes del grupo familiar debe ser numerico',
     }
   )
+  @IsOptional()
   public cantidadIntegranteGrupoFamiliar: number;
   @IsString()
   @MinLength(2, {
@@ -163,6 +167,7 @@ class CrearAlumnoDto {
   @MaxLength(2, {
     message: 'Seguimiento Etap de 2 caracteres',
   })
+  @IsOptional()
   public seguimientoEtap: string;
   @IsOptional()
   @IsString()
