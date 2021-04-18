@@ -19,6 +19,7 @@ interface IPlanillaTaller extends mongoose.Document {
   fechaFinalizacion: Date;
   observacion: string;
   bimestre: string;
+  turno?: string;
 
   fechaCreacion?: Date;
   fechaModificacion?: Date;

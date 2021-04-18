@@ -142,12 +142,12 @@ class PlanillaTallerController implements Controller {
         fechaFinalizacion: moment(planillaTaller.fechaFinalizacion).utc().format('YYYY-MM-DD'),
         observacion: planillaTaller.observacion,
         bimestre: planillaTaller.bimestre,
+        turno: planillaTaller.turno,
         fechaCreacion: planillaTaller.fechaCreacion,
         fechaModificacion: new Date(),
         activo: planillaTaller.activo,
       };
       const update = await this.planillaTaller.findByIdAndUpdate(id, planillaUpdate, { new: true });
-      console.log('update', update);
       if (update) {
         return response.send(update);
       } else {
@@ -547,6 +547,7 @@ class PlanillaTallerController implements Controller {
         'profesor.nombreCompleto': { $regex: parametros.filter, $options: 'i' },
       });
       match.push({ bimestre: { $regex: parametros.filter, $options: 'i' } });
+      match.push({ turno: { $regex: parametros.filter, $options: 'i' } });
       match.push({ planillaTallerNroString: { $regex: parametros.filter, $options: 'i' } });
 
       match.push({

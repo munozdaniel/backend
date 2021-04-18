@@ -35,7 +35,15 @@ class CrearPlanillaTallerDto {
     message: 'El bimestre no puede superar los 100 caracteres',
   })
   bimestre: string;
-
+  @IsString({ message: 'El turno no ha sido ingresado' })
+  @MinLength(4, {
+    message: 'El turno es muy corto',
+  })
+  @MaxLength(100, {
+    message: 'El turno no puede superar los 100 caracteres',
+  })
+  @IsOptional()
+  turno: string;
   @IsOptional()
   @IsDateString()
   fechaCreacion: string;

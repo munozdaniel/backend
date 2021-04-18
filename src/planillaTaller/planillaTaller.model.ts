@@ -38,6 +38,7 @@ export const planillaTallerSchema = new mongoose.Schema({
   fechaFinalizacion: { type: Date, required: false }, // req false solo para migrar
   observacion: { type: String },
   bimestre: { type: String, required: true },
+  turno: { type: String, required: false },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
