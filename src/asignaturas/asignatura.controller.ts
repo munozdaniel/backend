@@ -114,7 +114,7 @@ class AsignaturaController implements Controller {
             // _id: x._id,
             // asignaturaNro: 100 + index,
             detalle: x.DetalleAsignatura,
-            tipoAsignatura: x.TipoAsignatura,
+            tipoAsignatura: x.TipoAsignatura ? (x.TipoAsignatura === 'Materia' ? 'Aula' : x.TipoAsignatura) : null,
             tipoCiclo: x.TipoCiclo.toUpperCase(),
             tipoFormacion: x.Tipodeformacion,
             curso: Number(x.Tcurso),
