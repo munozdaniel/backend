@@ -1009,12 +1009,14 @@ class AlumnoController implements Controller {
           let tipoDniMod = null;
           if (x.dni) {
             const d = x.dni.split('-');
-            if (d && d.length > 1) {
-              dniMod = d[0].trim();
-              tipoDniMod = d[1].trim();
-            } else {
-              dniMod = x.dni;
-            }
+            dniMod = d[0].trim();
+            tipoDniMod = d[1].trim();
+            // if (d && d.length > 1) {
+            //   dniMod = d[0].trim();
+            //   tipoDniMod = d[1].trim();
+            // } else {
+            //   dniMod = x.dni;
+            // }
           }
           // Recupero las comisiones para guardarla
 
