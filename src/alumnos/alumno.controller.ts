@@ -60,6 +60,8 @@ class AlumnoController implements Controller {
       .post(`${this.path}/por-curso-especifico`, this.obtenerAlumnosPorCursoEspecifico)
       .post(`${this.path}`, this.actualizarAlNuevoCiclo)
       .post(`${this.path}/informar-ausencia`, this.informarAusencia)
+      .post(`${this.path}/agregar-estado-cursada/:id`, this.agregarEstadoCursada)
+      .post(`${this.path}/actualizar-estado-cursada/:id`, this.actualizarEstadoCursada)
       .get(`${this.path}/informe-por-planilla/:id`, this.obtenerInformeAlumnosPorPlanilla)
       .put(`${this.path}/guardar-masivo`, this.guardarMasivo)
       .put(
@@ -69,6 +71,109 @@ class AlumnoController implements Controller {
         this.createAlumno
       );
   }
+  private agregarEstadoCursada = async (request: Request, response: Response, next: NextFunction) => {
+    const alumnoId = request.params.id;
+    try {
+      const alumno: IAlumno = await this.alumno.findById(alumnoId).populate('estadoCursadas');
+      if (alumno) {
+        const estadoCursada: IEstadoCursada = request.body.estadoCursada;
+        // Buscamos el curso
+        const now = new Date();
+        const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+        const nuevo = {
+          curso: estadoCursada.curso.curso,
+          comision: estadoCursada.curso.comision,
+          division: estadoCursada.curso.division,
+          // fechaCreacion: hoy,
+          activo: true,
+        };
+        const match = {
+          curso: estadoCursada.curso.curso,
+          comision: estadoCursada.curso.comision,
+          division: estadoCursada.curso.division,
+        };
+        const curso = await this.curso.findOneAndUpdate(match, nuevo, {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true,
+        });
+        estadoCursada.curso = curso;
+
+        // Insertamos el estadoCursada
+        const createdEstadoCursada = new this.estadoCursada({
+          ...estadoCursada,
+          fechaCreacion: hoy,
+          activo: true,
+        });
+        // Actualizamos al alumno
+        try {
+          const savedEstadoCursada = await createdEstadoCursada.save();
+
+          if (!alumno.estadoCursadas) {
+            alumno.estadoCursadas = [savedEstadoCursada];
+          } else {
+            alumno.estadoCursadas.push(savedEstadoCursada);
+          }
+          const alumnoActualizado = await this.alumno.findOneAndUpdate(
+            { _id: alumnoId },
+            { estadoCursadas: alumno.estadoCursadas },
+            { new: true }
+          );
+          console.log('alumnoActualizado', alumnoActualizado);
+          if (!alumnoActualizado) {
+            next(new NotFoundException(alumnoId));
+          } else {
+            response.send(alumnoActualizado);
+          }
+        } catch (e4) {
+          console.log('e4, ', e4);
+        }
+      } else {
+        next(new NotFoundException(alumnoId));
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
+    }
+  };
+
+  private actualizarEstadoCursada = async (request: Request, response: Response, next: NextFunction) => {
+    const estadoCursadaId = request.params.id;
+    try {
+      const estadoCursada: IEstadoCursada = request.body.estadoCursada;
+      estadoCursada._id = estadoCursadaId;
+      // Buscamos el curso
+      const nuevo = {
+        curso: estadoCursada.curso.curso,
+        comision: estadoCursada.curso.comision,
+        division: estadoCursada.curso.division,
+        // fechaCreacion: hoy,
+        activo: true,
+      };
+      const match = {
+        curso: estadoCursada.curso.curso,
+        comision: estadoCursada.curso.comision,
+        division: estadoCursada.curso.division,
+      };
+      const curso = await this.curso.findOneAndUpdate(match, nuevo, {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      });
+      estadoCursada.curso = curso;
+      // seteamos estado cursada
+      console.log(estadoCursadaId, estadoCursada);
+      const estadoCursadaActualizado = await this.estadoCursada.findByIdAndUpdate({ _id: estadoCursadaId }, estadoCursada, { new: true });
+      if (!estadoCursadaActualizado) {
+        next(new NotFoundException(estadoCursadaId));
+      } else {
+        response.send(estadoCursadaActualizado);
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
+    }
+  };
   private obtenerInformeAlumnosPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const planillaId = request.params.id;
     try {
