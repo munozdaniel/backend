@@ -34,12 +34,69 @@ class AsistenciaController implements Controller {
     this.router.post(`${this.path}/por-alumno-curso`, this.obtenerAsistenciasPorAlumnosCurso);
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerAsistenciasPorPlanilla);
     // this.router.post(`${this.path}/informe-plantillas-entre-fechas`, this.informeAsistenciasPlantillasEntreFechas);
-    this.router.post(`${this.path}/informe-plantillas-entre-fechas`, this.informeAsistenciasGeneral);
-    this.router.post(`${this.path}/informe-por-planilla`, this.informeAsistenciasPorPlanilla);
-    this.router.put(`${this.path}`, this.guardarAsistencia);
-    this.router.patch(`${this.path}/:id`, this.actualizarAsistencia);
-    this.router.delete(`${this.path}/:id`, this.eliminar);
+    this.router
+      .all(`${this.path}/*`)
+      .post(`${this.path}/informe-plantillas-entre-fechas`, this.informeAsistenciasGeneral)
+      .post(`${this.path}/informe-por-planilla`, this.informeAsistenciasPorPlanilla)
+      .put(`${this.path}`, this.guardarAsistencia)
+      .patch(`${this.path}/:id`, this.actualizarAsistencia)
+      .delete(`${this.path}/:id`, this.eliminar)
+      .post(`${this.path}/buscar-inasistencias`, this.buscarInasistencias);
   }
+  private buscarInasistencias = async (request: Request, response: Response, next: NextFunction) => {
+    let fecha: Date = new Date(moment.utc(request.body.fecha).format('YYYY-MM-DD'));
+    try {
+      const opciones: any[] = [
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+          },
+        },
+        {
+          $match: {
+            presente: false,
+            fecha: {
+              $eq: fecha, // funciona sin isodate
+              // $lt: fecha, // funciona sin isodate
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            alumno: 1,
+          },
+        },
+      ];
+      const alumnosInasistentes = await this.asistencia.aggregate(opciones);
+      const alumnosNoRegistrados: any[] = [];
+      const alumnos: any[] = [];
+      await Promise.all(
+        alumnosInasistentes.map(async ({ alumno: x }) => {
+          const index: number = await x.adultos.findIndex((y: any) => y.email);
+          let email = null;
+          if (index !== -1) {
+            email = x.adultos[index].email;
+            alumnos.push({ ...x, email, nombreAdulto: x.adultos[index].nombreCompleto });
+          } else {
+            alumnosNoRegistrados.push(x);
+          }
+        })
+      );
+      response.send({ alumnos, alumnosNoRegistrados: alumnosNoRegistrados });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
+    }
+  };
   private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {
     const opciones: any = [
       {

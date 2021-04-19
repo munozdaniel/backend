@@ -62,6 +62,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/informar-ausencia`, this.informarAusencia)
       .post(`${this.path}/agregar-estado-cursada/:id`, this.agregarEstadoCursada)
       .post(`${this.path}/actualizar-estado-cursada/:id`, this.actualizarEstadoCursada)
+      .post(`${this.path}/enviar-email-masivo`, this.enviarEmailMasivo)
       .get(`${this.path}/informe-por-planilla/:id`, this.obtenerInformeAlumnosPorPlanilla)
       .put(`${this.path}/guardar-masivo`, this.guardarMasivo)
       .put(
@@ -71,6 +72,61 @@ class AlumnoController implements Controller {
         this.createAlumno
       );
   }
+
+  private enviarEmailMasivo = async (request: Request, response: Response, next: NextFunction) => {
+    const alumnos = request.body.alumnos;
+    let fecha = moment.utc(request.body.fecha).format('DD/MM/YYYY');
+    const remitentes = await Promise.all(
+      alumnos.map(async (x: any) => {
+        // ({ email: x.email, name: x.tipoAdulto })
+        // Enviar Email
+        const { SENDINBLUE_API, ENTORNO, MI_EMAIL } = process.env;
+        const url = 'https://api.sendinblue.com/v3/smtp/email';
+        const options = {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'api-key': SENDINBLUE_API,
+          },
+          body: JSON.stringify({
+            sender: {
+              name: 'Notificación de Ausencia - CET 30',
+              email: 'no-reply@propet.com',
+            },
+            to: [{ email: ENTORNO === 'desarrollo' ? MI_EMAIL : x.email, name: x.tipoAdulto }],
+            subject: 'Notificación de Ausencia',
+            params: {
+              nombreAdulto: x.nombreAdulto,
+              nombreAlumno: x.nombreCompleto,
+              fechaInasitencia: fecha,
+            },
+            templateId: 3,
+            // textContent:
+            //   "Please confirm your email address by clicking on the link https://text.domain.com",
+          }),
+        };
+
+        const headers: AxiosRequestConfig = { headers: options.headers };
+        return { url, body: options.body, headers };
+        // try {
+        //   return await axios.post(url, options.body, headers);
+        // } catch (error) {
+        //   console.log('[ERROR]', error);
+        //   // response.status(200).send({ usuario: userToReturn, email: false });
+        // }
+      })
+    );
+    remitentes.map(async ({ url, body, headers }: any) => {
+      try {
+        return await axios.post(url, body, headers);
+      } catch (error) {
+        console.log('[ERROR]', error);
+        // response.status(200).send({ usuario: userToReturn, email: false });
+      }
+    });
+    response.status(200).send({ remitentes: remitentes });
+  };
   private agregarEstadoCursada = async (request: Request, response: Response, next: NextFunction) => {
     const alumnoId = request.params.id;
     try {
@@ -119,7 +175,6 @@ class AlumnoController implements Controller {
             { estadoCursadas: alumno.estadoCursadas },
             { new: true }
           );
-          console.log('alumnoActualizado', alumnoActualizado);
           if (!alumnoActualizado) {
             next(new NotFoundException(alumnoId));
           } else {
@@ -1218,7 +1273,7 @@ class AlumnoController implements Controller {
             legajo: x.id_alumno,
             // alumnoNro: index + 100,
             adultos,
-            dni: dniMod ? dniMod : 'Sin Registrar',
+            dni: dniMod ? dniMod : null,
             tipoDni: tipoDniMod,
             nombreCompleto: x.ApellidoyNombre,
             fechaNacimiento: x.fecha_nacimiento,
@@ -1233,7 +1288,7 @@ class AlumnoController implements Controller {
             nacionalidad: x.nacionalidad ? x.nacionalidad.toUpperCase() : 'ARGENTINA',
             telefono,
             celular,
-            email: x.mail ? x.mail : 'Sin Registrar',
+            email: x.mail ? x.mail : null,
             fechaIngreso: x.fecha_ingreso ? x.fecha_ingreso : 'Sin Registrar',
             procedenciaColegioPrimario: x.procedencia_colegio_primario ? x.procedencia_colegio_primario : 'Sin Registrar',
             procedenciaColegioSecundario: x.procedencia_colegio_secundario ? x.procedencia_colegio_secundario : 'Sin Registrar',
