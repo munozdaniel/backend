@@ -15,8 +15,6 @@ const checkPermisos = (...roles: string[]) => (
   response: Response,
   next: NextFunction
 ) => {
-  console.log('request------------', request);
-  console.log('request.isAuthenticated()', request.isAuthenticated());
 
   const usuario: any = request.user;
 

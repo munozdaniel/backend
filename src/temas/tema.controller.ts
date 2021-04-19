@@ -68,7 +68,6 @@ class TemaController implements Controller {
           },
         ];
         const temas = await this.tema.aggregate(opciones);
-        console.log('tema', temas);
         if (temas && temas.length > 0) {
           return {
             fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),

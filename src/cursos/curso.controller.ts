@@ -61,7 +61,6 @@ class CursoController implements Controller {
     try {
       const now = new Date();
       const hoy = new Date(moment(now).format('YYYY-MM-DD'));
-      console.log('request.body', request.body);
       const curso: ICurso = request.body.curso;
       const unaCurso = await this.curso.findOne({
         // cicloLectivo: curso.cicloLectivo,
@@ -71,7 +70,6 @@ class CursoController implements Controller {
         activo: curso.activo,
       });
       // .populate(" alumno"); //.populate('author', '-password') populate con imagen
-      console.log('cursos', unaCurso);
       if (unaCurso) {
         response.send(unaCurso);
       } else {
@@ -106,10 +104,8 @@ class CursoController implements Controller {
   };
   private obtenerCursoPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log('id', id);
     try {
       const curso = await this.curso.findById(id);
-      console.log(curso);
       if (curso) {
         response.send(curso);
       } else {
@@ -122,10 +118,8 @@ class CursoController implements Controller {
   };
   private getCursoByAlumnoId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log('id', id);
     try {
       const curso = await this.curso.findById({ alumnoId: id });
-      console.log(curso);
       if (curso) {
         response.send(curso);
       } else {
@@ -141,7 +135,6 @@ class CursoController implements Controller {
       const now = new Date();
       const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const cursos: any = await this.comisionSql.find();
-      console.log('cursos', cursos);
 
       const cursosRefactorizados: ICurso[] = await Promise.all(
         cursos.map(async (x: any, index: number) => {
@@ -188,7 +181,6 @@ class CursoController implements Controller {
       const cursosRefactorizados: ICurso[] = await Promise.all(
         cursos.map(async (x: any, index: number) => {
           if (!x.Tcurso) {
-            console.log('x.Division', x);
           }
           let alo = null;
           try {
@@ -277,8 +269,6 @@ class CursoController implements Controller {
   };
   private createCursoComplete = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar foto
-    console.log('datos archio', request.file.filename);
-    console.log('datos body', request.body);
     // Agregar datos
     const cursoData: CreateCursoDto = request.body;
     const createdCurso = new this.curso({
@@ -314,7 +304,6 @@ class CursoController implements Controller {
     }
   };
   private deshabilitarCurso = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
       const successResponse = await this.curso.findByIdAndUpdate(id, {
@@ -335,7 +324,6 @@ class CursoController implements Controller {
     }
   };
   private habilitarCurso = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
       const successResponse = await this.curso.findByIdAndUpdate(id, {

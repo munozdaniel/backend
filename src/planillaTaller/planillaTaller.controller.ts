@@ -163,7 +163,6 @@ class PlanillaTallerController implements Controller {
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     // Agregar datos
     // La plantilla viene incompleta, hay que buscar el cicloLectivo y el curso
-    console.log('request.body', request.body);
     const planillaData: CrearPlanillaTallerDto = request.body;
     const { curso, cicloLectivo, comision, division } = request.body;
     const unCicloLectivo = await this.ciclolectivo.findOne({ anio: Number(cicloLectivo) });
@@ -186,10 +185,8 @@ class PlanillaTallerController implements Controller {
         cicloLectivo: unCicloLectivo,
         // author: request.user ? request.user._id : null,
       });
-      console.log('createdPlanilla', createdPlanilla);
       try {
         const savedComision = await createdPlanilla.save();
-        console.log('guardado', savedComision, savedComision.planillaTallerNro);
         // await savedComision.populate('author', '-password').execPopulate();
         response.send(savedComision);
       } catch (e) {
@@ -205,11 +202,9 @@ class PlanillaTallerController implements Controller {
    * @param next
    */
   private buscarTotalAsistenciaPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('buscarTotalAsistenciaPorPlanilla');
     const planillaId = request.params.id;
     const planilla = await this.planillaTaller.findById(planillaId).populate('curso');
     if (planilla) {
-      console.log('planilla.curso.comision', planilla);
       let criterioComision = null;
       switch (planilla.curso.comision) {
         case 'A':
@@ -230,7 +225,6 @@ class PlanillaTallerController implements Controller {
       if (criterioComision) {
         criterio = { ...criterio, ...criterioComision };
       }
-      console.log(criterio);
       const calendario = await this.calendario.find(criterio);
 
       if (calendario) {
@@ -244,7 +238,6 @@ class PlanillaTallerController implements Controller {
   };
   private obtenerPlanillaTallerPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = escapeStringRegexp(request.params.id);
-    console.log('id', request.params.id);
     const opciones: any = [
       {
         $lookup: {
@@ -316,7 +309,6 @@ class PlanillaTallerController implements Controller {
   private obtenerPlanillaTallerPorIdCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const id = escapeStringRegexp(request.params.id);
     const ciclo = escapeStringRegexp(request.params.ciclo);
-    console.log('obtenerPlanillaTallerPorIdCiclo', request.params.id);
     const opciones: any = [
       {
         $lookup: {
@@ -405,7 +397,6 @@ class PlanillaTallerController implements Controller {
 
     const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
     const planillaTaller = planillaTallerAggregate && planillaTallerAggregate.length > 0 ? planillaTallerAggregate[0] : null;
-    console.log('planillaTaller>', planillaTaller);
     if (planillaTaller) {
       response.send(planillaTaller);
     } else {
@@ -414,7 +405,6 @@ class PlanillaTallerController implements Controller {
   };
   private obtenerPlanillaTalleresPorCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const ciclo = request.params.ciclo;
-    console.log('ciclo', request.params.ciclo);
     const opciones: any = [
       {
         $lookup: {
@@ -626,7 +616,6 @@ class PlanillaTallerController implements Controller {
       const now = new Date();
       const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const planillasTalleres: any = await this.planillaTallerOriginal.find();
-      // console.log('planillasTalleres>', planillasTalleres);
       const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
 
       const planillasTalleresRefactorizados: IPlanillaTaller[] = await Promise.all(

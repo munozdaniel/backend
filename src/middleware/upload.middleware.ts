@@ -21,7 +21,6 @@ const storage = multer.diskStorage({
     //   const message = `${file.originalname} is invalid. Only accept png/jpeg.`;
     //   return callback(new Error(message), null);
     // }
-    console.log('Aca debe venir el id', req.params);
     // const filename = `${req.params.id}.${path.extname(
     //   file.originalname
     // )}`;
@@ -37,7 +36,6 @@ const fileFilter = (
   file: { mimetype: string },
   cb: (arg0: any, arg1: boolean) => void
 ) => {
-  console.log('filtro de archivo', file);
   if (
     file.mimetype === 'image/jpeg' ||
     file.mimetype === 'image/png' ||

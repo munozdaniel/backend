@@ -47,7 +47,6 @@ class ProfesorController implements Controller {
       );
   }
   private test = async (request: Request, response: Response) => {
-    console.log('test');
     const profesorData: any = {
       activo: true,
       nombreCompleto: 'Orlando Sotelo',
@@ -58,17 +57,14 @@ class ProfesorController implements Controller {
       titulo: '',
       fechaCreacion: new Date(),
     };
-    console.log('profesorData', profesorData);
 
     try {
       const createdProfesor = new this.profesor({
         ...profesorData,
         // author: request.user ? request.user._id : null,
       });
-      console.log('createdProfesor', createdProfesor);
       const savedProfesor = await createdProfesor.save();
       // await savedProfesor.populate('author', '-password').execPopulate();
-      console.log('savedProfesor', savedProfesor);
       response.send(savedProfesor);
     } catch (error) {
       console.log('ERROR', error);
@@ -87,10 +83,8 @@ class ProfesorController implements Controller {
   };
   private obtenerProfesorPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log('id', id);
     try {
       const profesor = await this.profesor.findById(id);
-      console.log(profesor);
       if (profesor) {
         response.send(profesor);
       } else {
@@ -107,22 +101,7 @@ class ProfesorController implements Controller {
       const now = new Date();
       const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const profesores: any = await this.profesorOriginal.find();
-      console.log('profesores', profesores);
-      // {},
-      // 'dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'
-
-      // .select('dni ApellidoyNombre fecha_nacimiento sexo nacionalidad telefonos mail fecha_ingreso procedencia_colegio_primario procedencia_colegio_secundario fecha_de_baja motivo_de_baja domicilio nombre_y_apellido_padre telefono_padre mail_padre nombre_y_apellido_madre telefono_madre mail_madre nombre_y_apellido_tutor1 telefono_tutor1 mail_tutor1 nombre_y_apellido_tutor2 telefono_tutor2 mail_tutor2 nombre_y_apellido_tutor3 telefono_tutor3 mail_tutor3 cantidad_integrantes_grupo_familiar SeguimientoETAP NombreyApellidoTae MailTae ArchivoDiagnostico'); //.populate('author', '-password') populate con imagen
-      // console.log(
-      //   'profesores',
-      //   profesores[100].dni,
-      //   profesores[100].telefonos,
-      //   profesores[100].procedencia_colegio_primario
-      // );
-
-      // console.log(
-      //   'profesores2',profesores,
-
-      // );
+     
       const profesoresRefactorizados: IProfesor[] = profesores.map((x: any, index: number) => {
         const unaProfesor: IProfesor & any = {
           // _id: x._id,
@@ -201,27 +180,8 @@ class ProfesorController implements Controller {
     // await savedProfesor.populate('author', '-password').execPopulate();
     response.send(savedProfesor);
   };
-  private createProfesorComplete = async (request: Request, response: Response, next: NextFunction) => {
-    // Agregar foto
-    console.log('datos archio', request.file.filename);
-    console.log('datos body', request.body);
-    // Agregar datos
-    const profesorData: CreateProfesorDto = request.body;
-    const createdProfesor = new this.profesor({
-      ...profesorData,
-      // author: request.user ? request.user._id : null,
-    });
-    const savedProfesor = await createdProfesor.save();
-    //     const imagen: ImagenDto = {
-    //       descripcion:''
-    // posicion:.posicion,
-    // src:''
-    //     }
-    // await savedProfesor.populate('author', '-password').execPopulate();
-    response.send(savedProfesor);
-  };
+  
   private deleteProfesor = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deleteProfesor');
     const id = request.params.id;
     try {
       const successResponse = await this.profesor.findByIdAndDelete(id);
@@ -240,7 +200,6 @@ class ProfesorController implements Controller {
     }
   };
   private deshabilitarProfesor = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
       const successResponse = await this.profesor.findByIdAndUpdate(id, {
@@ -261,7 +220,6 @@ class ProfesorController implements Controller {
     }
   };
   private habilitarProfesor = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deshabilitar asigntaru');
     const id = request.params.id;
     try {
       const successResponse = await this.profesor.findByIdAndUpdate(id, {

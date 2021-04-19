@@ -434,10 +434,8 @@ class CalificacionController implements Controller {
     }
   };
   private obtenerCalificacionesPorAlumnoId = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('obtenerCalificacionesPorAlumnoId');
     const id = escapeStringRegexp(request.params.id);
     const planillaId = escapeStringRegexp(request.body.planillaId);
-    console.log('id', id);
     try {
       const opciones: any = [
         {
@@ -461,7 +459,6 @@ class CalificacionController implements Controller {
         },
       ];
       const calificacionesAggregate = await this.calificacion.aggregate(opciones);
-      console.log('calificacionesAggregate', calificacionesAggregate);
       if (calificacionesAggregate) {
         response.send(calificacionesAggregate);
       } else {
