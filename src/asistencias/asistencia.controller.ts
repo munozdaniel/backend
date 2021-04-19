@@ -3,7 +3,7 @@ import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import Controller from '../interfaces/controller.interface';
 
-import asistenciaModel from './asistencia.model';
+import asistenciaModel, { asistenciaSchema } from './asistencia.model';
 import escapeStringRegexp from 'escape-string-regexp';
 import IAsistencia from './asistencia.interface';
 import asistenciaOriginalModel from './asistenciaOriginal.model';
@@ -41,8 +41,125 @@ class AsistenciaController implements Controller {
       .put(`${this.path}`, this.guardarAsistencia)
       .patch(`${this.path}/:id`, this.actualizarAsistencia)
       .delete(`${this.path}/:id`, this.eliminar)
-      .post(`${this.path}/buscar-inasistencias`, this.buscarInasistencias);
+      .post(`${this.path}/buscar-inasistencias`, this.buscarInasistencias)
+      .post(`${this.path}/tomar-asistencias`, this.tomarAsistenciaPorPlanilla)
+      .post(`${this.path}/obtener-asistencias-hoy`, this.obtenerAsistenciasHoyPorPlanilla);
   }
+  private obtenerAsistenciasHoyPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    const alumnos = request.body.alumnos;
+    const planilla = request.body.planilla;
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    const opciones: any[] = [
+      [
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+          },
+        },
+        {
+          $match: {
+            'planillaTaller._id': ObjectId(planilla._id),
+            fecha: {
+              $eq: hoy,
+            },
+          },
+        },
+      ],
+    ];
+    const asistencias = await this.asistencia.aggregate(opciones);
+    return response.send(asistencias);
+  };
+  private tomarAsistenciaPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    const alumnos = request.body.alumnos;
+    const planilla = request.body.planilla;
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    const opciones: any[] = [
+      [
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+          },
+        },
+        {
+          $match: {
+            'planillaTaller._id': ObjectId(planilla._id),
+            fecha: {
+              $eq: hoy,
+            },
+          },
+        },
+      ],
+    ];
+    const asistencias = await this.asistencia.aggregate(opciones);
+    if (asistencias && asistencias.length > 0) {
+      // Ya existen... deberia comprobar cuales y pisarlas
+
+      const actualizarAsistencias = await Promise.all(
+        alumnos.map(async (alumno: any) => {
+          const asistencia = {
+            planillaTaller: planilla,
+            alumno: alumno,
+            fecha: hoy,
+            presente: alumno.presente,
+            llegoTarde: alumno.tarde,
+            fechaCreacion: hoy,
+            activo: true,
+          };
+          const updated = await this.asistencia.findOneAndUpdate(
+            { fecha: hoy, planillaTaller: planilla._id, alumno: alumno._id },
+            asistencia,
+            {
+              new: true,
+              upsert: true,
+            }
+          );
+          return updated;
+        })
+      );
+      response.send({
+        actualizarAsistencias,
+      });
+      // const interseccion = _.intersectionWith(
+      //   alumnos,
+      //   asistencias,
+      //   (al: IAlumno, asis: IAsistencia) => ObjectId(al._id.toString()) === ObjectId(asis.alumno.toString())
+      // );
+    } else {
+      const nuevasAsistencias = await Promise.all(
+        alumnos.map((alumno: any) => ({
+          planillaTaller: planilla,
+          alumno: alumno,
+          fecha: hoy,
+          presente: alumno.presente,
+          llegoTarde: alumno.tarde,
+          fechaCreacion: hoy,
+          activo: true,
+        }))
+      );
+      const saved = await this.asistencia.insertMany(nuevasAsistencias);
+      response.send({
+        saved,
+      });
+    }
+  };
   private buscarInasistencias = async (request: Request, response: Response, next: NextFunction) => {
     let fecha: Date = new Date(moment.utc(request.body.fecha).format('YYYY-MM-DD'));
     try {
