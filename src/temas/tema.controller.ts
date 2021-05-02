@@ -3,7 +3,6 @@ import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
-import validationMiddleware from '../middleware/validation.middleware';
 import CreateTemaDto from './tema.dto';
 import temaModel from './tema.model';
 import escapeStringRegexp from 'escape-string-regexp';
@@ -276,18 +275,12 @@ class TemaController implements Controller {
 
     const ini = new Date(moment.utc(temaData.fecha).format('YYYY-MM-DD')); // Se hace esto para que no pase al siguient dia
     temaData.fecha = ini;
-    // const fechadate = new Date(temaData.fecha);
-    // const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
-    // temaData.fecha = fecha;
+
     const match = {
       planillaTaller: ObjectId(temaData.planillaTaller._id),
       fecha: {
         $eq: ini.toISOString(),
       },
-      // fecha: {
-      //   $gte: moment(temaData.fecha, 'YYYY-MM-DD').hours(0).minutes(0).seconds(0).toDate().toISOString(),
-      //   $lt: moment(temaData.fecha, 'YYYY-MM-DD').utcOffset(0).hours(23).minutes(59).seconds(59).toDate().toISOString(),
-      // },
     };
     try {
       const updated = await this.tema.findOne(match);
@@ -302,7 +295,14 @@ class TemaController implements Controller {
           ...temaData,
         });
         const saved = await created.save();
-        response.send({ tema: saved, success: true, message: 'Tema agregado correctamente' });
+        const temas = await this.tema.find({ planillaTaller: ObjectId(temaData.planillaTaller._id) }).sort({ fecha: 1 });
+        const renumerar = await Promise.all(
+          temas.map(async (unTema, index) => {
+            unTema.nroClase = index;
+            return await this.tema.findByIdAndUpdate(unTema._id, { nroClase: index }, { new: true });
+          })
+        );
+        response.send({ tema: saved, success: true, message: 'Tema agregado correctamente', renumerar });
       }
     } catch (error) {
       console.log('[ERROR]', error);

@@ -17,7 +17,7 @@ export const temaSchema = new mongoose.Schema({
   temaDelDia: { type: String, required: false }, // requerido pero en migraion no
   tipoDesarrollo: { type: String, required: false }, // requerido pero en migraion no
   temasProximaClase: { type: String, false: false }, // requerido pero en migraion no
-  nroClase: { type: Number, required: true }, // requerido pero en migraion no
+  nroClase: { type: Number, required: false },
   unidad: { type: Number, required: false }, // requerido pero en migraion no
   caracterClase: { type: String, required: false }, // requerido pero en migraion no
   observacionJefe: { type: String },
