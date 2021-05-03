@@ -29,12 +29,14 @@ class TemaController implements Controller {
     console.log('TemaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/por-planilla/:id`, this.obtenerTemaPorPlanillaTaller);
-    this.router.post(`${this.path}/temas-calendario`, this.obtenerTemasCalendario);
+    // this.router.post(`${this.path}/temas-calendario`, this.obtenerTemasCalendario);
+    this.router.post(`${this.path}/temas-calendario`, this.obtenerCalendarioPorTipoMateria);
     this.router.put(`${this.path}`, this.guardarTema);
     this.router.patch(`${this.path}/:id`, this.actualizarTema);
     this.router.delete(`${this.path}/:id`, this.eliminar);
     this.router.post(`${this.path}/informe-por-planilla`, this.informeTemasPorPlanillaTaller);
   }
+
   private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {
     const opciones: any = [
       {
@@ -95,6 +97,202 @@ class TemaController implements Controller {
       })
     );
     return response.send({ temasPorFecha });
+  };
+  private obtenerCalendarioPorTipoMateria = async (request: Request, response: Response, next: NextFunction) => {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    const tipo = escapeStringRegexp(request.body.tipo);
+    const planillaId = request.body.planillaId;
+    try {
+      const temas = await this.tema.find({ planillaTaller: ObjectId(planillaId) });
+      const opcionesP: any = [
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'curso',
+            foreignField: '_id',
+            as: 'curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$curso',
+          },
+        },
+        {
+          $match: {
+            _id: ObjectId(planillaId),
+          },
+        },
+      ];
+      const planillaAggregate = await this.planillaTaller.aggregate(opcionesP);
+      try {
+        if (!planillaAggregate || planillaAggregate.length < 1) {
+          return next(new HttpException(400, 'Parametros Incorrectos'));
+        }
+        const planilla = planillaAggregate[0];
+
+        // Obtener calendario de taller
+        if (tipo.toString() === 'TALLER') {
+          let matchComision: any = null;
+          switch (planilla.curso.comision) {
+            case 'A':
+              matchComision = {
+                comisionA: 1,
+              };
+              break;
+            case 'B':
+              matchComision = {
+                comisionB: 1,
+              };
+              break;
+            case 'C':
+              matchComision = {
+                comisionC: 1,
+              };
+              break;
+            case 'D':
+              matchComision = {
+                comisionD: 1,
+              };
+              break;
+            case 'E':
+              matchComision = {
+                comisionE: 1,
+              };
+              break;
+            case 'F':
+              matchComision = {
+                comisionF: 1,
+              };
+              break;
+            case 'G':
+              matchComision = {
+                comisionG: 1,
+              };
+              break;
+            case 'H':
+              matchComision = {
+                comisionH: 1,
+              };
+              break;
+
+            default:
+              break;
+          }
+          const opciones: any = [
+            {
+              $lookup: {
+                from: 'ciclolectivos',
+                localField: 'cicloLectivo',
+                foreignField: '_id',
+                as: 'cicloLectivo',
+              },
+            },
+            {
+              $unwind: {
+                path: '$cicloLectivo',
+              },
+            },
+            {
+              $match: {
+                'cicloLectivo._id': ObjectId(planilla.cicloLectivo._id),
+                fecha: {
+                  $gte: planilla.fechaInicio, // funciona sin isodate
+                  $lt: planilla.fechaFinalizacion, // funciona sin isodate
+                },
+                ...matchComision,
+              },
+            },
+          ];
+          // Calendario por Comision
+          const calendario = await this.calendario.aggregate(opciones);
+          const temasARetornar: ITema[] & any = await Promise.all(
+            calendario.map((x) => {
+              const index = temas.findIndex((i) => {
+                return moment(i.fecha, 'YYYY-MM-DD').utc().isSame(moment(x.fecha, 'YYYY-MM-DD').utc());
+              });
+              if (index === -1) {
+                return {
+                  planillaTaller: planilla,
+                  fecha: x.fecha,
+                  activo: true,
+                  fechaCreacion: hoy,
+                };
+              } else {
+                return {
+                  _id: temas[index]._id,
+                  temaNro: temas[index].temaNro,
+                  temaDelDia: temas[index].temaDelDia,
+                  tipoDesarrollo: temas[index].tipoDesarrollo,
+                  temasProximaClase: temas[index].temasProximaClase,
+                  nroClase: temas[index].nroClase,
+                  unidad: temas[index].unidad,
+                  caracterClase: temas[index].caracterClase,
+                  observacionJefe: temas[index].observacionJefe,
+                  planillaTaller: planilla,
+                  fecha: x.fecha,
+                  activo: true,
+                  fechaCreacion: hoy,
+                };
+              }
+            })
+          );
+          try {
+            // const temasSaved = await this.tema.insertMany(temasInsertar);
+            response.send({ status: 200, message: 'Calendario Academico (Taller)', temasDelCalendario: temasARetornar });
+          } catch (error) {
+            console.log('[ERROR]', error);
+            next(new HttpException(500, 'Error Interno al insertar los temas'));
+          }
+        }
+        // Cargar todos los dias
+        if (tipo.toString().toUpperCase() === 'MATERIAS' || tipo.toString().toUpperCase() === 'AULA') {
+          let fechaInicio = moment(planilla.fechaInicio, 'YYYY-MM-DD').utc();
+          let fechaFinal = moment(planilla.fechaFinalizacion, 'YYYY-MM-DD').utc();
+          const calendarioMaterias = [];
+          while (fechaFinal.isSameOrAfter(fechaInicio)) {
+            const index = temas.findIndex((i) => {
+              return moment(i.fecha, 'YYYY-MM-DD').utc().isSame(moment(fechaInicio, 'YYYY-MM-DD').utc());
+            });
+            if (index === -1) {
+              calendarioMaterias.push({
+                planillaTaller: planilla,
+                fecha: fechaInicio,
+                activo: true,
+                fechaCreacion: hoy,
+              });
+            } else {
+              calendarioMaterias.push({
+                _id: temas[index]._id,
+                temaNro: temas[index].temaNro,
+                temaDelDia: temas[index].temaDelDia,
+                tipoDesarrollo: temas[index].tipoDesarrollo,
+                temasProximaClase: temas[index].temasProximaClase,
+                nroClase: temas[index].nroClase,
+                unidad: temas[index].unidad,
+                caracterClase: temas[index].caracterClase,
+                observacionJefe: temas[index].observacionJefe,
+                planillaTaller: planilla,
+                fecha: fechaInicio,
+                activo: true,
+                fechaCreacion: hoy,
+              });
+            }
+
+            fechaInicio = moment(fechaInicio).utc().add(1, 'day');
+          }
+          // const temasSaved = await this.tema.insertMany(calendarioMaterias);
+          response.send({ status: 200, message: 'Calendario Academico (Aulas)', temasDelCalendario: calendarioMaterias });
+        }
+      } catch (error) {
+        console.log('[ERROR]', error);
+        next(new HttpException(500, 'Error Interno al recuperar los temas'));
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Error Interno al recuperar la planilla'));
+    }
   };
   private obtenerTemasCalendario = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
@@ -298,8 +496,12 @@ class TemaController implements Controller {
         const temas = await this.tema.find({ planillaTaller: ObjectId(temaData.planillaTaller._id) }).sort({ fecha: 1 });
         const renumerar = await Promise.all(
           temas.map(async (unTema, index) => {
-            unTema.nroClase = index;
-            return await this.tema.findByIdAndUpdate(unTema._id, { nroClase: index }, { new: true });
+            if (unTema.temaDelDia) {
+              unTema.nroClase = index;
+              return await this.tema.findByIdAndUpdate(unTema._id, { nroClase: index }, { new: true });
+            } else {
+              return unTema;
+            }
           })
         );
         response.send({ tema: saved, success: true, message: 'Tema agregado correctamente', renumerar });
@@ -319,15 +521,31 @@ class TemaController implements Controller {
       let updated;
       if (id && id !== 'undefined') {
         const fechadate = new Date(tema.fecha);
-        const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
+        const fecha = new Date(moment.utc(fechadate).format('YYYY-MM-DD'));
         tema.fecha = fecha;
         updated = await this.tema.findByIdAndUpdate(id, tema, { new: true });
       } else {
+        const fecha = new Date(moment.utc(tema.fecha).format('YYYY-MM-DD'));
+        tema.fecha = fecha;
         const created = new this.tema({ ...tema });
         updated = await created.save();
       }
+      // console.log('updated', updated);
       if (updated) {
-        response.send({ tema: updated });
+        const temas = await this.tema.find({ planillaTaller: ObjectId(updated.planillaTaller._id) }).sort({ fecha: 1 });
+        let numero = 0;
+        const renumerar = await Promise.all(
+          temas.map(async (unTema, index) => {
+            if (unTema.temaDelDia) {
+              numero++;
+              unTema.nroClase = numero;
+              return await this.tema.findByIdAndUpdate(unTema._id, { nroClase: unTema.nroClase }, { new: true });
+            } else {
+              return unTema;
+            }
+          })
+        );
+        response.send({ tema: updated, success: true, message: 'Tema agregado correctamente', renumerar });
       } else {
         response.send({ tema: null });
       }
@@ -364,7 +582,6 @@ class TemaController implements Controller {
             planillaTallerId: x.id_planilla_taller,
           });
           if (!unaPlanillaTaller) {
-            console.log('unaPlanillaTaller NO existe', x.id_planilla_taller);
             return null;
           } else {
             let caracterClase = null;

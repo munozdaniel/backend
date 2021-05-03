@@ -29,7 +29,7 @@ class CalendarioController implements Controller {
     this.router.get(`${this.path}/por-ciclo/:ciclo`, this.obtenerCalendarioPorCiclo);
     this.router.post(`${this.path}`, this.crearCalendario);
   }
-
+  
   private crearCalendario = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
     const hoy = new Date(moment(now).utc().format('YYYY-MM-DD'));
@@ -155,7 +155,7 @@ class CalendarioController implements Controller {
       //    fechaInicio = moment(fechaInicio).utc().add(1, 'day');
     }
     try {
-      const saved = await this.calendario.insertMany({calendarioNuevo, success:true});
+      const saved = await this.calendario.insertMany({ calendarioNuevo, success: true });
 
       response.send(saved);
     } catch (e) {
