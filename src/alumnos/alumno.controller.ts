@@ -52,7 +52,7 @@ class AlumnoController implements Controller {
       .get(`${this.path}/:id`, this.getAlumnoById)
       .delete(`${this.path}/:id`, this.deleteAlumno)
       .get(`${this.path}/disponible-legajo/:legajo`, this.disponibleLegajo)
-      .get(`${this.path}/disponible-legajo/:legajo`, this.disponibleDni)
+      .get(`${this.path}/disponible-dni/:dni`, this.disponibleDni)
       .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
       .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
       .post(`${this.path}/por-curso-division-ciclo`, this.obtenerAlumnosPorCursoDivisionCiclo)
@@ -350,8 +350,60 @@ class AlumnoController implements Controller {
   private guardarMasivo = async (request: Request, response: Response, next: NextFunction) => {
     const alumnos = request.body;
     try {
+      const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
       const alumnosSaved = await this.alumno.insertMany(alumnos);
-      response.send({ status: 200, alumnos: alumnosSaved });
+      if (alumnosSaved && alumnosSaved.length > 0) {
+        const alumnosConEstados = await Promise.all(
+          alumnos.map(async (x: any) => {
+            console.log(x);
+            const { curso, division, comision, cicloLectivo, condicion } = x;
+            if (!curso || !division || !cicloLectivo) {
+              return x;
+            }
+            const match = {
+              curso,
+              comision,
+              division,
+            };
+            const nuevo = {
+              curso,
+              comision,
+              division,
+              activo: true,
+            };
+            const nuevoCiclo: ICicloLectivo = ciclosLectivos.find((c: ICicloLectivo) => Number(c.anio) === Number(cicloLectivo));
+
+            const cursoEncontrado = await this.curso.findOneAndUpdate(match, nuevo, {
+              upsert: true,
+              new: true,
+              setDefaultsOnInsert: true,
+            });
+            const now = new Date();
+            const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+
+            const estadoCursada = { curso: cursoEncontrado, condicion, cicloLectivo: nuevoCiclo, fechaCreacion: hoy, activo: true };
+            const createdEstadoCursada = new this.estadoCursada({
+              ...estadoCursada,
+            });
+            try {
+              const savedEstadoCursada = await createdEstadoCursada.save();
+              const index = alumnosSaved.findIndex((a: any) => Number(a.dni) === Number(x.dni));
+              if (index !== -1) {
+                if (!alumnosSaved[index].estadoCursada) {
+                  alumnosSaved[index].estadoCursadas = [savedEstadoCursada];
+                } else {
+                  alumnosSaved[index].estadoCursadas.push(savedEstadoCursada);
+                }
+                return await this.alumno.findByIdAndUpdate(ObjectId(alumnosSaved[index]._id), alumnosSaved[index], { new: true });
+              }
+            } catch (e4) {
+              console.log('[ERROR Creando Estado Cursada], ', e4);
+              next(new HttpException(500, 'Problemas interno'));
+            }
+          })
+        );
+        response.send({ status: 200, alumnos: alumnosConEstados });
+      }
     } catch (error) {
       console.log('[ERROR]', error);
       next(new HttpException(500, 'Ocurrió un error interno'));
@@ -372,7 +424,7 @@ class AlumnoController implements Controller {
     }
   };
   private disponibleDni = async (request: Request, response: Response, next: NextFunction) => {
-    const dni = escapeStringRegexp(request.params.legajo);
+    const dni = escapeStringRegexp(request.params.dni);
     try {
       dni;
       const alumno = await this.alumno.findOne({ dni });
