@@ -280,7 +280,7 @@ class AsistenciaController implements Controller {
       },
       {
         $sort: {
-          _id: -1,
+          nombreCompleto: 1,
         },
       },
     ];
@@ -413,7 +413,11 @@ class AsistenciaController implements Controller {
     );
     // =================================
 
-    return response.send({ asistenciasPorAlumno, calendario, alumnos });
+    return response.send({
+      asistenciasPorAlumno,
+      calendario,
+      alumnos,
+    });
   };
   private informeAsistenciasPlantillasEntreFechas = async (request: Request, response: Response, next: NextFunction) => {
     const comision = request.body.comision;

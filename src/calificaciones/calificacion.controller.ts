@@ -206,7 +206,7 @@ class CalificacionController implements Controller {
       },
       {
         $sort: {
-          _id: -1,
+          nombreCompleto: 1,
         },
       },
     ];
