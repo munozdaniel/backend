@@ -20,6 +20,7 @@ import IEstadoCursada from './estadoCursada/estadoCursada.interface';
 import axios, { AxiosRequestConfig } from 'axios';
 import moment from 'moment';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
+import asistenciaModel from '../asistencias/asistencia.model';
 const ObjectId = mongoose.Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
@@ -31,6 +32,7 @@ class AlumnoController implements Controller {
   private comisionOriginal = comisionesOriginalModel;
   private ciclolectivo = ciclolectivoModel;
   private planillaTaller = planillaTallerModel;
+  private asistencia = asistenciaModel;
 
   constructor() {
     this.initializeRoutes();
@@ -63,6 +65,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/agregar-estado-cursada/:id`, this.agregarEstadoCursada)
       .post(`${this.path}/actualizar-estado-cursada/:id`, this.actualizarEstadoCursada)
       .post(`${this.path}/enviar-email-masivo`, this.enviarEmailMasivo)
+      .post(`${this.path}/informe-inasistencia-por-dia`, this.obtenerInformeInasistenciaPorDia)
       .get(`${this.path}/informe-por-planilla/:id`, this.obtenerInformeAlumnosPorPlanilla)
       .put(`${this.path}/guardar-masivo`, this.guardarMasivo)
       .put(
@@ -227,6 +230,76 @@ class AlumnoController implements Controller {
     } catch (error) {
       console.log('[ERROR]', error);
       next(new HttpException(500, 'Problemas interno'));
+    }
+  };
+  private obtenerInformeInasistenciaPorDia = async (request: Request, response: Response, next: NextFunction) => {
+    let fecha = new Date(moment.utc(request.body.fecha).format('YYYY-MM-DD'));
+    let anio = new Date(moment.utc(request.body.fecha).format('YYYY'));
+    console.log('fecha', fecha);
+    try {
+      // const ciclolectivos = await this.ciclolectivo.find().sort('_id');
+      // const index = ciclolectivos.findIndex((x) => Number(x.anio) === Number(anio));
+      // const cicloLectivo = ciclolectivos[index]; // se podria hacer en una sola consulta pero ni ganas
+      // Unir asistencias con plantillas con curso
+      const opciones: any[] = [
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+          },
+        },
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+          },
+        },
+        {
+          $lookup: {
+            from: 'estadocursadas',
+            localField: 'alumno.estadoCursadas',
+            foreignField: '_id',
+            as: 'alumno.estadoCursadas',
+          },
+        },
+        {
+          $match: {
+            fecha,
+            presente: false,
+          },
+        },
+        {
+          $sort: {
+            nombreCompleto: 1,
+          },
+        },
+      ];
+
+      const planillasTalleres = await this.asistencia.aggregate(opciones);
+      if (!planillasTalleres || planillasTalleres.length < 1) {
+        response.send({ planillasTalleres: [] });
+      } else {
+        
+        response.send({ planillasTalleres });
+      }
+      // Buscar los alumnos por estadoCursada
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas  interno'));
     }
   };
   private obtenerInformeAlumnosPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {

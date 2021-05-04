@@ -119,8 +119,8 @@ class AsignaturaController implements Controller {
             tipoFormacion: x.Tipodeformacion,
             curso: Number(x.Tcurso),
             meses: Number(x.Meses),
-            horasCatedraAnuales: x.HorasCatedraAnuales ? x.HorasCatedraAnuales : 0,
-            horasCatedraSemanales: x.HorasCatedraSemanales ? x.HorasCatedraSemanales : 0,
+            horasCatedraAnuales: x.HorasCatedraAnuales ? Number(x.HorasCatedraAnuales) : 0,
+            horasCatedraSemanales: x.HorasCatedraSemanales ? Number(x.HorasCatedraSemanales) : 0,
 
             fechaCreacion: hoy,
             activo: true,
