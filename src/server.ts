@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+import 'dotenv/config.js';
 import App from './app';
 import AuthenticationController from './authentication/authentication.controller';
 
@@ -16,7 +16,6 @@ import CicloLectivoController from './ciclolectivos/ciclolectivo.controller';
 import CalendarioController from './calendario/calendario.controller';
 
 validateEnv();
-dotenv.config();
 
 const app = new App([
   // Autenticacion
