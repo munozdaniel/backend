@@ -1,17 +1,19 @@
-import IAlumno from "alumnos/alumno.interface";
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsDateString,
-  MaxLength,
-  MinLength,
-  ValidateNested,
-  Min,
-  IsNumber,
-} from "class-validator";
-import IProfesor from "profesores/profesor.interface";
-import IPlanillaTaller from "../planillaTaller/planillaTaller.interface";
+import IAlumno from 'alumnos/alumno.interface';
+import pkg from 'class-validator';
+const { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, ValidateNested, Min, IsNumber } = pkg;
+// import {
+//   IsString,
+//   IsOptional,
+//   IsBoolean,
+//   IsDateString,
+//   MaxLength,
+//   MinLength,
+//   ValidateNested,
+//   Min,
+//   IsNumber,
+// } from "class-validator";
+import IProfesor from 'profesores/profesor.interface';
+import IPlanillaTaller from '../planillaTaller/planillaTaller.interface';
 
 class CrearAsistenciaDto {
   @ValidateNested()
@@ -21,38 +23,38 @@ class CrearAsistenciaDto {
   @ValidateNested()
   profesor: IProfesor;
   @IsString({
-    message: "La forma de examen no ha sido ingresada",
+    message: 'La forma de examen no ha sido ingresada',
   })
   @MinLength(7, {
-    message: "La forma de examen es muy corta",
+    message: 'La forma de examen es muy corta',
   })
   @MaxLength(100, {
-    message: "La forma de examen no puede superar los 100 caracteres",
+    message: 'La forma de examen no puede superar los 100 caracteres',
   })
   formaExamen: string;
   @IsString({
-    message: "El tipo de examen no ha sido ingresado",
+    message: 'El tipo de examen no ha sido ingresado',
   })
   @MinLength(7, {
-    message: "El tipo de examen es muy corto",
+    message: 'El tipo de examen es muy corto',
   })
   @MaxLength(100, {
-    message: "El tipo de examen no puede superar los 100 caracteres",
+    message: 'El tipo de examen no puede superar los 100 caracteres',
   })
   tipoExamen: string;
   @IsBoolean()
   promedia: boolean;
   @IsNumber()
-  @Min(0, { message: "El promedio general tiene que ser mayor a 0" })
+  @Min(0, { message: 'El promedio general tiene que ser mayor a 0' })
   promedioGeneral: number;
   @IsString({
-    message: "La observacion no ha sido ingresada",
+    message: 'La observacion no ha sido ingresada',
   })
   @MinLength(7, {
-    message: "La observacion es muy corta",
+    message: 'La observacion es muy corta',
   })
   @MaxLength(100, {
-    message: "La observacion no puede superar los 100 caracteres",
+    message: 'La observacion no puede superar los 100 caracteres',
   })
   observaciones: string;
 

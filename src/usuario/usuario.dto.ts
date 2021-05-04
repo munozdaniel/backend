@@ -1,6 +1,7 @@
-import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsDateString, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+// import { ArrayMaxSize, ArrayMinSize, IsBoolean, IsDateString, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { rolesEnum } from '../utils/roles.enum';
-
+import pkg from 'class-validator';
+const { ArrayMaxSize, ArrayMinSize, IsBoolean, IsDateString, IsNumber, IsOptional, IsString, ValidateNested  } = pkg;
 class UsuarioDto {
   @IsString({ message: 'El email es requerido' })
   email: string;

@@ -1,12 +1,18 @@
-import {
-  IsString,
+// import {
+//   IsString,
+//   IsOptional,
+//   IsBoolean,
+//   IsDateString,
+//   MaxLength,
+//   MinLength,
+// } from 'class-validator';
+import pkg from 'class-validator';
+const { IsString,
   IsOptional,
   IsBoolean,
   IsDateString,
   MaxLength,
-  MinLength,
-} from 'class-validator';
-
+  MinLength,} = pkg;
 class CrearAlumnoDto {
   @IsString()
   @IsOptional()

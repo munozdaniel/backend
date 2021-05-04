@@ -1,5 +1,6 @@
- import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumber, Min, ValidateNested } from 'class-validator';
-
+//  import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumber, Min, ValidateNested } from 'class-validator';
+ import pkg from 'class-validator';
+ const { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumber, Min, ValidateNested } = pkg;
 class CrearCursoDto {
   @IsString({ message: 'La comision no ha sido ingresada' })
   @MinLength(1, {

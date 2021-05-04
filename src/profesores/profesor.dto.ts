@@ -1,5 +1,6 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumberString } from 'class-validator';
-
+// import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumberString } from 'class-validator';
+import pkg from 'class-validator';
+const { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumberString } = pkg;
 class CrearProfesorDto {
   @IsString({ message: 'El nombre completo no ha sido ingresado' })
   @MinLength(7, {

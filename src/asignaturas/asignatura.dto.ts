@@ -1,19 +1,6 @@
-import IAdulto from '../adulto/adulto.interface';
-import {
-  IsString,
-  ValidateNested,
-  IsOptional,
-  IsBoolean,
-  IsNumber,
-  IsDateString,
-  MaxLength,
-  MinLength,
-  IsDate,
-  IsArray,
-  Min,
-  Max,
-} from 'class-validator';
-
+// import { IsString, ValidateNested, IsOptional, IsBoolean, IsNumber, IsDateString, MaxLength, MinLength, Min, Max } from 'class-validator';
+import pkg from 'class-validator';
+const { IsString, ValidateNested, IsOptional, IsBoolean, IsNumber, IsDateString, MaxLength, MinLength, Min, Max } = pkg;
 class CrearAsignaturaDto {
   @IsString({ message: 'El detalle no ha sido ingresado' })
   @MinLength(7, {

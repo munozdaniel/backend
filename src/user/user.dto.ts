@@ -1,4 +1,6 @@
-import { IsOptional, IsString, ValidateNested } from 'class-validator';
+// import { IsOptional, IsString, ValidateNested } from 'class-validator';
+import pkg from 'class-validator';
+const { IsOptional, IsString, ValidateNested } = pkg;
 import CreateAddressDto from './address.dto';
 
 class CreateUserDto {

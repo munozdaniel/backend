@@ -1,16 +1,18 @@
 import IAdulto from '../adulto/adulto.interface';
-import {
-  IsString,
-  ValidateNested,
-  IsOptional,
-  IsBoolean,
-  IsNumber,
-  IsDateString,
-  MaxLength,
-  MinLength,
-  IsDate,
-  IsArray,
-} from 'class-validator';
+import pkg from 'class-validator';
+const { IsString, ValidateNested, IsOptional, IsBoolean, IsNumber, IsDateString, MaxLength, MinLength, IsDate, IsArray } = pkg;
+// import {
+//   IsString,
+//   ValidateNested,
+//   IsOptional,
+//   IsBoolean,
+//   IsNumber,
+//   IsDateString,
+//   MaxLength,
+//   MinLength,
+//   IsDate,
+//   IsArray,
+// } from 'class-validator';
 
 class CrearAlumnoDto {
   @IsString({ message: 'El legajo no ha sido ingresado' })

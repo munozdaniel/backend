@@ -1,9 +1,10 @@
 import IAsignatura from '../asignaturas/asignatura.interface';
-import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, ValidateNested, IsNumber } from 'class-validator';
+// import { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, ValidateNested, IsNumber } from 'class-validator';
 import IProfesor from '../profesores/profesor.interface';
 import ICurso from '../cursos/curso.interface';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
-
+import pkg from 'class-validator';
+const { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, ValidateNested, IsNumber} = pkg;
 class CrearPlanillaTallerDto {
   @ValidateNested()
   asignaturaId: IAsignatura;

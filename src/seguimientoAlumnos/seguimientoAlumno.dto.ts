@@ -1,18 +1,19 @@
 import IAlumno from 'alumnos/alumno.interface';
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsDateString,
-  MaxLength,
-  MinLength,
-  IsNumber,
-  Min,
-  ValidateNested,
-  IsDate,
-} from 'class-validator';
+// import {
+//   IsString,
+//   IsOptional,
+//   IsBoolean,
+//   IsDateString,
+//   MaxLength,
+//   MinLength,
+//   IsNumber,
+//   Min,
+//   ValidateNested,
+//   IsDate,
+// } from 'class-validator';
 import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
-
+import pkg from 'class-validator';
+const { IsString, IsOptional, IsBoolean, IsDateString, MaxLength, MinLength, IsNumber, Min, ValidateNested, IsDate } = pkg;
 class CrearSeguimientoAlumnoDto {
   @ValidateNested() alumno: IAlumno;
   @ValidateNested() planillaTaller: IPlanillaTaller;
