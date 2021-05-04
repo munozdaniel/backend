@@ -1,10 +1,11 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
 import usuarioModel from './usuario.model';
 import HttpException from '../exceptions/HttpException';
 import escapeStringRegexp from 'escape-string-regexp';
 import NotFoundException from '../exceptions/NotFoundException';
+const { Router } = r;
 
 class UsuarioController implements Controller {
   public path = '/usuarios';
