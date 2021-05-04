@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction, Router } from 'express';
+// import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../passport/config';
 import Controller from '../interfaces/controller.interface';
@@ -11,6 +12,8 @@ import UserWithThatEmailAlreadyExistsException from '../exceptions/UserWithThatE
 import passport from 'passport';
 import HttpException from '../exceptions/HttpException';
 import axios, { AxiosRequestConfig } from 'axios';
+
+const { Router } = r;
 
 class AuthenticationController implements Controller {
   public path = '/auth';
