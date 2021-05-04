@@ -984,7 +984,7 @@ class AlumnoController implements Controller {
       let { cicloLectivo, division, curso } = request.body;
       let match: any = {
         'estadoCursadas.activo': true,
-        'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
+        'estadoCursadas.cicloLectivo': ObjectId(cicloLectivo._id),
         'estadoCursadas.curso.curso': Number(curso),
         'estadoCursadas.curso.division': Number(division),
       };
@@ -1001,20 +1001,6 @@ class AlumnoController implements Controller {
         {
           $unwind: {
             path: '$estadoCursadas',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'ciclolectivos',
-            localField: 'estadoCursadas.cicloLectivo',
-            foreignField: '_id',
-            as: 'estadoCursadas.cicloLectivo',
-          },
-        },
-        {
-          $unwind: {
-            path: '$estadoCursadas.cicloLectivo',
           },
         },
         {
@@ -1031,34 +1017,11 @@ class AlumnoController implements Controller {
           },
         },
         {
-          $group: {
-            _id: '$_id',
-            root: {
-              $mergeObjects: '$$ROOT',
-            },
-            estadoCursadas: {
-              $push: '$estadoCursadas',
-            },
-          },
-        },
-        {
-          $replaceRoot: {
-            newRoot: {
-              $mergeObjects: ['$root', '$$ROOT'],
-            },
-          },
-        },
-        {
-          $project: {
-            root: 0,
-          },
-        },
-        {
           $match: match,
         },
         {
           $sort: {
-            _id: -1,
+            nombreCompleto: 1,
           },
         },
       ];
