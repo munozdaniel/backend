@@ -5,7 +5,8 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 // import AutoincrementService from "../services/AutoincrementService";
 const Schema = mongoose.Schema;
-import { autoIncrement } from 'mongoose-plugin-autoinc';
+import ai from 'mongoose-plugin-autoinc';
+const { autoIncrement } = ai;
 import moment from 'moment';
 
 export const asistenciaSchema = new mongoose.Schema({

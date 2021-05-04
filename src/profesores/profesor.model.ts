@@ -3,7 +3,8 @@ import IProfesor from './profesor.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
 // import AutoincrementFieldService from '../services/AutoincrementFieldService';
 // import AutoincrementService from "../services/AutoincrementService";
-import { autoIncrement } from 'mongoose-plugin-autoinc';
+import ai from 'mongoose-plugin-autoinc';
+const { autoIncrement } = ai;
 import moment from 'moment';
 export const profesorSchema: SequenceSchema = new mongoose.Schema({
   // _id: {type:String, required:true},

@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 
 import ISeguimientoAlumno from './seguimientoAlumno.interface';
 import mongoosePaginate from 'mongoose-paginate-v2';
-import { autoIncrement } from 'mongoose-plugin-autoinc';
+import ai from 'mongoose-plugin-autoinc';
+const { autoIncrement } = ai;
 import moment from 'moment';
 
 const Schema = mongoose.Schema;

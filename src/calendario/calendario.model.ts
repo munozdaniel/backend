@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
-import { autoIncrement } from 'mongoose-plugin-autoinc';
+import ai from 'mongoose-plugin-autoinc';
+const { autoIncrement } = ai;
 import ICalendario from './calendario.interface';
 
 const Schema = mongoose.Schema;
