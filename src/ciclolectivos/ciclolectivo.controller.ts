@@ -1,14 +1,10 @@
 import HttpException from '../exceptions/HttpException';
 import r, { Request, Response, NextFunction } from 'express';
-import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
-import validationMiddleware from '../middleware/validation.middleware';
-import CreateCicloLectivoDto from './ciclolectivo.dto';
-import CicloLectivo from './ciclolectivo.interface';
 import ciclolectivoModel from './ciclolectivo.model';
-import ICicloLectivo from './ciclolectivo.interface';
 import alumnoModel from '../alumnos/alumno.model';
 import moment from 'moment';
+const { Router } = r;
 class CicloLectivoController implements Controller {
   public path = '/ciclolectivos';
   public router = Router();
