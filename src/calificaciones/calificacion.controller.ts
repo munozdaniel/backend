@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import CreateCalificacionDto from './calificacion.dto';
@@ -15,6 +15,7 @@ import moment from 'moment';
 import asistenciaModel from '../asistencias/asistencia.model';
 import calendarioModel from '../calendario/calendario.model';
 const ObjectId = mongoose.Types.ObjectId;
+const { Router } = r;
 
 class CalificacionController implements Controller {
   public path = '/calificacion';

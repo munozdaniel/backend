@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import escapeStringRegexp from 'escape-string-regexp';
@@ -10,6 +10,7 @@ import calendarioOriginalModel from './calendarioOriginal.model';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import moment from 'moment';
 const ObjectId = mongoose.Types.ObjectId;
+const { Router } = r;
 
 class CalendarioController implements Controller {
   public path = '/calendario';
@@ -29,7 +30,7 @@ class CalendarioController implements Controller {
     this.router.get(`${this.path}/por-ciclo/:ciclo`, this.obtenerCalendarioPorCiclo);
     this.router.post(`${this.path}`, this.crearCalendario);
   }
-  
+
   private crearCalendario = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
     const hoy = new Date(moment(now).utc().format('YYYY-MM-DD'));

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import CreateTemaDto from './tema.dto';
@@ -11,6 +11,7 @@ import temaOriginalModel from './temaOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
+const { Router } = r;
 const ObjectId = mongoose.Types.ObjectId;
 
 class TemaController implements Controller {

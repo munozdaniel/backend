@@ -1,5 +1,5 @@
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';

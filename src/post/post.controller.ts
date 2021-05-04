@@ -1,5 +1,5 @@
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import PostNotFoundException from '../exceptions/PostNotFoundException';
 import Controller from '../interfaces/controller.interface';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
@@ -8,6 +8,7 @@ import validationMiddleware from '../middleware/validation.middleware';
 import CreatePostDto from './post.dto';
 import Post from './post.interface';
 import postModel from './post.model';
+const { Router } = r;
 
 class PostController implements Controller {
   public path = '/posts';
@@ -26,18 +27,14 @@ class PostController implements Controller {
     // Privados
     this.router
       // .all(`${this.path}/*`, authMiddleware)
-      .patch(
-        `${this.path}/:id`,
-        validationMiddleware(CreatePostDto, true),
-        this.modifyPost
-      )
-      .delete(`${this.path}/:id`, this.deletePost)
-      // .post(
-      //   this.path,
-      //   authMiddleware,
-      //   validationMiddleware(CreatePostDto),
-      //   this.createPost
-      // );
+      .patch(`${this.path}/:id`, validationMiddleware(CreatePostDto, true), this.modifyPost)
+      .delete(`${this.path}/:id`, this.deletePost);
+    // .post(
+    //   this.path,
+    //   authMiddleware,
+    //   validationMiddleware(CreatePostDto),
+    //   this.createPost
+    // );
   }
 
   private getAllPosts = async (request: Request, response: Response) => {
@@ -46,11 +43,7 @@ class PostController implements Controller {
     response.send(posts);
   };
 
-  private getPostById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private getPostById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
       const post = await this.post.findById(id);
@@ -65,11 +58,7 @@ class PostController implements Controller {
     }
   };
 
-  private modifyPost = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private modifyPost = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const postData: Post = request.body;
     try {
@@ -99,11 +88,7 @@ class PostController implements Controller {
     response.send(savedPost);
   };
 
-  private deletePost = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  private deletePost = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
       const successResponse = await this.post.findByIdAndDelete(id);

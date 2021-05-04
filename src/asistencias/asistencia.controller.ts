@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 
 import asistenciaModel, { asistenciaSchema } from './asistencia.model';
@@ -13,6 +13,7 @@ import NotFoundException from '../exceptions/NotFoundException';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
 import * as _ from 'lodash';
+const { Router } = r;
 
 const ObjectId = mongoose.Types.ObjectId;
 class AsistenciaController implements Controller {

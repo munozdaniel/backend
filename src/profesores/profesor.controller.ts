@@ -1,5 +1,5 @@
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
@@ -10,6 +10,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import IProfesor from './profesor.interface';
 import profesorOriginalModel from './profesorOriginal.model';
 import moment from 'moment';
+const { Router } = r;
 class ProfesorController implements Controller {
   public path = '/profesores';
   public router = Router();
@@ -101,7 +102,7 @@ class ProfesorController implements Controller {
       const now = new Date();
       const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const profesores: any = await this.profesorOriginal.find();
-     
+
       const profesoresRefactorizados: IProfesor[] = profesores.map((x: any, index: number) => {
         const unaProfesor: IProfesor & any = {
           // _id: x._id,
@@ -180,7 +181,7 @@ class ProfesorController implements Controller {
     // await savedProfesor.populate('author', '-password').execPopulate();
     response.send(savedProfesor);
   };
-  
+
   private deleteProfesor = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {

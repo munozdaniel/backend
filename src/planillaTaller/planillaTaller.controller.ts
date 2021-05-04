@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import planillaTallerModel from './planillaTaller.model';
@@ -18,6 +18,7 @@ import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import NotFoundException from '../exceptions/NotFoundException';
 import calendarioModel from '../calendario/calendario.model';
 import moment from 'moment';
+const { Router } = r;
 
 const ObjectId = mongoose.Types.ObjectId;
 class PlanillaTallerController implements Controller {

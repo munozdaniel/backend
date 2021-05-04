@@ -1,5 +1,5 @@
 import HttpException from '../exceptions/HttpException';
-import { Request, Response, NextFunction, Router } from 'express';
+import r, { Request, Response, NextFunction } from 'express';
 import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
@@ -12,6 +12,8 @@ import comisionOriginalModel from './comisionOriginal.model';
 import alumnoModel from '../alumnos/alumno.model';
 import comisionUnicaModel from './comisionUnica.model';
 import moment from 'moment';
+const { Router } = r;
+
 class CursoController implements Controller {
   public path = '/cursos';
   public router = Router();
