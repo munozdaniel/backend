@@ -20,8 +20,8 @@ export const asistenciaSchema = new mongoose.Schema({
     required: true,
   },
   id_planilla_de_asistencia: { type: Number }, // para migrar
-  presente: { type: Boolean, required: true },
-  llegoTarde: { type: Boolean, required: true },
+  presente: { type: Boolean, required: true, default: true },
+  llegoTarde: { type: Boolean, required: false, default: false },
   fecha: { type: Date, required: true },
 
   fechaCreacion: { type: Date, default: Date.now },
