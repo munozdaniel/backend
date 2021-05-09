@@ -43,8 +43,42 @@ class AsistenciaController implements Controller {
       .delete(`${this.path}/:id`, this.eliminar)
       .post(`${this.path}/buscar-inasistencias`, this.buscarInasistencias)
       .post(`${this.path}/tomar-asistencias`, this.tomarAsistenciaPorPlanilla)
-      .post(`${this.path}/obtener-asistencias-hoy`, this.obtenerAsistenciasHoyPorPlanilla);
+      .post(`${this.path}/obtener-asistencias-hoy`, this.obtenerAsistenciasHoyPorPlanilla)
+      .post(`${this.path}/obtener-asistencias-fecha`, this.buscarAsistenciasPorFechaYPlanilla);
   }
+  private buscarAsistenciasPorFechaYPlanilla = async (request: Request, response: Response, next: NextFunction) => {
+    const alumnos = request.body.alumnos;
+    const planilla = request.body.planilla;
+    const fecha = request.body.fecha;
+    const f = new Date(moment.utc(fecha).format('YYYY-MM-DD'));
+    const opciones: any[] = [
+      [
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+          },
+        },
+        {
+          $match: {
+            'planillaTaller._id': ObjectId(planilla._id),
+            fecha: {
+              $eq: f,
+            },
+          },
+        },
+      ],
+    ];
+    const asistencias = await this.asistencia.aggregate(opciones);
+    return response.send(asistencias);
+  };
   private obtenerAsistenciasHoyPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const alumnos = request.body.alumnos;
     const planilla = request.body.planilla;
@@ -81,8 +115,12 @@ class AsistenciaController implements Controller {
   private tomarAsistenciaPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const alumnos = request.body.alumnos;
     const planilla = request.body.planilla;
-    const now = new Date();
-    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    // const now = new Date();
+    // const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    const fecha = request.body.fecha;
+   
+    const f = new Date(moment.utc(fecha).format('YYYY-MM-DD'));
+
     const opciones: any[] = [
       [
         {
@@ -102,7 +140,7 @@ class AsistenciaController implements Controller {
           $match: {
             'planillaTaller._id': ObjectId(planilla._id),
             fecha: {
-              $eq: hoy,
+              $eq: f,
             },
           },
         },
@@ -117,14 +155,14 @@ class AsistenciaController implements Controller {
           const asistencia = {
             planillaTaller: planilla,
             alumno: alumno,
-            fecha: hoy,
+            fecha: f,
             presente: alumno.presente,
             llegoTarde: alumno.tarde,
-            fechaCreacion: hoy,
+            fechaCreacion: f,
             activo: true,
           };
           const updated = await this.asistencia.findOneAndUpdate(
-            { fecha: hoy, planillaTaller: planilla._id, alumno: alumno._id },
+            { fecha: f, planillaTaller: planilla._id, alumno: alumno._id },
             asistencia,
             {
               new: true,
@@ -147,10 +185,10 @@ class AsistenciaController implements Controller {
         alumnos.map((alumno: any) => ({
           planillaTaller: planilla,
           alumno: alumno,
-          fecha: hoy,
+          fecha: f,
           presente: alumno.presente,
           llegoTarde: alumno.tarde,
-          fechaCreacion: hoy,
+          fechaCreacion: f,
           activo: true,
         }))
       );
