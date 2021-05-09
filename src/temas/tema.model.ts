@@ -20,6 +20,7 @@ export const temaSchema = new mongoose.Schema({
   nroClase: { type: Number, required: false },
   unidad: { type: Number, required: false }, // requerido pero en migraion no
   caracterClase: { type: String, required: false }, // requerido pero en migraion no
+  motivoSinDictar: { type: String, required: false, default: null },
   observacionJefe: { type: String },
 
   fechaCreacion: { type: Date, default: Date.now },

@@ -230,6 +230,7 @@ class TemaController implements Controller {
                   unidad: temas[index].unidad,
                   caracterClase: temas[index].caracterClase,
                   observacionJefe: temas[index].observacionJefe,
+                  motivoSinDictar: temas[index].motivoSinDictar,
                   planillaTaller: planilla,
                   fecha: x.fecha,
                   activo: true,
@@ -514,6 +515,7 @@ class TemaController implements Controller {
   private actualizarTema = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const tema = request.body.tema;
+    console.log('tema', tema);
     // const ini = new Date(moment(tema.fecha).format('YYYY-MM-DD'));
     // tema.fecha = ini;
 
