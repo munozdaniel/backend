@@ -118,7 +118,7 @@ class AsistenciaController implements Controller {
     // const now = new Date();
     // const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const fecha = request.body.fecha;
-   
+
     const f = new Date(moment.utc(fecha).format('YYYY-MM-DD'));
 
     const opciones: any[] = [
@@ -199,7 +199,20 @@ class AsistenciaController implements Controller {
     }
   };
   private buscarInasistencias = async (request: Request, response: Response, next: NextFunction) => {
-    let fecha: Date = new Date(moment.utc(request.body.fecha).format('YYYY-MM-DD'));
+    let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
+    let hasta: Date = new Date(moment.utc(request.body.hasta).format('YYYY-MM-DD'));
+    let match;
+    if (request.body.hasta) {
+      match = {
+        $gte: desde,
+        $lt: hasta,
+      };
+    } else {
+      match = {
+        $eq: desde,
+      };
+    }
+    console.log('$matc', match);
     try {
       const opciones: any[] = [
         {
@@ -218,10 +231,7 @@ class AsistenciaController implements Controller {
         {
           $match: {
             presente: false,
-            fecha: {
-              $eq: fecha, // funciona sin isodate
-              // $lt: fecha, // funciona sin isodate
-            },
+            fecha: match,
           },
         },
         {

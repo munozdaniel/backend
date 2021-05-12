@@ -12,6 +12,7 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
 import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
+import ICalendario from 'calendario/calendario.interface';
 const ObjectId = mongoose.Types.ObjectId;
 
 class TemaController implements Controller {
@@ -103,46 +104,57 @@ class TemaController implements Controller {
   };
 
   async calendarioTaller(temas: ITema[], planilla: IPlanillaTaller) {
+    let total = 0;
     const now = new Date();
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    const calendarioVisual: any[] = []; // para mostrar el calendario en pantalla
+    let colorComision: { color: string }; // para mostrar el calendario en pantalla
     let matchComision: any = null;
     switch (planilla.curso.comision) {
       case 'A':
+        colorComision = { color: 'rgb(0, 153, 255)' };
         matchComision = {
           comisionA: 1,
         };
         break;
       case 'B':
+        colorComision = { color: 'rgb(0, 255, 106)' };
         matchComision = {
           comisionB: 1,
         };
         break;
       case 'C':
+        colorComision = { color: 'rgb(187, 255, 0)' };
         matchComision = {
           comisionC: 1,
         };
         break;
       case 'D':
+        colorComision = { color: 'rgb(255, 208, 0)' };
         matchComision = {
           comisionD: 1,
         };
         break;
       case 'E':
+        colorComision = { color: 'rgb(255, 94, 0);' };
         matchComision = {
           comisionE: 1,
         };
         break;
       case 'F':
+        colorComision = { color: 'rgb(255, 0, 0);' };
         matchComision = {
           comisionF: 1,
         };
         break;
       case 'G':
+        colorComision = { color: 'rgb(255, 0, 128)' };
         matchComision = {
           comisionG: 1,
         };
         break;
       case 'H':
+        colorComision = { color: 'rgb(55, 0, 255)' };
         matchComision = {
           comisionH: 1,
         };
@@ -184,6 +196,14 @@ class TemaController implements Controller {
           return moment(i.fecha, 'YYYY-MM-DD').utc().isSame(moment(x.fecha, 'YYYY-MM-DD').utc());
         });
         if (index === -1) {
+          const unCalendario = {
+            fecha: x.fecha,
+            cicloLectivo: planilla.cicloLectivo,
+            activo: true,
+            titulo: 'SIN DEFINIR',
+            color: 'rgb(66 66 66)',
+          };
+          calendarioVisual.push(unCalendario);
           return {
             planillaTaller: planilla,
             fecha: x.fecha,
@@ -191,6 +211,20 @@ class TemaController implements Controller {
             fechaCreacion: hoy,
           };
         } else {
+          // Existe un tema
+          total++;
+          const unCalendario = {
+            fecha: x.fecha,
+            cicloLectivo: planilla.cicloLectivo,
+            activo: true,
+            titulo: temas[index].temaDelDia
+              ? temas[index].temaDelDia
+              : temas[index].motivoSinDictar
+              ? 'MOTIVO POR EL CUAL NO SE DICTÓ LA CLASE: ' + temas[index].motivoSinDictar
+              : 'SIN DEFINIR',
+            ...colorComision,
+          };
+          calendarioVisual.push(unCalendario);
           return {
             _id: temas[index]._id,
             temaNro: temas[index].temaNro,
@@ -210,28 +244,43 @@ class TemaController implements Controller {
         }
       })
     );
-    return temasARetornar;
+    return { temas: temasARetornar, total, calendario: calendarioVisual };
   }
   async calendarioSinCriterio(temas: ITema[], planilla: IPlanillaTaller) {
+    const calendarioVisual: any[] = []; // para mostrar el calendario en pantalla
     const temasCalendario = await Promise.all(
-      temas.map((x) => ({
-        _id: x._id,
-        temaNro: x.temaNro,
-        temaDelDia: x.temaDelDia,
-        tipoDesarrollo: x.tipoDesarrollo,
-        temasProximaClase: x.temasProximaClase,
-        nroClase: x.nroClase,
-        unidad: x.unidad,
-        caracterClase: x.caracterClase,
-        observacionJefe: x.observacionJefe,
-        motivoSinDictar: x.motivoSinDictar,
-        planillaTaller: planilla,
-        fecha: x.fecha,
-        activo: true,
-        fechaCreacion: x.fechaCreacion,
-      }))
+      temas.map((x) => {
+        const cal = {
+          fecha: x.fecha,
+          cicloLectivo: planilla.cicloLectivo,
+          activo: true,
+          titulo: x.temaDelDia
+            ? x.temaDelDia
+            : x.motivoSinDictar
+            ? 'MOTIVO POR EL CUAL NO SE DICTÓ LA CLASE: ' + x.motivoSinDictar
+            : 'SIN DEFINIR',
+          color: 'rgb(55, 0, 255)',
+        };
+        calendarioVisual.push(cal);
+        return {
+          _id: x._id,
+          temaNro: x.temaNro,
+          temaDelDia: x.temaDelDia,
+          tipoDesarrollo: x.tipoDesarrollo,
+          temasProximaClase: x.temasProximaClase,
+          nroClase: x.nroClase,
+          unidad: x.unidad,
+          caracterClase: x.caracterClase,
+          observacionJefe: x.observacionJefe,
+          motivoSinDictar: x.motivoSinDictar,
+          planillaTaller: planilla,
+          fecha: x.fecha,
+          activo: true,
+          fechaCreacion: x.fechaCreacion,
+        };
+      })
     );
-    return temasCalendario;
+    return { total: temasCalendario.length, temas: temasCalendario, calendario: calendarioVisual };
   }
   /**
    * Recorremos desde la fecha inicial a la final
@@ -243,6 +292,8 @@ class TemaController implements Controller {
    * @returns
    */
   async calendarioAulas(temas: ITema[], planilla: IPlanillaTaller) {
+    const calendarioVisual: any[] = []; // para mostrar el calendario en pantalla
+    let total = 0;
     const now = new Date();
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     let fechaInicio = moment(planilla.fechaInicio, 'YYYY-MM-DD').utc();
@@ -259,6 +310,16 @@ class TemaController implements Controller {
         const nombreDelDia = moment.utc(fechaInicio).format('dddd');
         const index2 = diasHabilitados.findIndex((d) => d.toString() === nombreDelDia.toString());
         if (index2 !== -1) {
+          // Agrego al calendarioVisual
+          const unCalendario = {
+            fecha: fechaInicio,
+            cicloLectivo: planilla.cicloLectivo,
+            activo: true,
+            titulo: 'SIN DEFINIR',
+            color: 'rgb(66 66 66)',
+          };
+          calendarioVisual.push(unCalendario);
+          //
           calendarioMaterias.push({
             planillaTaller: planilla,
             fecha: fechaInicio,
@@ -267,6 +328,21 @@ class TemaController implements Controller {
           });
         }
       } else {
+        total++;
+        // Agrego al calendarioVisual
+        const unCalendario = {
+          fecha: fechaInicio,
+          cicloLectivo: planilla.cicloLectivo,
+          activo: true,
+          titulo: temas[index].temaDelDia
+            ? temas[index].temaDelDia
+            : temas[index].motivoSinDictar
+            ? 'MOTIVO POR EL CUAL NO SE DICTÓ LA CLASE: ' + temas[index].motivoSinDictar
+            : 'SIN DEFINIR',
+          color: 'rgb(25 162 0)',
+        };
+        calendarioVisual.push(unCalendario);
+        //
         calendarioMaterias.push({
           _id: temas[index]._id,
           temaNro: temas[index].temaNro,
@@ -286,7 +362,7 @@ class TemaController implements Controller {
 
       fechaInicio = moment(fechaInicio).utc().add(1, 'day');
     }
-    return calendarioMaterias;
+    return { total, temas: calendarioMaterias, calendario: calendarioVisual };
   }
   /**
    * Obtiene los temas y el calendario
@@ -298,12 +374,9 @@ class TemaController implements Controller {
    * @param request
    * @param response
    * @param next
-   * @returns
+   * @returns totalDeClases, temas (completados), calendario
    */
   private obtenerCalendarioPorTipoMateria = async (request: Request, response: Response, next: NextFunction) => {
-    const now = new Date();
-    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
-    const tipo = escapeStringRegexp(request.body.tipo);
     const planillaId = request.body.planillaId;
     try {
       const temas = await this.tema.find({ planillaTaller: ObjectId(planillaId) });
@@ -335,14 +408,26 @@ class TemaController implements Controller {
         const planilla = planillaAggregate[0];
         if (!planilla.tipoCalendario) {
           // Solo devuelvo los temas que tenga cargado
-          const retornoSinCriterio = await this.calendarioSinCriterio(temas, planilla);
-          response.send({ status: 200, message: 'Calendario Academico (Taller)', temasDelCalendario: retornoSinCriterio });
+          const retornoSinCriterio: any = await this.calendarioSinCriterio(temas, planilla);
+          response.send({
+            status: 200,
+            message: 'Calendario Academico (Taller)',
+            totalClases: retornoSinCriterio.total,
+            temas: retornoSinCriterio.temas,
+            calendario: retornoSinCriterio.calendario,
+          });
         } else {
           if (planilla.tipoCalendario === 'POR COMISION') {
             //   Obtiene el calendario por la comision (seria calendario de taller)
             try {
-              const retornoTaller = await this.calendarioTaller(temas, planilla);
-              response.send({ status: 200, message: 'Calendario Academico (Taller)', temasDelCalendario: retornoTaller });
+              const retornoTaller: any = await this.calendarioTaller(temas, planilla);
+              response.send({
+                status: 200,
+                message: 'Calendario Academico (Taller)',
+                totalClases: retornoTaller.total,
+                temas: retornoTaller.temas,
+                calendario: retornoTaller.calendario,
+              });
             } catch (errorTaller) {
               console.log('[ERROR]', errorTaller);
               next(new HttpException(500, 'Error Interno al recuperar los temas del taller'));
@@ -350,8 +435,14 @@ class TemaController implements Controller {
           } else {
             //   Es un calendario personalizado, busca todos los dias seleccionados entre las fechas de ini y fin. Y los temas que contengan esas fechas
             try {
-              const retornoAula = await this.calendarioAulas(temas, planilla);
-              response.send({ status: 200, message: 'Calendario Academico (Aula)', temasDelCalendario: retornoAula });
+              const retornoAula: any = await this.calendarioAulas(temas, planilla);
+              response.send({
+                status: 200,
+                message: 'Calendario Academico (Aula)',
+                totalClases: retornoAula.total,
+                temas: retornoAula.temas,
+                calendario: retornoAula.calendario,
+              });
             } catch (errorAula) {
               console.log('[ERROR]', errorAula);
               next(new HttpException(500, 'Error Interno al recuperar los temas del aula'));

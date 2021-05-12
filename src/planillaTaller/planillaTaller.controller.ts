@@ -203,6 +203,8 @@ class PlanillaTallerController implements Controller {
    * @param response
    * @param next
    */
+//   NO SE DEBERIA USAR MAS, COMPROBAR PORQUE
+
   private buscarTotalAsistenciaPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const planillaId = request.params.id;
     const planilla = await this.planillaTaller.findById(planillaId).populate('curso');
