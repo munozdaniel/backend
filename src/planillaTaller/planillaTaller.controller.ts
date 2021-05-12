@@ -144,6 +144,8 @@ class PlanillaTallerController implements Controller {
         bimestre: planillaTaller.bimestre,
         turno: planillaTaller.turno,
         fechaCreacion: planillaTaller.fechaCreacion,
+        diasHabilitados: planillaTaller.diasHabilitados,
+        tipoCalendario: planillaTaller.tipoCalendario,
         fechaModificacion: new Date(),
         activo: planillaTaller.activo,
       };

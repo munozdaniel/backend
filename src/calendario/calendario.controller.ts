@@ -29,7 +29,6 @@ class CalendarioController implements Controller {
     this.router.get(`${this.path}/por-ciclo/:ciclo`, this.obtenerCalendarioPorCiclo);
     this.router.post(`${this.path}`, this.crearCalendario);
   }
-  
   private crearCalendario = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
     const hoy = new Date(moment(now).utc().format('YYYY-MM-DD'));
@@ -164,6 +163,7 @@ class CalendarioController implements Controller {
       next(new HttpException(500, 'Problemas al insertar los registros'));
     }
   };
+
   private obtenerCalendarioPorCiclo = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const ciclo = request.params.ciclo;

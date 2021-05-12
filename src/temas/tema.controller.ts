@@ -11,6 +11,7 @@ import temaOriginalModel from './temaOriginal.model';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
+import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
 const ObjectId = mongoose.Types.ObjectId;
 
 class TemaController implements Controller {
@@ -52,6 +53,8 @@ class TemaController implements Controller {
     return await this.calendario.aggregate(opciones);
   }
   private informeTemasPorPlanillaTaller = async (request: Request, response: Response, next: NextFunction) => {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const planilla = request.body.planillaTaller;
     let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
     const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
@@ -98,6 +101,205 @@ class TemaController implements Controller {
     );
     return response.send({ temasPorFecha });
   };
+
+  async calendarioTaller(temas: ITema[], planilla: IPlanillaTaller) {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    let matchComision: any = null;
+    switch (planilla.curso.comision) {
+      case 'A':
+        matchComision = {
+          comisionA: 1,
+        };
+        break;
+      case 'B':
+        matchComision = {
+          comisionB: 1,
+        };
+        break;
+      case 'C':
+        matchComision = {
+          comisionC: 1,
+        };
+        break;
+      case 'D':
+        matchComision = {
+          comisionD: 1,
+        };
+        break;
+      case 'E':
+        matchComision = {
+          comisionE: 1,
+        };
+        break;
+      case 'F':
+        matchComision = {
+          comisionF: 1,
+        };
+        break;
+      case 'G':
+        matchComision = {
+          comisionG: 1,
+        };
+        break;
+      case 'H':
+        matchComision = {
+          comisionH: 1,
+        };
+        break;
+
+      default:
+        break;
+    }
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'cicloLectivo',
+          foreignField: '_id',
+          as: 'cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$cicloLectivo',
+        },
+      },
+      {
+        $match: {
+          'cicloLectivo._id': ObjectId(planilla.cicloLectivo._id),
+          fecha: {
+            $gte: planilla.fechaInicio, // funciona sin isodate
+            $lt: planilla.fechaFinalizacion, // funciona sin isodate
+          },
+          ...matchComision,
+        },
+      },
+    ];
+    // Calendario por Comision
+    const calendario = await this.calendario.aggregate(opciones);
+    const temasARetornar: ITema[] & any = await Promise.all(
+      calendario.map((x) => {
+        const index = temas.findIndex((i) => {
+          return moment(i.fecha, 'YYYY-MM-DD').utc().isSame(moment(x.fecha, 'YYYY-MM-DD').utc());
+        });
+        if (index === -1) {
+          return {
+            planillaTaller: planilla,
+            fecha: x.fecha,
+            activo: true,
+            fechaCreacion: hoy,
+          };
+        } else {
+          return {
+            _id: temas[index]._id,
+            temaNro: temas[index].temaNro,
+            temaDelDia: temas[index].temaDelDia,
+            tipoDesarrollo: temas[index].tipoDesarrollo,
+            temasProximaClase: temas[index].temasProximaClase,
+            nroClase: temas[index].nroClase,
+            unidad: temas[index].unidad,
+            caracterClase: temas[index].caracterClase,
+            observacionJefe: temas[index].observacionJefe,
+            motivoSinDictar: temas[index].motivoSinDictar,
+            planillaTaller: planilla,
+            fecha: x.fecha,
+            activo: true,
+            fechaCreacion: temas[index].fechaCreacion,
+          };
+        }
+      })
+    );
+    return temasARetornar;
+  }
+  async calendarioSinCriterio(temas: ITema[], planilla: IPlanillaTaller) {
+    const temasCalendario = await Promise.all(
+      temas.map((x) => ({
+        _id: x._id,
+        temaNro: x.temaNro,
+        temaDelDia: x.temaDelDia,
+        tipoDesarrollo: x.tipoDesarrollo,
+        temasProximaClase: x.temasProximaClase,
+        nroClase: x.nroClase,
+        unidad: x.unidad,
+        caracterClase: x.caracterClase,
+        observacionJefe: x.observacionJefe,
+        motivoSinDictar: x.motivoSinDictar,
+        planillaTaller: planilla,
+        fecha: x.fecha,
+        activo: true,
+        fechaCreacion: x.fechaCreacion,
+      }))
+    );
+    return temasCalendario;
+  }
+  /**
+   * Recorremos desde la fecha inicial a la final
+   * En el bucle, por cada dia, verificamos si existe el tema...
+   * Si existe, entoces agregamos la fecha con tema al retorno
+   * Si no existe, y pertenece al arreglo de dias entonces la agregamos al arreglo de retorno como una fecha vacia.
+   * @param temas
+   * @param planilla
+   * @returns
+   */
+  async calendarioAulas(temas: ITema[], planilla: IPlanillaTaller) {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    let fechaInicio = moment(planilla.fechaInicio, 'YYYY-MM-DD').utc();
+    let fechaFinal = moment(planilla.fechaFinalizacion, 'YYYY-MM-DD').utc();
+    const calendarioMaterias = [];
+    while (fechaFinal.isSameOrAfter(fechaInicio)) {
+      // Buscamos si este dia (fechaInicio) fue agregado en el libro de temas y lo devolvemos
+      const index = temas.findIndex((i) => {
+        return moment(i.fecha, 'YYYY-MM-DD').utc().isSame(moment(fechaInicio, 'YYYY-MM-DD').utc());
+      });
+      if (index === -1) {
+        // Si no fue agregado al libro de temas, verificamos si existen en el arreglo de dias de la planilla
+        const diasHabilitados: string[] = planilla.diasHabilitados;
+        const nombreDelDia = moment.utc(fechaInicio).format('dddd');
+        const index2 = diasHabilitados.findIndex((d) => d.toString() === nombreDelDia.toString());
+        if (index2 !== -1) {
+          calendarioMaterias.push({
+            planillaTaller: planilla,
+            fecha: fechaInicio,
+            activo: true,
+            fechaCreacion: hoy,
+          });
+        }
+      } else {
+        calendarioMaterias.push({
+          _id: temas[index]._id,
+          temaNro: temas[index].temaNro,
+          temaDelDia: temas[index].temaDelDia,
+          tipoDesarrollo: temas[index].tipoDesarrollo,
+          temasProximaClase: temas[index].temasProximaClase,
+          nroClase: temas[index].nroClase,
+          unidad: temas[index].unidad,
+          caracterClase: temas[index].caracterClase,
+          observacionJefe: temas[index].observacionJefe,
+          planillaTaller: planilla,
+          fecha: fechaInicio,
+          activo: true,
+          fechaCreacion: hoy,
+        });
+      }
+
+      fechaInicio = moment(fechaInicio).utc().add(1, 'day');
+    }
+    return calendarioMaterias;
+  }
+  /**
+   * Obtiene los temas y el calendario
+   * 1. Si es por comision
+   * 2. Si es personalizado (por arreglo de dias)
+   * 3. Ninguno de los dos, solo trae los temas que ya tiene ingresado.
+   * *Importante: Si ya tiene los temas ingresado y los modifica debe traer
+   * los temas que trajo mas si es por comision o personalizado
+   * @param request
+   * @param response
+   * @param next
+   * @returns
+   */
   private obtenerCalendarioPorTipoMateria = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
@@ -131,160 +333,30 @@ class TemaController implements Controller {
           return next(new HttpException(400, 'Parametros Incorrectos'));
         }
         const planilla = planillaAggregate[0];
-
-        // Obtener calendario de taller
-        if (tipo.toString() === 'TALLER') {
-          let matchComision: any = null;
-          switch (planilla.curso.comision) {
-            case 'A':
-              matchComision = {
-                comisionA: 1,
-              };
-              break;
-            case 'B':
-              matchComision = {
-                comisionB: 1,
-              };
-              break;
-            case 'C':
-              matchComision = {
-                comisionC: 1,
-              };
-              break;
-            case 'D':
-              matchComision = {
-                comisionD: 1,
-              };
-              break;
-            case 'E':
-              matchComision = {
-                comisionE: 1,
-              };
-              break;
-            case 'F':
-              matchComision = {
-                comisionF: 1,
-              };
-              break;
-            case 'G':
-              matchComision = {
-                comisionG: 1,
-              };
-              break;
-            case 'H':
-              matchComision = {
-                comisionH: 1,
-              };
-              break;
-
-            default:
-              break;
-          }
-          const opciones: any = [
-            {
-              $lookup: {
-                from: 'ciclolectivos',
-                localField: 'cicloLectivo',
-                foreignField: '_id',
-                as: 'cicloLectivo',
-              },
-            },
-            {
-              $unwind: {
-                path: '$cicloLectivo',
-              },
-            },
-            {
-              $match: {
-                'cicloLectivo._id': ObjectId(planilla.cicloLectivo._id),
-                fecha: {
-                  $gte: planilla.fechaInicio, // funciona sin isodate
-                  $lt: planilla.fechaFinalizacion, // funciona sin isodate
-                },
-                ...matchComision,
-              },
-            },
-          ];
-          // Calendario por Comision
-          const calendario = await this.calendario.aggregate(opciones);
-          const temasARetornar: ITema[] & any = await Promise.all(
-            calendario.map((x) => {
-              const index = temas.findIndex((i) => {
-                return moment(i.fecha, 'YYYY-MM-DD').utc().isSame(moment(x.fecha, 'YYYY-MM-DD').utc());
-              });
-              if (index === -1) {
-                return {
-                  planillaTaller: planilla,
-                  fecha: x.fecha,
-                  activo: true,
-                  fechaCreacion: hoy,
-                };
-              } else {
-                return {
-                  _id: temas[index]._id,
-                  temaNro: temas[index].temaNro,
-                  temaDelDia: temas[index].temaDelDia,
-                  tipoDesarrollo: temas[index].tipoDesarrollo,
-                  temasProximaClase: temas[index].temasProximaClase,
-                  nroClase: temas[index].nroClase,
-                  unidad: temas[index].unidad,
-                  caracterClase: temas[index].caracterClase,
-                  observacionJefe: temas[index].observacionJefe,
-                  motivoSinDictar: temas[index].motivoSinDictar,
-                  planillaTaller: planilla,
-                  fecha: x.fecha,
-                  activo: true,
-                  fechaCreacion: hoy,
-                };
-              }
-            })
-          );
-          try {
-            // const temasSaved = await this.tema.insertMany(temasInsertar);
-            response.send({ status: 200, message: 'Calendario Academico (Taller)', temasDelCalendario: temasARetornar });
-          } catch (error) {
-            console.log('[ERROR]', error);
-            next(new HttpException(500, 'Error Interno al insertar los temas'));
-          }
-        }
-        // Cargar todos los dias
-        if (tipo.toString().toUpperCase() === 'MATERIAS' || tipo.toString().toUpperCase() === 'AULA') {
-          let fechaInicio = moment(planilla.fechaInicio, 'YYYY-MM-DD').utc();
-          let fechaFinal = moment(planilla.fechaFinalizacion, 'YYYY-MM-DD').utc();
-          const calendarioMaterias = [];
-          while (fechaFinal.isSameOrAfter(fechaInicio)) {
-            const index = temas.findIndex((i) => {
-              return moment(i.fecha, 'YYYY-MM-DD').utc().isSame(moment(fechaInicio, 'YYYY-MM-DD').utc());
-            });
-            if (index === -1) {
-              calendarioMaterias.push({
-                planillaTaller: planilla,
-                fecha: fechaInicio,
-                activo: true,
-                fechaCreacion: hoy,
-              });
-            } else {
-              calendarioMaterias.push({
-                _id: temas[index]._id,
-                temaNro: temas[index].temaNro,
-                temaDelDia: temas[index].temaDelDia,
-                tipoDesarrollo: temas[index].tipoDesarrollo,
-                temasProximaClase: temas[index].temasProximaClase,
-                nroClase: temas[index].nroClase,
-                unidad: temas[index].unidad,
-                caracterClase: temas[index].caracterClase,
-                observacionJefe: temas[index].observacionJefe,
-                planillaTaller: planilla,
-                fecha: fechaInicio,
-                activo: true,
-                fechaCreacion: hoy,
-              });
+        if (!planilla.tipoCalendario) {
+          // Solo devuelvo los temas que tenga cargado
+          const retornoSinCriterio = await this.calendarioSinCriterio(temas, planilla);
+          response.send({ status: 200, message: 'Calendario Academico (Taller)', temasDelCalendario: retornoSinCriterio });
+        } else {
+          if (planilla.tipoCalendario === 'POR COMISION') {
+            //   Obtiene el calendario por la comision (seria calendario de taller)
+            try {
+              const retornoTaller = await this.calendarioTaller(temas, planilla);
+              response.send({ status: 200, message: 'Calendario Academico (Taller)', temasDelCalendario: retornoTaller });
+            } catch (errorTaller) {
+              console.log('[ERROR]', errorTaller);
+              next(new HttpException(500, 'Error Interno al recuperar los temas del taller'));
             }
-
-            fechaInicio = moment(fechaInicio).utc().add(1, 'day');
+          } else {
+            //   Es un calendario personalizado, busca todos los dias seleccionados entre las fechas de ini y fin. Y los temas que contengan esas fechas
+            try {
+              const retornoAula = await this.calendarioAulas(temas, planilla);
+              response.send({ status: 200, message: 'Calendario Academico (Aula)', temasDelCalendario: retornoAula });
+            } catch (errorAula) {
+              console.log('[ERROR]', errorAula);
+              next(new HttpException(500, 'Error Interno al recuperar los temas del aula'));
+            }
           }
-          // const temasSaved = await this.tema.insertMany(calendarioMaterias);
-          response.send({ status: 200, message: 'Calendario Academico (Aulas)', temasDelCalendario: calendarioMaterias });
         }
       } catch (error) {
         console.log('[ERROR]', error);
@@ -301,7 +373,6 @@ class TemaController implements Controller {
     const tipo = escapeStringRegexp(request.body.tipo);
     try {
       const planillaId = request.body.planillaId;
-      console.log('planillaId', planillaId);
 
       const opcionesP: any = [
         {
@@ -376,8 +447,6 @@ class TemaController implements Controller {
               break;
 
             default:
-              console.log('BNONE');
-
               break;
           }
           const opciones: any = [
@@ -426,11 +495,12 @@ class TemaController implements Controller {
           }
         }
         // Cargar todos los dias
-        if (tipo.toString() === 'MATERIAS') {
+        if (tipo.toString() === 'AULAS' || tipo.toString() === 'MATERIAS') {
           let fechaInicio = moment(planilla.fechaInicio, 'YYYY-MM-DD').utc();
           let fechaFinal = moment(planilla.fechaFinalizacion, 'YYYY-MM-DD').utc();
           const calendarioMaterias = [];
           while (fechaFinal.isSameOrAfter(fechaInicio)) {
+            // TODO: Si fechaInicio pertenece al grupo de dias lo agrego
             calendarioMaterias.push({
               planillaTaller: planilla,
               fecha: fechaInicio,
@@ -515,7 +585,6 @@ class TemaController implements Controller {
   private actualizarTema = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const tema = request.body.tema;
-    console.log('tema', tema);
     // const ini = new Date(moment(tema.fecha).format('YYYY-MM-DD'));
     // tema.fecha = ini;
 

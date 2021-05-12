@@ -39,6 +39,8 @@ export const planillaTallerSchema = new mongoose.Schema({
   observacion: { type: String },
   bimestre: { type: String, required: true },
   turno: { type: String, required: false },
+  tipoCalendario: { type: String, required: false }, // POR COMISION , PERSONALIZADO
+  diasHabilitados: { type: Array, required: false }, // Lunes,Martes,Miercoles... (En ingles)
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },

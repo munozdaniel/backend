@@ -20,7 +20,8 @@ interface IPlanillaTaller extends mongoose.Document {
   observacion: string;
   bimestre: string;
   turno?: string;
-
+  tipoCalendario?: 'POR COMISION' | 'PERSONALIZADO';
+  diasHabilitados: string[]; // Lunes,Martes,Miercoles... (En ingles)
   fechaCreacion?: Date;
   fechaModificacion?: Date;
   activo: boolean;

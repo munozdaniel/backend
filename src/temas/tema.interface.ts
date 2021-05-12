@@ -11,6 +11,7 @@ interface ITema extends mongoose.Document {
   temasProximaClase?: string;
   nroClase?: number;
   unidad?: number;
+  motivoSinDictar?: string;
   caracterClase?: string;
   observacionJefe?: string;
 
