@@ -41,6 +41,7 @@ class AlumnoController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/todos`, this.obtenerTodos);
+    this.router.get(`${this.path}/todos-inactivo`, this.obtenerTodosInactivos);
     this.router.get(`${this.path}/eliminar-coleccion`, this.eliminarColeccion);
     this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
     // this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
@@ -55,6 +56,7 @@ class AlumnoController implements Controller {
       .delete(`${this.path}/:id`, this.deleteAlumno)
       .get(`${this.path}/disponible-legajo/:legajo`, this.disponibleLegajo)
       .get(`${this.path}/disponible-dni/:dni`, this.disponibleDni)
+      .post(`${this.path}/toggle-estado/:id`, this.toggleEstadoAlumno)
       .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
       .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
       .post(`${this.path}/por-curso-division-ciclo`, this.obtenerAlumnosPorCursoDivisionCiclo)
@@ -293,7 +295,6 @@ class AlumnoController implements Controller {
       if (!planillasTalleres || planillasTalleres.length < 1) {
         response.send({ planillasTalleres: [] });
       } else {
-        
         response.send({ planillasTalleres });
       }
       // Buscar los alumnos por estadoCursada
@@ -496,6 +497,24 @@ class AlumnoController implements Controller {
       next(new HttpException(500, 'Ocurrió un error interno'));
     }
   };
+  private toggleEstadoAlumno = async (request: Request, response: Response, next: NextFunction) => {
+    const id = escapeStringRegexp(request.params.id);
+    const activo = request.body.activo;
+    console.log('activo', activo);
+    try {
+      const alumnoEditado = await this.alumno.findByIdAndUpdate(ObjectId(id), { activo }, { new: true });
+      console.log('alumnoEditado', alumnoEditado);
+      if (alumnoEditado) {
+        response.status(200).send({ success: true });
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+
   private disponibleDni = async (request: Request, response: Response, next: NextFunction) => {
     const dni = escapeStringRegexp(request.params.dni);
     try {
@@ -1134,8 +1153,13 @@ class AlumnoController implements Controller {
 
     response.send(alumnos);
   };
+  private obtenerTodosInactivos = async (request: Request, response: Response) => {
+    const alumnos = await this.alumno.find({ activo: false }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
+
+    response.send(alumnos);
+  };
   private obtenerTodos = async (request: Request, response: Response) => {
-    const alumnos = await this.alumno.find().sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
+    const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
 
     response.send(alumnos);
   };
