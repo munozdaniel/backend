@@ -41,7 +41,7 @@ class AlumnoController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/todos`, this.obtenerTodos);
-    this.router.get(`${this.path}/todos-inactivo`, this.obtenerTodosInactivos);
+    this.router.get(`${this.path}/todos-inactivos`, this.obtenerTodosInactivos);
     this.router.get(`${this.path}/eliminar-coleccion`, this.eliminarColeccion);
     this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
     // this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
