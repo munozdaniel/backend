@@ -500,10 +500,8 @@ class AlumnoController implements Controller {
   private toggleEstadoAlumno = async (request: Request, response: Response, next: NextFunction) => {
     const id = escapeStringRegexp(request.params.id);
     const activo = request.body.activo;
-    console.log('activo', activo);
     try {
       const alumnoEditado = await this.alumno.findByIdAndUpdate(ObjectId(id), { activo }, { new: true });
-      console.log('alumnoEditado', alumnoEditado);
       if (alumnoEditado) {
         response.status(200).send({ success: true });
       } else {
