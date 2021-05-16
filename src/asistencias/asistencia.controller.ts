@@ -42,6 +42,7 @@ class AsistenciaController implements Controller {
       .patch(`${this.path}/:id`, this.actualizarAsistencia)
       .delete(`${this.path}/:id`, this.eliminar)
       .post(`${this.path}/buscar-inasistencias`, this.buscarInasistencias)
+      .post(`${this.path}/buscar-asistencias-por-fechas`, this.buscarAsistenciasPorFechas)
       .post(`${this.path}/tomar-asistencias`, this.tomarAsistenciaPorPlanilla)
       .post(`${this.path}/obtener-asistencias-hoy`, this.obtenerAsistenciasHoyPorPlanilla)
       .post(`${this.path}/obtener-asistencias-fecha`, this.buscarAsistenciasPorFechaYPlanilla);
@@ -302,7 +303,108 @@ class AsistenciaController implements Controller {
           }
         })
       );
-      response.send({alumnosMerge:alumnosInasistentes, alumnos, alumnosNoRegistrados: alumnosNoRegistrados });
+      response.send({ alumnosMerge: alumnosInasistentes, alumnos, alumnosNoRegistrados: alumnosNoRegistrados });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
+    }
+  };
+  private buscarAsistenciasPorFechas = async (request: Request, response: Response, next: NextFunction) => {
+    let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
+    let hasta: Date = new Date(moment.utc(request.body.hasta).format('YYYY-MM-DD'));
+    let match;
+    if (request.body.hasta) {
+      match = {
+        $gte: desde,
+        $lt: hasta,
+      };
+    } else {
+      match = {
+        $eq: desde,
+      };
+    }
+    try {
+      const opciones: any[] = [
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+          },
+        },
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'planillaTaller.curso',
+            foreignField: '_id',
+            as: 'planillaTaller.curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.curso',
+          },
+        },
+        {
+          $lookup: {
+            from: 'profesores',
+            localField: 'planillaTaller.profesor',
+            foreignField: '_id',
+            as: 'planillaTaller.profesor',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.profesor',
+          },
+        },
+        {
+          $lookup: {
+            from: 'asignaturas',
+            localField: 'planillaTaller.asignatura',
+            foreignField: '_id',
+            as: 'planillaTaller.asignatura',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.asignatura',
+          },
+        },
+        {
+          $match: {
+            fecha: match,
+          },
+        },
+        {
+          $sort: {
+            fecha: 1,
+          },
+        },
+      ];
+      const alumnosInasistentes = await this.asistencia.aggregate(opciones);
+
+      response.send({ alumnos: alumnosInasistentes });
     } catch (error) {
       console.log('[ERROR]', error);
       next(new HttpException(500, 'Problemas interno'));
