@@ -212,7 +212,6 @@ class AsistenciaController implements Controller {
         $eq: desde,
       };
     }
-    console.log('$matc', match);
     try {
       const opciones: any[] = [
         {
@@ -229,15 +228,62 @@ class AsistenciaController implements Controller {
           },
         },
         {
-          $match: {
-            presente: false,
-            fecha: match,
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
           },
         },
         {
-          $project: {
-            _id: 0,
-            alumno: 1,
+          $unwind: {
+            path: '$planillaTaller',
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'planillaTaller.curso',
+            foreignField: '_id',
+            as: 'planillaTaller.curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.curso',
+          },
+        },
+        {
+          $lookup: {
+            from: 'profesores',
+            localField: 'planillaTaller.profesor',
+            foreignField: '_id',
+            as: 'planillaTaller.profesor',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.profesor',
+          },
+        },
+        {
+          $lookup: {
+            from: 'asignaturas',
+            localField: 'planillaTaller.asignatura',
+            foreignField: '_id',
+            as: 'planillaTaller.asignatura',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.asignatura',
+          },
+        },
+        {
+          $match: {
+            presente: false,
+            fecha: match,
           },
         },
       ];
@@ -245,18 +291,18 @@ class AsistenciaController implements Controller {
       const alumnosNoRegistrados: any[] = [];
       const alumnos: any[] = [];
       await Promise.all(
-        alumnosInasistentes.map(async ({ alumno: x }) => {
-          const index: number = await x.adultos.findIndex((y: any) => y.email);
+        alumnosInasistentes.map(async (x) => {
+          const index: number = await x.alumno.adultos.findIndex((y: any) => y.email);
           let email = null;
           if (index !== -1) {
-            email = x.adultos[index].email;
-            alumnos.push({ ...x, email, nombreAdulto: x.adultos[index].nombreCompleto });
+            email = x.alumno.adultos[index].email;
+            alumnos.push({ ...x, email, nombreAdulto: x.alumno.adultos[index].nombreCompleto });
           } else {
             alumnosNoRegistrados.push(x);
           }
         })
       );
-      response.send({ alumnos, alumnosNoRegistrados: alumnosNoRegistrados });
+      response.send({alumnosMerge:alumnosInasistentes, alumnos, alumnosNoRegistrados: alumnosNoRegistrados });
     } catch (error) {
       console.log('[ERROR]', error);
       next(new HttpException(500, 'Problemas interno'));
@@ -402,70 +448,75 @@ class AsistenciaController implements Controller {
   };
   // TODO: General
   private informeAsistenciasGeneral = async (request: Request, response: Response, next: NextFunction) => {
-    const planilla = request.body.planillaTaller;
-    let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
-    const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
-    // Obtenemos el calendario
-    const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
-    // Obtenemos los alumnos
-    const { curso, comision, division } = planilla.curso;
-    const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
-    // =================================
-    const asistenciasPorAlumno = await Promise.all(
-      alumnos.map(async (alumno: any) => {
-        const asistenciasArray = await Promise.all(
-          calendario.map(async (x: any) => {
-            const f: any = new Date(moment.utc(x.fecha).format('YYYY-MM-DD'));
-            const opciones: any[] = [
-              {
-                $match: {
-                  planillaTaller: ObjectId(planilla._id),
-                  alumno: ObjectId(alumno._id),
-                  fecha: f,
+    try {
+      const planilla = request.body.planillaTaller;
+      let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
+      const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
+      // Obtenemos el calendario
+      const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
+      // Obtenemos los alumnos
+      const { curso, comision, division } = planilla.curso;
+      const alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
+      // =================================
+      const asistenciasPorAlumno = await Promise.all(
+        alumnos.map(async (alumno: any) => {
+          const asistenciasArray = await Promise.all(
+            calendario.map(async (x: any) => {
+              const f: any = new Date(moment.utc(x.fecha).format('YYYY-MM-DD'));
+              const opciones: any[] = [
+                {
+                  $match: {
+                    planillaTaller: ObjectId(planilla._id),
+                    alumno: ObjectId(alumno._id),
+                    fecha: f,
+                  },
                 },
-              },
-            ];
-            const asistencias = await this.asistencia.aggregate(opciones);
-            if (asistencias && asistencias.length > 0) {
-              return {
-                // legajo: alumno.legajo,
-                // alumnoId: alumno._id,
-                // alumnoNombre: alumno.nombreCompleto,
-                tarde: asistencias[0].tarde ? 'SI' : 'NO',
-                presente: asistencias[0].presente ? 'SI' : 'NO',
-                fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
-                encontrada: true,
-              };
-            } else {
-              // totalAsistencias += asistencias[0].presente ? 1 : 0;
-              // totalAusentes += !asistencias[0].presente ? 1 : 0;
-              return {
-                // legajo: alumno.legajo,
-                // alumnoId: alumno._id,
-                // alumnoNombre: alumno.nombreCompleto,
-                tarde: '-',
-                presente: '-',
-                fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
-                encontrada: false, // No se agendó la asistencia
-              };
-            }
-          })
-        );
-        return {
-          legajo: alumno.legajo,
-          alumnoId: alumno._id,
-          alumnoNombre: alumno.nombreCompleto,
-          asistenciasArray,
-        };
-      })
-    );
-    // =================================
+              ];
+              const asistencias = await this.asistencia.aggregate(opciones);
+              if (asistencias && asistencias.length > 0) {
+                return {
+                  // legajo: alumno.legajo,
+                  // alumnoId: alumno._id,
+                  // alumnoNombre: alumno.nombreCompleto,
+                  tarde: asistencias[0].tarde ? 'SI' : 'NO',
+                  presente: asistencias[0].presente ? 'SI' : 'NO',
+                  fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+                  encontrada: true,
+                };
+              } else {
+                // totalAsistencias += asistencias[0].presente ? 1 : 0;
+                // totalAusentes += !asistencias[0].presente ? 1 : 0;
+                return {
+                  // legajo: alumno.legajo,
+                  // alumnoId: alumno._id,
+                  // alumnoNombre: alumno.nombreCompleto,
+                  tarde: '-',
+                  presente: '-',
+                  fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+                  encontrada: false, // No se agendó la asistencia
+                };
+              }
+            })
+          );
+          return {
+            legajo: alumno.legajo,
+            alumnoId: alumno._id,
+            alumnoNombre: alumno.nombreCompleto,
+            asistenciasArray,
+          };
+        })
+      );
+      // =================================
 
-    return response.send({
-      asistenciasPorAlumno,
-      calendario,
-      alumnos,
-    });
+      return response.send({
+        asistenciasPorAlumno,
+        calendario,
+        alumnos,
+      });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un problema interno'));
+    }
   };
   private informeAsistenciasPlantillasEntreFechas = async (request: Request, response: Response, next: NextFunction) => {
     const comision = request.body.comision;

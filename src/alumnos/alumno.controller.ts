@@ -43,6 +43,7 @@ class AlumnoController implements Controller {
     this.router.get(`${this.path}/todos`, this.obtenerTodos);
     this.router.get(`${this.path}/todos-inactivos`, this.obtenerTodosInactivos);
     this.router.get(`${this.path}/eliminar-coleccion`, this.eliminarColeccion);
+    this.router.get(`${this.path}/comprobar-estado-cursada/:id`, this.comprobarEstadoCursadaParaEditar);
     this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
     // this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
     this.router.post(`${this.path}/ficha`, this.getFichaAlumnos);
@@ -1146,20 +1147,55 @@ class AlumnoController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  private getAllAlumnos = async (request: Request, response: Response) => {
-    const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
-
-    response.send(alumnos);
+  private comprobarEstadoCursadaParaEditar = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const opciones: any[] = [
+        {
+          $match: {
+            estadoCursadas: ObjectId(id),
+          },
+        },
+      ];
+      const alumnos = await this.alumno.aggregate(opciones); //.populate('author', '-password') populate con imagen
+      if (alumnos && alumnos.length > 0) {
+        response.send(false); // Disponible? false
+      } else {
+        response.send(true); // Disponible? true
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un problema interno'));
+    }
   };
-  private obtenerTodosInactivos = async (request: Request, response: Response) => {
-    const alumnos = await this.alumno.find({ activo: false }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
-
-    response.send(alumnos);
+  private getAllAlumnos = async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
+      response.send(alumnos);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un problema interno'));
+    }
   };
-  private obtenerTodos = async (request: Request, response: Response) => {
-    const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
+  private obtenerTodosInactivos = async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const alumnos = await this.alumno.find({ activo: false }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
 
-    response.send(alumnos);
+      response.send(alumnos);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un problema interno'));
+    }
+  };
+  private obtenerTodos = async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
+
+      response.send(alumnos);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un problema interno'));
+    }
   };
   private obtenerAlumnoPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
@@ -1440,7 +1476,7 @@ class AlumnoController implements Controller {
       next(new HttpException(400, 'Parametros Incorrectos'));
     }
   };
-  // private getAllAlumnosPag = async (request: Request, response: Response) => {
+  // private getAllAlumnosPag = async (request: Request, response: Response, next: NextFunction) => {
   //   const parametros: IQueryAlumnoPag = request.query;
 
   //   const criterios = request.query.query
