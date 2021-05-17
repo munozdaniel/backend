@@ -743,6 +743,7 @@ class AlumnoController implements Controller {
       'estadoCursadas.curso.comision': comision,
       'estadoCursadas.curso.curso': Number(curso),
       'estadoCursadas.curso.division': Number(division),
+      activo: true,
     };
     const opciones: any = [
       {
