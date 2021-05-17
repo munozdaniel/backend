@@ -73,6 +73,21 @@ class SeguimientoAlumnoController implements Controller {
             preserveNullAndEmptyArrays: true,
           },
         },
+        // Curso
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'planillaTaller.curso',
+            foreignField: '_id',
+            as: 'planillaTaller.curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.curso',
+          },
+        },
+        // CicloLectivo
         {
           $lookup: {
             from: 'ciclolectivos',
