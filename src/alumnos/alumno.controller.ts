@@ -1468,7 +1468,7 @@ class AlumnoController implements Controller {
         });
       } catch (e) {
         // [ 'errors', '_message', 'message', 'name' ]
-        console.log('[ERROR 1]', e.errors);
+        console.log('[ERROR 1]', e);
         next(new HttpException(500, 'Problemas al insertar los registros'));
       }
     } catch (e2) {
