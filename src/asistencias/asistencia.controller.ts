@@ -1042,31 +1042,31 @@ class AsistenciaController implements Controller {
   private migrarMultiples = async (request: Request, response: Response, next: NextFunction) => {
     // ================================================================
     let filtrados = await this.recuperarDatos(0, 10000, request, response, next);
-    let savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
+    let savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: true });
     console.log('(0,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(10000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: true });
     console.log('(10000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(20000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: true });
     console.log('(20000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(30000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: true });
     console.log('(30000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(40000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: true });
     console.log('(40000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(50000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: true });
     console.log('(50000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(60000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: true });
     console.log('(60000,10000)================>', savedAsistencias.length);
     response.send({
       message: 'Finalizado',
