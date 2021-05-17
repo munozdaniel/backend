@@ -1042,31 +1042,31 @@ class AsistenciaController implements Controller {
   private migrarMultiples = async (request: Request, response: Response, next: NextFunction) => {
     // ================================================================
     let filtrados = await this.recuperarDatos(0, 10000, request, response, next);
-    let savedAsistencias = await this.asistencia.insertMany(filtrados);
+    let savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
     console.log('(0,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(10000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados);
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
     console.log('(10000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(20000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados);
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
     console.log('(20000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(30000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados);
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
     console.log('(30000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(40000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados);
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
     console.log('(40000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(50000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados);
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
     console.log('(50000,10000)================>', savedAsistencias.length);
     // ================================================================
     filtrados = await this.recuperarDatos(60000, 10000, request, response, next);
-    savedAsistencias = await this.asistencia.insertMany(filtrados);
+    savedAsistencias = await this.asistencia.insertMany(filtrados, { ordered: false });
     console.log('(60000,10000)================>', savedAsistencias.length);
     response.send({
       message: 'Finalizado',
@@ -1075,7 +1075,7 @@ class AsistenciaController implements Controller {
   private migrar = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const now = new Date();
-      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+      const hoy = new Date(moment.utc(now).format('YYYY-MM-DD'));
       const asistenciasOriginales: any = await this.asistenciaOriginal.find().limit(10000);
       // const asistenciasOriginales2: any = await this.asistenciaOriginal.find().skip(10000).limit(10000);
       // const asistenciasOriginales3: any = await this.asistenciaOriginal.find().skip(20000).limit(10000);
