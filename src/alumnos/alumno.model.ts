@@ -21,7 +21,7 @@ export const alumnoSchema = new mongoose.Schema({
   ],
   legajo: { type: String, required: false, unique: false },
   alumnoId: { type: Number, required: false },
-  dni: { type: String, required: false, unique: true }, // Para migrar sin required
+  dni: { type: String, required: false, unique: false }, // Para migrar sin required
   tipoDni: { type: String, default: 'DNI', uppercase: true, require: true },
   nombreCompleto: { type: String, required: true },
   fechaNacimiento: { type: String, required: false }, // Para migrar sin required
