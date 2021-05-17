@@ -1316,8 +1316,8 @@ class AlumnoController implements Controller {
           if (x.dni) {
             if (x.dni.includes('-')) {
               const d = x.dni.split('-');
-              dniMod = d[0] ? d[0].trim() : null;
-              tipoDniMod = d[1] ? d[1].trim() : null;
+              tipoDniMod = d[0] ? d[0].trim() : null;
+              dniMod = d[1] ? d[1].trim() : null;
               // if (d && d.length > 1) {
               //   dniMod = d[0].trim();
               //   tipoDniMod = d[1].trim();
