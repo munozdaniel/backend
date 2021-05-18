@@ -394,6 +394,7 @@ class AsistenciaController implements Controller {
         {
           $match: {
             fecha: match,
+            presente: false,
           },
         },
         {
