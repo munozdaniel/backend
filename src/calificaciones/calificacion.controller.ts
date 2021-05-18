@@ -258,7 +258,6 @@ class CalificacionController implements Controller {
   };
   private guardarCalificacion = async (request: Request, response: Response, next: NextFunction) => {
     const calificacionData: CreateCalificacionDto = request.body;
-    console.log('¿calificacionData', calificacionData);
     const created = new this.calificacion({
       ...calificacionData,
     });

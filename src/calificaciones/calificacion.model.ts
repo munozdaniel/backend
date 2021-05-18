@@ -28,12 +28,14 @@ export const calificacionSchema = new mongoose.Schema({
   formaExamen: { type: String, required: false },
   tipoExamen: { type: String, required: false },
   promedia: { type: Boolean, required: true },
-  promedioGeneral: { type: Number, required: true },
+  promedioGeneral: { type: Number, required: false },
   observaciones: { type: String, required: false },
 
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
+  ausente: { type: Boolean, default: false },
+  ausentePermitido: { type: Boolean, default: false },
 });
 
 // Modelo
