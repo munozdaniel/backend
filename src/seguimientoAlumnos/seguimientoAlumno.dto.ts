@@ -12,6 +12,7 @@ import {
   IsDate,
 } from 'class-validator';
 import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
+import UsuarioDto from '../usuario/usuario.dto';
 
 class CrearSeguimientoAlumnoDto {
   @ValidateNested() alumno: IAlumno;
@@ -62,10 +63,15 @@ class CrearSeguimientoAlumnoDto {
     message: 'La observacion del jefe de taller no puede superar los 100 caracteres',
   })
   observacionJefe: string;
-
   @IsOptional()
   @IsDate()
   fechaCreacion: string;
+  @IsOptional()
+  @ValidateNested()
+  creadoPor: UsuarioDto;
+  @IsOptional()
+  @ValidateNested()
+  modificadoPor: UsuarioDto;
   @IsDate()
   @IsOptional()
   fechaModificacion?: string;

@@ -14,6 +14,7 @@ import alumnoModel from '../alumnos/alumno.model';
 import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 import moment from 'moment';
+import usuarioModel from '../usuario/usuario.model';
 const ObjectId = mongoose.Types.ObjectId;
 class SeguimientoAlumnoController implements Controller {
   public path = '/seguimiento-alumnos';
@@ -23,6 +24,7 @@ class SeguimientoAlumnoController implements Controller {
   private alumno = alumnoModel;
   private seguimientoAlumnoOriginal = seguimientoAlumnoOriginalModel;
   private ciclolectivo = ciclolectivoModel;
+  private usuario = usuarioModel;
 
   constructor() {
     this.initializeRoutes();
@@ -59,6 +61,37 @@ class SeguimientoAlumnoController implements Controller {
             preserveNullAndEmptyArrays: false,
           },
         },
+        // Usuario
+        {
+          $lookup: {
+            from: 'usuarios',
+            localField: 'modificadoPor',
+            foreignField: '_id',
+            as: 'modificadoPor',
+          },
+        },
+        {
+          $unwind: {
+            path: '$modificadoPor',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'usuarios',
+            localField: 'creadoPor',
+            foreignField: '_id',
+            as: 'creadoPor',
+          },
+        },
+        {
+          $unwind: {
+            path: '$creadoPor',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // PlanillaTaller
+
         {
           $lookup: {
             from: 'planillatalleres',
@@ -138,6 +171,7 @@ class SeguimientoAlumnoController implements Controller {
   };
   private agregarSeguimientoAlumno = async (request: Request, response: Response, next: NextFunction) => {
     const seguimientoData: CreateSeguimientoAlumnoDto = request.body;
+    const email = request.body.creadoPor.email;
     const ini = new Date(moment.utc(seguimientoData.fecha).format('YYYY-MM-DD')); // Se hace esto para que no pase al siguient dia
     seguimientoData.fecha = ini;
     let match: any = {
@@ -161,39 +195,61 @@ class SeguimientoAlumnoController implements Controller {
     }
     // const ini = new Date(moment(seguimientoData.fecha).utc().format('YYYY-MM-DD'));
     // seguimientoData.fecha = ini;
-
     try {
-      const updated = await this.seguimientoAlumno.findOne(match);
-      if (updated) {
-        response.send({
-          tema: updated,
-          success: false,
-          message: 'Ya existe cargado un seguimiento en la fecha: ' + moment.utc(ini).format('DD/MM/YYYY').toString(),
-        });
+      const usuario: any = await this.usuario.findOne({ email: email });
+      if (usuario) {
+        seguimientoData.creadoPor = usuario;
+        try {
+          const updated = await this.seguimientoAlumno.findOne(match);
+          if (updated) {
+            response.send({
+              tema: updated,
+              success: false,
+              message: 'Ya existe cargado un seguimiento en la fecha: ' + moment.utc(ini).format('DD/MM/YYYY').toString(),
+            });
+          } else {
+            const created = new this.seguimientoAlumno({
+              ...seguimientoData,
+            });
+            const saved = await created.save();
+            response.send({ seguimiento: saved, success: true, message: 'Seguimiento agregado correctamente' });
+          }
+        } catch (error) {
+          console.log('[ERROR]', error);
+          next(new HttpException(500, 'Error Interno'));
+        }
       } else {
-        const created = new this.seguimientoAlumno({
-          ...seguimientoData,
-        });
-        const saved = await created.save();
-        response.send({ seguimiento: saved, success: true, message: 'Seguimiento agregado correctamente' });
+        response.send({ seguimiento: null, success: false, message: 'El usuario no existe' });
       }
-    } catch (error) {
-      console.log('[ERROR]', error);
-      next(new HttpException(500, 'Error Interno'));
+    } catch (e4) {
+      console.log('[ERROR], ', e4);
+      next(new HttpException(500, 'Ocurrió un error interno'));
     }
   };
   private actualizarSeguimientoAlumno = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const seguimiento = request.body;
-    const fechadate = new Date(seguimiento.fecha);
-    const fecha = new Date(moment(fechadate).format('YYYY-MM-DD'));
-    seguimiento.fecha = fecha;
+    const email = request.body.modificadoPor.email;
     try {
-      const updated = await this.seguimientoAlumno.findByIdAndUpdate(id, seguimiento, { new: true });
-      if (updated) {
-        response.send({ seguimiento: updated });
+      const usuario = await this.usuario.findOne({ email: email });
+      if (usuario) {
+        seguimiento.modificadoPor = usuario;
+        const fechadate = new Date(seguimiento.fecha);
+        const fecha = new Date(moment.utc(fechadate).format('YYYY-MM-DD'));
+        seguimiento.fechaModificacion = fecha;
+        try {
+          const updated = await this.seguimientoAlumno.findByIdAndUpdate(id, seguimiento, { new: true });
+          if (updated) {
+            response.send({ seguimiento: updated });
+          } else {
+            response.send({ seguimiento: null });
+          }
+        } catch (e4) {
+          console.log('[ERROR], ', e4);
+          next(new HttpException(500, 'Ocurrió un error interno'));
+        }
       } else {
-        response.send({ seguimiento: null });
+        response.send({ seguimiento: null, message: 'El usuario no existe' });
       }
     } catch (e4) {
       console.log('[ERROR], ', e4);
@@ -279,6 +335,35 @@ class SeguimientoAlumnoController implements Controller {
         $match: {
           planillaTaller: ObjectId(id),
           'alumno._id': ObjectId(alumnoId),
+        },
+      },
+      // Usuario
+      {
+        $lookup: {
+          from: 'usuarios',
+          localField: 'modificadoPor',
+          foreignField: '_id',
+          as: 'modificadoPor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$modificadoPor',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'usuarios',
+          localField: 'creadoPor',
+          foreignField: '_id',
+          as: 'creadoPor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$creadoPor',
+          preserveNullAndEmptyArrays: true,
         },
       },
     ];

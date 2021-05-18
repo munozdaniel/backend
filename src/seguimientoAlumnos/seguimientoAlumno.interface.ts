@@ -3,6 +3,7 @@ import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
 import mongoose from 'mongoose';
 
 import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
+import { IUsuario } from '../usuario/usuario.interface';
 interface ISeguimientoAlumno extends mongoose.Document {
   _id: string;
   id_seguimiento: number; // para migrar
@@ -16,7 +17,8 @@ interface ISeguimientoAlumno extends mongoose.Document {
   observacion: string;
   observacion2: string;
   observacionJefe: string;
-
+  creadoPor?: IUsuario | string;
+  modificadoPor?: IUsuario | string;
   fechaCreacion: Date;
   fechaModificacion?: Date;
   activo: boolean;
