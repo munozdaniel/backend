@@ -509,6 +509,11 @@ class SeguimientoAlumnoController implements Controller {
             path: '$cicloLectivo',
           },
         },
+        {
+          $sort: {
+            fecha: -1,
+          },
+        },
       ];
 
       if (typeof resuelto === 'boolean') {
