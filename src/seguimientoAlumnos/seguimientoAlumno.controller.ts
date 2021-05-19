@@ -300,6 +300,35 @@ class SeguimientoAlumnoController implements Controller {
           path: '$cicloLectivo',
         },
       },
+      // Usuario
+      {
+        $lookup: {
+          from: 'usuarios',
+          localField: 'modificadoPor',
+          foreignField: '_id',
+          as: 'modificadoPor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$modificadoPor',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'usuarios',
+          localField: 'creadoPor',
+          foreignField: '_id',
+          as: 'creadoPor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$creadoPor',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
       {
         $match: {
           'alumno._id': ObjectId(alumnoId),
@@ -335,6 +364,34 @@ class SeguimientoAlumnoController implements Controller {
         $match: {
           planillaTaller: ObjectId(id),
           'alumno._id': ObjectId(alumnoId),
+        },
+      },
+      {
+        $lookup: {
+          from: 'planillatalleres',
+          localField: 'planillaTaller',
+          foreignField: '_id',
+          as: 'planillaTaller',
+        },
+      },
+      {
+        $unwind: {
+          path: '$planillaTaller',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      // Curso
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'planillaTaller.curso',
+          foreignField: '_id',
+          as: 'planillaTaller.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$planillaTaller.curso',
         },
       },
       // Usuario
