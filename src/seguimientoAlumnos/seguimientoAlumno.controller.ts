@@ -47,6 +47,38 @@ class SeguimientoAlumnoController implements Controller {
     const id = request.params.id;
     try {
       const opciones: any = [
+        // PlanillaTaller
+
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // Curso
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'planillaTaller.curso',
+            foreignField: '_id',
+            as: 'planillaTaller.curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.curso',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        //
         {
           $lookup: {
             from: 'alumnos',
@@ -90,36 +122,7 @@ class SeguimientoAlumnoController implements Controller {
             preserveNullAndEmptyArrays: true,
           },
         },
-        // PlanillaTaller
 
-        {
-          $lookup: {
-            from: 'planillatalleres',
-            localField: 'planillaTaller',
-            foreignField: '_id',
-            as: 'planillaTaller',
-          },
-        },
-        {
-          $unwind: {
-            path: '$planillaTaller',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        // Curso
-        {
-          $lookup: {
-            from: 'cursos',
-            localField: 'planillaTaller.curso',
-            foreignField: '_id',
-            as: 'planillaTaller.curso',
-          },
-        },
-        {
-          $unwind: {
-            path: '$planillaTaller.curso',
-          },
-        },
         // CicloLectivo
         {
           $lookup: {
@@ -140,9 +143,24 @@ class SeguimientoAlumnoController implements Controller {
           },
         },
       ];
-      const successResponse = await this.seguimientoAlumno.aggregate(opciones);
+      const successResponse: any[] = await this.seguimientoAlumno.aggregate(opciones);
       if (successResponse) {
-        response.send({ seguimiento: successResponse && successResponse.length > 0 ? successResponse[0] : null });
+        const seguimiento = successResponse.length > 0 ? successResponse[0] : null;
+        // TODO: ELiminar hash y salt en todos lados que se recupere creadoPor y modificadoPor
+        if (seguimiento && seguimiento.creadorPor) {
+          seguimiento.creadoPor.hash = null;
+          seguimiento.creadoPor.salt = null;
+        }
+        if (seguimiento && seguimiento.modificadoPor) {
+          seguimiento.modificadoPor.hash = null;
+          seguimiento.modificadoPor.salt = null;
+        }
+
+        if (seguimiento && seguimiento.planillaTaller && !seguimiento.planillaTaller._id) {
+          seguimiento.planillaTaller = null;
+        }
+
+        response.send({ seguimiento: seguimiento });
       } else {
         next(new NotFoundException(id));
       }
