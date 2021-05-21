@@ -159,6 +159,7 @@ class AsistenciaController implements Controller {
             fecha: f,
             presente: alumno.presente,
             llegoTarde: alumno.tarde,
+            ausentePermitido: alumno.ausentePermitido,
             fechaCreacion: f,
             activo: true,
           };
@@ -188,6 +189,7 @@ class AsistenciaController implements Controller {
           alumno: alumno,
           fecha: f,
           presente: alumno.presente,
+          ausentePermitido: alumno.ausentePermitido,
           llegoTarde: alumno.tarde,
           fechaCreacion: f,
           activo: true,

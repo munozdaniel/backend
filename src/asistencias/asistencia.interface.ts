@@ -10,7 +10,7 @@ interface IAsistencia extends mongoose.Document {
   fecha: Date;
   presente: boolean;
   llegoTarde: boolean;
-
+  ausentePermitido?:boolean;
   fechaCreacion?: Date;
   fechaModificacion?: Date;
   activo: boolean;

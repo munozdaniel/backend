@@ -20,6 +20,7 @@ export const asistenciaSchema = new mongoose.Schema({
     required: true,
   },
   id_planilla_de_asistencia: { type: Number }, // para migrar
+  ausentePermitido: { type: Boolean, required: false },
   presente: { type: Boolean, required: true, default: true },
   llegoTarde: { type: Boolean, required: false, default: false },
   fecha: { type: Date, required: true },
