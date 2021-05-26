@@ -90,6 +90,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$curso',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -146,7 +147,6 @@ class PlanillaTallerController implements Controller {
           new: true,
         }
       );
-      console.log('cursoEncontrado', cursoEncontrado);
 
       planillaTaller.curso = Number(planillaTaller.curso);
       const planillaUpdate: IPlanillaTaller & any = {
@@ -270,6 +270,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$profesor',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -283,6 +284,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$asignatura',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -296,6 +298,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$curso',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -309,6 +312,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$cicloLectivo',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -341,6 +345,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$profesor',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -354,6 +359,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$asignatura',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -367,6 +373,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$cicloLectivo',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -380,6 +387,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$curso',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -522,7 +530,7 @@ class PlanillaTallerController implements Controller {
           as: 'comision',
         },
       },
-      { $unwind: '$comision' },
+      { $unwind: '$comision', preserveNullAndEmptyArrays: true },
       {
         $lookup: {
           from: 'profesores', //otherCollection
@@ -531,7 +539,7 @@ class PlanillaTallerController implements Controller {
           as: 'profesor',
         },
       },
-      { $unwind: '$profesor' },
+      { $unwind: '$profesor', preserveNullAndEmptyArrays: true },
       {
         $lookup: {
           from: 'asignaturas', //otherCollection
@@ -540,7 +548,7 @@ class PlanillaTallerController implements Controller {
           as: 'asignatura', // nombre resultante de la union (uso el mismo)
         },
       },
-      { $unwind: '$asignatura' }, // desestructura cada asignatura en un registro
+      { $unwind: '$asignatura', preserveNullAndEmptyArrays: true }, // desestructura cada asignatura en un registro
       {
         $addFields: {
           fechaInicioString: {
