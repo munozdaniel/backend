@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 
 class CrearAlumnoDto {
+  @IsOptional()
   @IsString({ message: 'El legajo no ha sido ingresado' })
   public legajo: string;
   @IsString({ message: 'El dni no ha sido ingresado' })
@@ -28,12 +29,6 @@ class CrearAlumnoDto {
   public _id: string;
   @IsString()
   @IsOptional()
-  @MinLength(4, {
-    message: 'La obs del telefono es muy corto',
-  })
-  @MaxLength(50, {
-    message: 'La obs del telefono no puede superar los 50 digitos',
-  })
   public observacionTelefono: string;
   @IsString()
   @IsOptional()
