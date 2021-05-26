@@ -18,6 +18,7 @@ import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import NotFoundException from '../exceptions/NotFoundException';
 import calendarioModel from '../calendario/calendario.model';
 import moment from 'moment';
+import ICurso from 'cursos/curso.interface';
 
 const ObjectId = mongoose.Types.ObjectId;
 class PlanillaTallerController implements Controller {
@@ -130,8 +131,23 @@ class PlanillaTallerController implements Controller {
       // Si cambia las fechas buscar el ciclo
       const cicloLectivo = await this.ciclolectivo.findOne({ anio: planillaTaller.anio });
       // Buscar el curso por comision, division, curso
-      const { cursoNro, division, comision } = planillaTaller;
-      const cursoEncontrado = await this.curso.findOne({ curso: Number(cursoNro), division, comision });
+      const { curso, division, comision } = planillaTaller;
+      const cursoBuscar: ICurso & any = {
+        curso,
+        comision,
+        division,
+        activo: true,
+      };
+      const cursoEncontrado = await this.curso.findOneAndUpdate(
+        { curso: Number(curso), division: Number(division), comision },
+        cursoBuscar,
+        {
+          upsert: true,
+          new: true,
+        }
+      );
+      console.log('cursoEncontrado', cursoEncontrado);
+
       planillaTaller.curso = Number(planillaTaller.curso);
       const planillaUpdate: IPlanillaTaller & any = {
         asignatura: planillaTaller.asignatura,
@@ -203,7 +219,7 @@ class PlanillaTallerController implements Controller {
    * @param response
    * @param next
    */
-//   NO SE DEBERIA USAR MAS, COMPROBAR PORQUE
+  //   NO SE DEBERIA USAR MAS, COMPROBAR PORQUE
 
   private buscarTotalAsistenciaPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const planillaId = request.params.id;
@@ -421,6 +437,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$profesor',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -434,6 +451,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$asignatura',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -447,6 +465,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$cicloLectivo',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -460,6 +479,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$curso',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
