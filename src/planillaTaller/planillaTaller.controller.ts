@@ -201,6 +201,7 @@ class PlanillaTallerController implements Controller {
         fechaFinalizacion: fin,
         curso: unCurso,
         cicloLectivo: unCicloLectivo,
+        fechaCreacion: hoy,
         // author: request.user ? request.user._id : null,
       });
       try {
