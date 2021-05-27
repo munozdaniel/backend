@@ -494,6 +494,7 @@ class PlanillaTallerController implements Controller {
       {
         $match: {
           'cicloLectivo.anio': Number(ciclo),
+          activo: true,
         },
       },
       { $sort: { _id: -1 } },
