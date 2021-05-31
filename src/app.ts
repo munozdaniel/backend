@@ -102,7 +102,11 @@ class App {
   private initializeMiddlewares() {
     this.app.use(bodyParser.json({ limit: '10mb' }));
     this.app.use(cookieParser());
-    const __dirname = path.resolve(path.dirname('')); 
+    const { ENTORNO } = process.env;
+
+    if (ENTORNO !== 'desarrollo') {
+      const __dirname = path.resolve(path.dirname(''));
+    }
     this.app.use('/public', express.static(__dirname + '/public'));
     this.app.set('view engine', '.hbs');
     this.app.set('views', path.join(__dirname, 'views'));
