@@ -1620,6 +1620,37 @@ class AlumnoController implements Controller {
     const id = request.params.id;
     const alumnoData: Alumno = request.body;
     try {
+      if (alumnoData.estadoCursadas && alumnoData.estadoCursadas.length > 0) {
+        const estadoCursadasNuevas = await Promise.all(
+          alumnoData.estadoCursadas.map(async (x) => {
+            const cursoCheck = x.curso;
+            const curso = await this.curso.findOneAndUpdate(
+              {
+                curso: Number(x.curso.curso),
+                comision: x.curso.comision,
+                division: Number(x.curso.division),
+              },
+              x.curso,
+              { upsert: true, new: true }
+            );
+            x.curso = curso;
+            if (x._id) {
+              return await this.estadoCursada.findByIdAndUpdate(x._id, x, { upsert: true, new: true });
+            } else {
+              const now = new Date();
+              const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+              const created = new this.estadoCursada({
+                ...x,
+                fechaCreacion: hoy,
+                // author: request.user ? request.user._id : null,
+              });
+              const saved = await created.save();
+              return saved;
+            }
+          })
+        );
+        alumnoData.estadoCursadas = estadoCursadasNuevas;
+      }
       const alumno = await this.alumno.findByIdAndUpdate(id, alumnoData, {
         new: true,
       });
