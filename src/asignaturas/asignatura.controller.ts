@@ -10,6 +10,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import IAsignatura from './asignatura.interface';
 import asignaturaOriginalModel from './asignaturaOriginal.model';
 import cursoModel from '../cursos/curso.model';
+import passport from 'passport';
 import moment from 'moment';
 class AsignaturaController implements Controller {
   public path = '/asignaturas';
@@ -25,7 +26,7 @@ class AsignaturaController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/test`, this.test);
-    this.router.get(`${this.path}`, this.getAllAsignaturas);
+    this.router.get(`${this.path}`, passport.authenticate('jwt', { session: false }), this.getAllAsignaturas);
     this.router.get(`${this.path}/habilitados`, this.getAllAsignaturasHabilitadas);
     // this.router.get(`${this.path}/paginado`, this.getAllAsignaturasPag);
 
