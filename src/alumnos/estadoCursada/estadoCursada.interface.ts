@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 import ICurso from 'cursos/curso.interface';
 import ICicloLectivo from 'ciclolectivos/ciclolectivo.interface';
 interface IEstadoCursada extends mongoose.Document {
-  // _id: string;
-  estadoCursadaNro?: number;
+  _id?: string;
+  // estadoCursadaNro?: number;
   curso: ICurso;
   condicion: string;
   cicloLectivo: ICicloLectivo;

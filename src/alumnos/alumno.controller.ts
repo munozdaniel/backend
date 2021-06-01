@@ -135,66 +135,53 @@ class AlumnoController implements Controller {
   };
   private agregarEstadoCursada = async (request: Request, response: Response, next: NextFunction) => {
     const alumnoId = request.params.id;
-    try {
-      const alumno: IAlumno = await this.alumno.findById(alumnoId).populate('estadoCursadas');
-      if (alumno) {
-        const estadoCursada: IEstadoCursada = request.body.estadoCursada;
-        // Buscamos el curso
-        const now = new Date();
-        const hoy = new Date(moment(now).format('YYYY-MM-DD'));
-        const nuevo = {
-          curso: estadoCursada.curso.curso,
-          comision: estadoCursada.curso.comision,
-          division: estadoCursada.curso.division,
-          // fechaCreacion: hoy,
-          activo: true,
-        };
-        const match = {
-          curso: estadoCursada.curso.curso,
-          comision: estadoCursada.curso.comision,
-          division: estadoCursada.curso.division,
-        };
-        const curso = await this.curso.findOneAndUpdate(match, nuevo, {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true,
-        });
-        estadoCursada.curso = curso;
-
-        // Insertamos el estadoCursada
-        const createdEstadoCursada = new this.estadoCursada({
-          ...estadoCursada,
-          fechaCreacion: hoy,
-          activo: true,
-        });
-        // Actualizamos al alumno
-        try {
-          const savedEstadoCursada = await createdEstadoCursada.save();
-
-          if (!alumno.estadoCursadas) {
-            alumno.estadoCursadas = [savedEstadoCursada];
-          } else {
-            alumno.estadoCursadas.push(savedEstadoCursada);
-          }
-          const alumnoActualizado = await this.alumno.findOneAndUpdate(
-            { _id: alumnoId },
-            { estadoCursadas: alumno.estadoCursadas },
-            { new: true }
-          );
-          if (!alumnoActualizado) {
-            next(new NotFoundException(alumnoId));
-          } else {
-            response.send(alumnoActualizado);
-          }
-        } catch (e4) {
-          console.log('e4, ', e4);
-        }
+    const alumno: IAlumno = await this.alumno.findById(alumnoId).populate('estadoCursadas');
+    if (alumno) {
+      const estadoCursada: IEstadoCursada = request.body.estadoCursada;
+      const nuevo = {
+        curso: estadoCursada.curso.curso,
+        comision: estadoCursada.curso.comision,
+        division: estadoCursada.curso.division,
+        // fechaCreacion: hoy,
+        activo: true,
+      };
+      const match = {
+        curso: estadoCursada.curso.curso,
+        comision: estadoCursada.curso.comision,
+        division: estadoCursada.curso.division,
+      };
+      const curso = await this.curso.findOneAndUpdate(match, nuevo, {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      });
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+      const createdEstadoCursada = new this.estadoCursada({
+        curso,
+        condicion: estadoCursada.condicion,
+        cicloLectivo: estadoCursada.cicloLectivo,
+        fechaCreacion: hoy,
+        activo: true,
+      });
+      const creado = await createdEstadoCursada.save();
+      createdEstadoCursada._id = creado;
+      if (!alumno.estadoCursadas) {
+        alumno.estadoCursadas = [createdEstadoCursada];
       } else {
-        next(new NotFoundException(alumnoId));
+        alumno.estadoCursadas.push(createdEstadoCursada);
       }
-    } catch (error) {
-      console.log('[ERROR]', error);
-      next(new HttpException(500, 'Problemas interno'));
+      const alumnoActualizado = await this.alumno.findOneAndUpdate(
+        { _id: alumnoId },
+        { estadoCursadas: alumno.estadoCursadas },
+        { new: true }
+      );
+      if (!alumnoActualizado) {
+        next(new NotFoundException(alumnoId));
+      } else {
+        // console.log('alumnoActualizado', alumnoActualizado);
+        response.send(alumnoActualizado);
+      }
     }
   };
 
@@ -223,7 +210,6 @@ class AlumnoController implements Controller {
       });
       estadoCursada.curso = curso;
       // seteamos estado cursada
-      console.log(estadoCursadaId, estadoCursada);
       const estadoCursadaActualizado = await this.estadoCursada.findByIdAndUpdate({ _id: estadoCursadaId }, estadoCursada, { new: true });
       if (!estadoCursadaActualizado) {
         next(new NotFoundException(estadoCursadaId));
@@ -1621,7 +1607,7 @@ class AlumnoController implements Controller {
     const alumnoData: Alumno = request.body;
     try {
       if (alumnoData.estadoCursadas && alumnoData.estadoCursadas.length > 0) {
-        const estadoCursadasNuevas = await Promise.all(
+        alumnoData.estadoCursadas = await Promise.all(
           alumnoData.estadoCursadas.map(async (x) => {
             const cursoCheck = x.curso;
             const curso = await this.curso.findOneAndUpdate(
@@ -1633,32 +1619,55 @@ class AlumnoController implements Controller {
               x.curso,
               { upsert: true, new: true }
             );
+            console.log('curso', curso);
             x.curso = curso;
             if (x._id) {
+              console.log('con id', x);
+              const now = new Date();
+              const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+              x.fechaModificacion = hoy;
+
               return await this.estadoCursada.findByIdAndUpdate(x._id, x, { upsert: true, new: true });
             } else {
               const now = new Date();
               const hoy = new Date(moment(now).format('YYYY-MM-DD'));
-              const created = new this.estadoCursada({
-                ...x,
-                fechaCreacion: hoy,
-                // author: request.user ? request.user._id : null,
-              });
-              const saved = await created.save();
-              return saved;
+              try {
+                const createdEstadoCursada = new this.estadoCursada({
+                  curso,
+                  condicion: x.condicion,
+                  cicloLectivo: x.cicloLectivo,
+                  fechaModificacion: hoy,
+                  activo: x.activo,
+                  fechaCreacion: hoy,
+                });
+
+                const saved = await createdEstadoCursada.save();
+                console.log('sin id', saved, saved._id);
+                return saved;
+              } catch (e) {
+                console.log('[ERROR GUARDANDO ESTADO CURSADA NUEVO]', e);
+                next(new HttpException(400, 'Error interno'));
+              }
             }
           })
         );
-        alumnoData.estadoCursadas = estadoCursadasNuevas;
       }
-      const alumno = await this.alumno.findByIdAndUpdate(id, alumnoData, {
-        new: true,
-      });
+      try {
+        console.log('=============================');
+        console.log('alumnoData', alumnoData);
+        console.log('=============================');
+        const alumno = await this.alumno.findByIdAndUpdate(id, alumnoData, {
+          new: true,
+        });
 
-      if (alumno) {
-        response.send(alumno);
-      } else {
-        next(new NotFoundException(id));
+        if (alumno) {
+          response.send(alumno);
+        } else {
+          next(new NotFoundException(id));
+        }
+      } catch (e) {
+        console.log('[ERROR GUARDANDO ALUMNO]', e);
+        next(new HttpException(400, 'Error interno'));
       }
     } catch (e) {
       console.log('[ERROR]', e);

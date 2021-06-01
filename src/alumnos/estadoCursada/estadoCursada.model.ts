@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
 import IEstadoCursada from './estadoCursada.interface';
-import mongoosePaginate from 'mongoose-paginate-v2';
 import moment from 'moment';
 // import AutoincrementService from "../../services/AutoincrementService";
 const Schema = mongoose.Schema;
 
 export const estadoCursadaSchema = new mongoose.Schema({
-  estadoCursadaNro: { type: Number, default: 100, required: true },
+  // estadoCursadaNro: { type: Number, default: 100, required: true },
+  // _id: { type: Number },
   curso: {
     type: Schema.Types.ObjectId,
     ref: 'Curso',
@@ -32,7 +32,7 @@ export const estadoCursadaSchema = new mongoose.Schema({
 
 // Modelo
 
-estadoCursadaSchema.plugin(mongoosePaginate);
+// estadoCursadaSchema.plugin(mongoosePaginate);
 // <IEstadoCursada>
 const estadoCursadaModel = mongoose.model('EstadoCursada', estadoCursadaSchema);
 // estadoCursadaModel.paginate();
