@@ -40,6 +40,7 @@ interface IAlumno extends mongoose.Document {
   fechaModificacion?: Date;
   activo: boolean;
   incompleto: boolean;
+  selected?: boolean;
 }
 
 export default IAlumno;

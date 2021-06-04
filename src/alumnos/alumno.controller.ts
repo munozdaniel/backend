@@ -79,6 +79,7 @@ class AlumnoController implements Controller {
       );
   }
 
+
   private enviarEmailMasivo = async (request: Request, response: Response, next: NextFunction) => {
     const alumnos = request.body.alumnos;
     let fecha = moment.utc(request.body.fecha).format('DD/MM/YYYY');
@@ -224,7 +225,6 @@ class AlumnoController implements Controller {
   private obtenerInformeInasistenciaPorDia = async (request: Request, response: Response, next: NextFunction) => {
     let fecha = new Date(moment.utc(request.body.fecha).format('YYYY-MM-DD'));
     let anio = new Date(moment.utc(request.body.fecha).format('YYYY'));
-    console.log('fecha', fecha);
     try {
       // const ciclolectivos = await this.ciclolectivo.find().sort('_id');
       // const index = ciclolectivos.findIndex((x) => Number(x.anio) === Number(anio));
@@ -715,6 +715,7 @@ class AlumnoController implements Controller {
       next(new NotFoundException());
     }
   };
+  
   /**
    *
    * @param request

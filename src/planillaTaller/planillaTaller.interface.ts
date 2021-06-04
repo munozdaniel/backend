@@ -25,6 +25,8 @@ interface IPlanillaTaller extends mongoose.Document {
   fechaCreacion?: Date;
   fechaModificacion?: Date;
   activo: boolean;
+
+  personalizada?:boolean;
 }
 
 export default IPlanillaTaller;

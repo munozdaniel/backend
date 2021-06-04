@@ -163,6 +163,7 @@ class PlanillaTallerController implements Controller {
         diasHabilitados: planillaTaller.diasHabilitados,
         tipoCalendario: planillaTaller.tipoCalendario,
         fechaModificacion: new Date(),
+        personalizada: planillaTaller.personalizada,
         activo: planillaTaller.activo,
       };
       const update = await this.planillaTaller.findByIdAndUpdate(id, planillaUpdate, { new: true });

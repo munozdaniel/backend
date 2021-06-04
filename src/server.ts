@@ -14,6 +14,7 @@ import AsistenciaController from './asistencias/asistencia.controller';
 import CalificacionController from './calificaciones/calificacion.controller';
 import CicloLectivoController from './ciclolectivos/ciclolectivo.controller';
 import CalendarioController from './calendario/calendario.controller';
+import AlumnoTallerController from './alumnostalleres/alumnoTaller.controller';
 
 validateEnv();
 dotenv.config();
@@ -34,6 +35,7 @@ const app = new App([
   new CalificacionController(),
   new CicloLectivoController(),
   new CalendarioController(),
+  new AlumnoTallerController(),
 ]);
 
 app.listen();

@@ -45,6 +45,7 @@ export const planillaTallerSchema = new mongoose.Schema({
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
+  personalizada: { type: Boolean, default: false }, //  se usa para aquellas planillas que tengan alumnos mezclados
 });
 
 // Modelo
