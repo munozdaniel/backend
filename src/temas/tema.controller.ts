@@ -359,6 +359,7 @@ class TemaController implements Controller {
           temasProximaClase: temas[index].temasProximaClase,
           nroClase: temas[index].nroClase,
           unidad: temas[index].unidad,
+          motivoSinDictar: temas[index].motivoSinDictar,
           caracterClase: temas[index].caracterClase,
           observacionJefe: temas[index].observacionJefe,
           planillaTaller: planilla,
