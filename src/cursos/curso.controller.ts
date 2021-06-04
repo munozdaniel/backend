@@ -12,6 +12,7 @@ import comisionOriginalModel from './comisionOriginal.model';
 import alumnoModel from '../alumnos/alumno.model';
 import comisionUnicaModel from './comisionUnica.model';
 import moment from 'moment';
+import passport from 'passport';
 class CursoController implements Controller {
   public path = '/cursos';
   public router = Router();
@@ -26,18 +27,19 @@ class CursoController implements Controller {
 
   private initializeRoutes() {
     console.log('CursoController/initializeRoutes');
-    this.router.get(`${this.path}/migrar-unicas`, this.migrarCursoesUnicas);
-    this.router.get(`${this.path}/migrar`, this.migrarCursoes);
+    this.router.get(`${this.path}/migrar-unicas`, passport.authenticate('jwt', { session: false }), this.migrarCursoesUnicas);
+    this.router.get(`${this.path}/migrar`, passport.authenticate('jwt', { session: false }), this.migrarCursoes);
     // this.router.get(`${this.path}/migraralumnos`, this.migrarAlumnos);
     this.router.post(
       `${this.path}/parametros`,
+      passport.authenticate('jwt', { session: false }),
       this.buscarCursoesPorCicloLectivo // se usa en parametros y ficha-alumnos
     );
 
-    this.router.get(`${this.path}/originales`, this.verCursoesOriginales);
-    this.router.get(`${this.path}`, this.getAllCursos);
-    this.router.get(`${this.path}/habilitados`, this.getAllCursoesHabilitadas);
-    this.router.get(`${this.path}/:id`, this.getCursoByAlumnoId);
+    this.router.get(`${this.path}/originales`, passport.authenticate('jwt', { session: false }), this.verCursoesOriginales);
+    this.router.get(`${this.path}`, passport.authenticate('jwt', { session: false }), this.getAllCursos);
+    this.router.get(`${this.path}/habilitados`, passport.authenticate('jwt', { session: false }), this.getAllCursoesHabilitadas);
+    this.router.get(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.getCursoByAlumnoId);
     // this.router.get(`${this.path}/paginado`, this.getAllCursosPag);
 
     // Using the  route.all in such a way applies the middleware only to the route

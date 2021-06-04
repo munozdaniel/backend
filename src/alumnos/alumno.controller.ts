@@ -21,6 +21,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import moment from 'moment';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import asistenciaModel from '../asistencias/asistencia.model';
+import passport from 'passport';
 const ObjectId = mongoose.Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
@@ -39,19 +40,18 @@ class AlumnoController implements Controller {
   }
 
   private initializeRoutes() {
-    this.router.get(`${this.path}/migrar`, this.migrar);
-    this.router.get(`${this.path}/todos`, this.obtenerTodos);
-    this.router.get(`${this.path}/todos-inactivos`, this.obtenerTodosInactivos);
-    this.router.get(`${this.path}/eliminar-coleccion`, this.eliminarColeccion);
-    this.router.get(`${this.path}/comprobar-estado-cursada/:id`, this.comprobarEstadoCursadaParaEditar);
-    this.router.get(`${this.path}/habilitados`, this.getAllAlumnos);
-    // this.router.get(`${this.path}/paginado`, this.getAllAlumnosPag);
-    this.router.post(`${this.path}/ficha`, this.getFichaAlumnos);
-
     // Using the  route.all in such a way applies the middleware only to the route
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /alumnos.
     this.router
-      .all(`${this.path}/*`)
+      .all(`${this.path}/*`, passport.authenticate('jwt', { session: false }))
+      .get(`${this.path}/migrar`, this.migrar)
+      .get(`${this.path}/todos`, this.obtenerTodos)
+      .get(`${this.path}/todos-inactivos`, this.obtenerTodosInactivos)
+      .get(`${this.path}/eliminar-coleccion`, this.eliminarColeccion)
+      .get(`${this.path}/comprobar-estado-cursada/:id`, this.comprobarEstadoCursadaParaEditar)
+      .get(`${this.path}/habilitados`, this.getAllAlumnos)
+      .post(`${this.path}/ficha`, this.getFichaAlumnos)
+
       .patch(`${this.path}/:id`, validationMiddleware(CreateAlumnoDto, true), this.modifyAlumno)
       .get(`${this.path}/:id`, this.getAlumnoById)
       .delete(`${this.path}/:id`, this.deleteAlumno)
@@ -78,7 +78,6 @@ class AlumnoController implements Controller {
         this.createAlumno
       );
   }
-
 
   private enviarEmailMasivo = async (request: Request, response: Response, next: NextFunction) => {
     const alumnos = request.body.alumnos;
@@ -715,7 +714,7 @@ class AlumnoController implements Controller {
       next(new NotFoundException());
     }
   };
-  
+
   /**
    *
    * @param request

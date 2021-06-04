@@ -15,6 +15,7 @@ import ciclolectivoModel from '../ciclolectivos/ciclolectivo.model';
 import ICicloLectivo from '../ciclolectivos/ciclolectivo.interface';
 import moment from 'moment';
 import usuarioModel from '../usuario/usuario.model';
+import passport from 'passport';
 const ObjectId = mongoose.Types.ObjectId;
 class SeguimientoAlumnoController implements Controller {
   public path = '/seguimiento-alumnos';
@@ -33,15 +34,23 @@ class SeguimientoAlumnoController implements Controller {
   private initializeRoutes() {
     console.log('SeguimientoAlumnoController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
-    this.router.post(`${this.path}/resueltos`, this.resueltos);
+    this.router.post(`${this.path}/resueltos`, passport.authenticate('jwt', { session: false }), this.resueltos);
     // this.router.post(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
-    this.router.get(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
-    this.router.get(`${this.path}/por-planilla-alumno/:id/:alumnoId`, this.obtenerPorPlanillaYAlumno);
-    this.router.get(`${this.path}/por-alumno/:alumnoId`, this.obtenerPorAlumno);
-    this.router.put(`${this.path}`, this.agregarSeguimientoAlumno);
-    this.router.get(`${this.path}/:id`, this.obtenerSeguimientoPorId);
-    this.router.patch(`${this.path}/:id`, this.actualizarSeguimientoAlumno);
-    this.router.delete(`${this.path}/:id`, this.eliminar);
+    this.router.get(
+      `${this.path}/por-planilla/:id`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerSeguimientoAlumnoPorPlanilla
+    );
+    this.router.get(
+      `${this.path}/por-planilla-alumno/:id/:alumnoId`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerPorPlanillaYAlumno
+    );
+    this.router.get(`${this.path}/por-alumno/:alumnoId`, passport.authenticate('jwt', { session: false }), this.obtenerPorAlumno);
+    this.router.put(`${this.path}`, passport.authenticate('jwt', { session: false }), this.agregarSeguimientoAlumno);
+    this.router.get(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.obtenerSeguimientoPorId);
+    this.router.patch(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.actualizarSeguimientoAlumno);
+    this.router.delete(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.eliminar);
   }
   private obtenerSeguimientoPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;

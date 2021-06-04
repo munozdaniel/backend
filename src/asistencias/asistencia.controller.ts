@@ -13,6 +13,7 @@ import NotFoundException from '../exceptions/NotFoundException';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
 import * as _ from 'lodash';
+import passport from 'passport';
 
 const ObjectId = mongoose.Types.ObjectId;
 class AsistenciaController implements Controller {
@@ -30,12 +31,17 @@ class AsistenciaController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`${this.path}/migrar`, this.migrarMultiples);
-    this.router.post(`${this.path}/por-alumno/:id`, this.obtenerAsistenciasPorAlumnoId);
-    this.router.post(`${this.path}/por-alumno-curso`, this.obtenerAsistenciasPorAlumnosCurso);
-    this.router.get(`${this.path}/por-planilla/:id`, this.obtenerAsistenciasPorPlanilla);
+    this.router.post(`${this.path}/por-alumno/:id`, passport.authenticate('jwt', { session: false }), this.obtenerAsistenciasPorAlumnoId);
+    this.router.post(
+      `${this.path}/por-alumno-curso`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerAsistenciasPorAlumnosCurso
+    );
+    this.router.get(`${this.path}/por-planilla/:id`, passport.authenticate('jwt', { session: false }), this.obtenerAsistenciasPorPlanilla);
     // this.router.post(`${this.path}/informe-plantillas-entre-fechas`, this.informeAsistenciasPlantillasEntreFechas);
     this.router
-      .all(`${this.path}/*`)
+      .all(`${this.path}/*`, passport.authenticate('jwt', { session: false }))
+
       .post(`${this.path}/informe-plantillas-entre-fechas`, this.informeAsistenciasGeneral)
       .post(`${this.path}/informe-por-planilla`, this.informeAsistenciasPorPlanilla)
       .put(`${this.path}`, this.guardarAsistencia)

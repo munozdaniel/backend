@@ -27,13 +27,13 @@ class AsignaturaController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}`, passport.authenticate('jwt', { session: false }), this.getAllAsignaturas);
-    this.router.get(`${this.path}/habilitados`, this.getAllAsignaturasHabilitadas);
+    this.router.get(`${this.path}/habilitados`, passport.authenticate('jwt', { session: false }), this.getAllAsignaturasHabilitadas);
     // this.router.get(`${this.path}/paginado`, this.getAllAsignaturasPag);
 
     // Using the  route.all in such a way applies the middleware only to the route
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /asignaturas.
     this.router
-      .all(`${this.path}/*`)
+      .all(`${this.path}/*`, passport.authenticate('jwt', { session: false }))
       .patch(`${this.path}/:id`, validationMiddleware(CreateAsignaturaDto, true), this.modifyAsignatura)
       .get(`${this.path}/:id`, this.obtenerAsignaturaPorId)
       .delete(`${this.path}/:id`, this.deleteAsignatura)

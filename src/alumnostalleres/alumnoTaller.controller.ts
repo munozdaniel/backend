@@ -5,8 +5,8 @@ import Controller from '../interfaces/controller.interface';
 import alumnoTallerModel from './alumnoTaller.model';
 import alumnoModel from '../alumnos/alumno.model';
 import IAlumnoTaller from './alumnoTaller.interface';
-import IAlumno from '../alumnos/alumno.interface';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
+import passport from 'passport';
 
 const ObjectId = mongoose.Types.ObjectId;
 class AlumnoTallerController implements Controller {
@@ -23,7 +23,7 @@ class AlumnoTallerController implements Controller {
   private initializeRoutes() {
     console.log('AlumnoTallerController/initializeRoutes');
     this.router
-      .all(`${this.path}/*`)
+      .all(`${this.path}/*`, passport.authenticate('jwt', { session: false }))
       .get(`${this.path}/planilla-personalizada/:id`, this.obtenerAlumnosPorPlanillaPersonalizada)
       .get(`${this.path}/planilla-personalizada-sp`, this.obtenerAlumnosPorPlanillaPersonalizadaSP)
       .post(`${this.path}/por-curso-especifico`, this.obtenerAlumnosTallerPorCursoEspecifico)

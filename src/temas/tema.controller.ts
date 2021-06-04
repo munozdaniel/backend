@@ -12,8 +12,8 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
 import IPlanillaTaller from 'planillaTaller/planillaTaller.interface';
-import ICalendario from 'calendario/calendario.interface';
 const ObjectId = mongoose.Types.ObjectId;
+import passport from 'passport';
 
 class TemaController implements Controller {
   public path = '/tema';
@@ -30,13 +30,21 @@ class TemaController implements Controller {
   private initializeRoutes() {
     console.log('TemaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
-    this.router.get(`${this.path}/por-planilla/:id`, this.obtenerTemaPorPlanillaTaller);
+    this.router.get(`${this.path}/por-planilla/:id`, passport.authenticate('jwt', { session: false }), this.obtenerTemaPorPlanillaTaller);
     // this.router.post(`${this.path}/temas-calendario`, this.obtenerTemasCalendario);
-    this.router.post(`${this.path}/temas-calendario`, this.obtenerCalendarioPorTipoMateria);
-    this.router.put(`${this.path}`, this.guardarTema);
-    this.router.patch(`${this.path}/:id`, this.actualizarTema);
-    this.router.delete(`${this.path}/:id`, this.eliminar);
-    this.router.post(`${this.path}/informe-por-planilla`, this.informeTemasPorPlanillaTaller);
+    this.router.post(
+      `${this.path}/temas-calendario`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerCalendarioPorTipoMateria
+    );
+    this.router.put(`${this.path}`, passport.authenticate('jwt', { session: false }), this.guardarTema);
+    this.router.patch(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.actualizarTema);
+    this.router.delete(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.eliminar);
+    this.router.post(
+      `${this.path}/informe-por-planilla`,
+      passport.authenticate('jwt', { session: false }),
+      this.informeTemasPorPlanillaTaller
+    );
   }
 
   private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {

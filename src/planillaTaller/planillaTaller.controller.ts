@@ -19,6 +19,7 @@ import NotFoundException from '../exceptions/NotFoundException';
 import calendarioModel from '../calendario/calendario.model';
 import moment from 'moment';
 import ICurso from 'cursos/curso.interface';
+import passport from 'passport';
 
 const ObjectId = mongoose.Types.ObjectId;
 class PlanillaTallerController implements Controller {
@@ -40,14 +41,22 @@ class PlanillaTallerController implements Controller {
   private initializeRoutes() {
     console.log('PlanillaTallerController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrarPlanillaTalleres);
-    this.router.get(`${this.path}/paginar`, this.paginar);
-    this.router.get(`${this.path}/ciclo/:ciclo`, this.obtenerPlanillaTalleresPorCiclo);
-    this.router.get(`${this.path}/filtro/:id/:ciclo`, this.obtenerPlanillaTallerPorIdCiclo);
-    this.router.get(`${this.path}/:id`, this.obtenerPlanillaTallerPorId);
-    this.router.get(`${this.path}/:id/total-asistencias`, this.buscarTotalAsistenciaPorPlanilla);
-    this.router.put(`${this.path}`, this.agregar);
-    this.router.post(`${this.path}/por-curso-ciclo`, this.obtenerPlanillasPorCursoCiclo);
-    this.router.patch(`${this.path}/:id`, this.actualizar);
+    this.router.get(`${this.path}/paginar`, passport.authenticate('jwt', { session: false }), this.paginar);
+    this.router.get(`${this.path}/ciclo/:ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillaTalleresPorCiclo);
+    this.router.get(
+      `${this.path}/filtro/:id/:ciclo`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerPlanillaTallerPorIdCiclo
+    );
+    this.router.get(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillaTallerPorId);
+    this.router.get(
+      `${this.path}/:id/total-asistencias`,
+      passport.authenticate('jwt', { session: false }),
+      this.buscarTotalAsistenciaPorPlanilla
+    );
+    this.router.put(`${this.path}`, passport.authenticate('jwt', { session: false }), this.agregar);
+    this.router.post(`${this.path}/por-curso-ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillasPorCursoCiclo);
+    this.router.patch(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.actualizar);
   }
 
   private obtenerPlanillasPorCursoCiclo = async (request: Request, response: Response, next: NextFunction) => {

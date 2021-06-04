@@ -10,6 +10,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import IProfesor from './profesor.interface';
 import profesorOriginalModel from './profesorOriginal.model';
 import moment from 'moment';
+import passport from 'passport';
 class ProfesorController implements Controller {
   public path = '/profesores';
   public router = Router();
@@ -26,14 +27,14 @@ class ProfesorController implements Controller {
     this.router.get(`${this.path}/test2`, this.getAllProfesors);
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/migrar`, this.migrar);
-    this.router.get(`${this.path}/habilitados`, this.getAllProfesoresHabilitadas);
-    this.router.get(`${this.path}/:id`, this.getProfesorById);
+    this.router.get(`${this.path}/habilitados`, passport.authenticate('jwt', { session: false }), this.getAllProfesoresHabilitadas);
+    this.router.get(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.getProfesorById);
     // this.router.get(`${this.path}/paginado`, this.getAllProfesorsPag);
 
     // Using the  route.all in such a way applies the middleware only to the route
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /profesores.
     this.router
-      .all(`${this.path}/*`)
+      .all(`${this.path}/*`, passport.authenticate('jwt', { session: false }))
       .patch(`${this.path}/:id`, validationMiddleware(CreateProfesorDto, true), this.modifyProfesor)
       .get(`${this.path}/:id`, this.obtenerProfesorPorId)
       .delete(`${this.path}/:id`, this.deleteProfesor)
@@ -101,7 +102,7 @@ class ProfesorController implements Controller {
       const now = new Date();
       const hoy = new Date(moment(now).format('YYYY-MM-DD'));
       const profesores: any = await this.profesorOriginal.find();
-     
+
       const profesoresRefactorizados: IProfesor[] = profesores.map((x: any, index: number) => {
         const unaProfesor: IProfesor & any = {
           // _id: x._id,
@@ -180,7 +181,7 @@ class ProfesorController implements Controller {
     // await savedProfesor.populate('author', '-password').execPopulate();
     response.send(savedProfesor);
   };
-  
+
   private deleteProfesor = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {

@@ -1,13 +1,10 @@
 import HttpException from '../exceptions/HttpException';
 import { Request, Response, NextFunction, Router } from 'express';
-import NotFoundException from '../exceptions/NotFoundException';
 import Controller from '../interfaces/controller.interface';
-import validationMiddleware from '../middleware/validation.middleware';
-import CreateCicloLectivoDto from './ciclolectivo.dto';
-import CicloLectivo from './ciclolectivo.interface';
+
 import ciclolectivoModel from './ciclolectivo.model';
-import ICicloLectivo from './ciclolectivo.interface';
 import alumnoModel from '../alumnos/alumno.model';
+import passport from 'passport';
 import moment from 'moment';
 class CicloLectivoController implements Controller {
   public path = '/ciclolectivos';
@@ -22,11 +19,12 @@ class CicloLectivoController implements Controller {
   private initializeRoutes() {
     this.router.get(
       `${this.path}/crear-manual`,
+      passport.authenticate('jwt', { session: false }),
       this.crearManual // se usa en parametros y ficha-alumnos
     );
 
-    this.router.get(`${this.path}`, this.listar);
-    this.router.get(`${this.path}/actual`, this.actual);
+    this.router.get(`${this.path}`, passport.authenticate('jwt', { session: false }), this.listar);
+    this.router.get(`${this.path}/actual`, passport.authenticate('jwt', { session: false }), this.actual);
   }
   private actual = async (request: Request, response: Response, next: NextFunction) => {
     const now = new Date();

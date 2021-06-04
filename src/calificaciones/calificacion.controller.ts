@@ -15,6 +15,7 @@ import moment from 'moment';
 import asistenciaModel from '../asistencias/asistencia.model';
 import calendarioModel from '../calendario/calendario.model';
 const ObjectId = mongoose.Types.ObjectId;
+import passport from 'passport';
 
 class CalificacionController implements Controller {
   public path = '/calificacion';
@@ -34,12 +35,24 @@ class CalificacionController implements Controller {
   private initializeRoutes() {
     console.log('CalificacionController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
-    this.router.post(`${this.path}/por-alumno/:id`, this.obtenerCalificacionesPorAlumnoId);
-    this.router.put(`${this.path}`, this.guardarCalificacion);
-    this.router.delete(`${this.path}/:id`, this.eliminar);
-    this.router.patch(`${this.path}/:id`, this.actualizarCalificacion);
-    this.router.post(`${this.path}/informe-por-planilla`, this.informeCalificacionesPorPlanilla);
-    this.router.post(`${this.path}/informe-alumnos-por-taller`, this.informeAlumnosPorTaller);
+    this.router.post(
+      `${this.path}/por-alumno/:id`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerCalificacionesPorAlumnoId
+    );
+    this.router.put(`${this.path}`, passport.authenticate('jwt', { session: false }), this.guardarCalificacion);
+    this.router.delete(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.eliminar);
+    this.router.patch(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.actualizarCalificacion);
+    this.router.post(
+      `${this.path}/informe-por-planilla`,
+      passport.authenticate('jwt', { session: false }),
+      this.informeCalificacionesPorPlanilla
+    );
+    this.router.post(
+      `${this.path}/informe-alumnos-por-taller`,
+      passport.authenticate('jwt', { session: false }),
+      this.informeAlumnosPorTaller
+    );
   }
   private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {
     const opciones: any = [
