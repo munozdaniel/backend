@@ -115,7 +115,7 @@ class AlumnoTallerController implements Controller {
     let match: any = {
       'estadoCursadas.activo': true,
       'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
-      'estadoCursadas.curso.comision': comision,
+      // 'estadoCursadas.curso.comision': comision,
       'estadoCursadas.curso.curso': Number(curso),
       'estadoCursadas.curso.division': Number(division),
       activo: true,
