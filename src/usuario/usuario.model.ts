@@ -9,7 +9,11 @@ export const usuarioSchema = new Schema({
   apellido: { type: String, required: true },
   rol: { type: String }, // Deberia ser una coleccion aparte pero vamos a probar asi
   observacion: { type: String },
-
+  profesor: {
+    type: Schema.Types.ObjectId,
+    ref: 'Profesore',
+    required: false,
+  },
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date, default: Date.now },
   activo: { type: Boolean, default: true },

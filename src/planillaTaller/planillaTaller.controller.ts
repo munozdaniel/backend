@@ -43,6 +43,11 @@ class PlanillaTallerController implements Controller {
     this.router.get(`${this.path}/migrar`, this.migrarPlanillaTalleres);
     this.router.get(`${this.path}/paginar`, passport.authenticate('jwt', { session: false }), this.paginar);
     this.router.get(`${this.path}/ciclo/:ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillaTalleresPorCiclo);
+    this.router.post(
+      `${this.path}/ciclo-profesor/:ciclo`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerPlanillaTalleresPorCicloProf
+    );
     this.router.get(
       `${this.path}/filtro/:id/:ciclo`,
       passport.authenticate('jwt', { session: false }),
@@ -58,6 +63,174 @@ class PlanillaTallerController implements Controller {
     this.router.post(`${this.path}/por-curso-ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillasPorCursoCiclo);
     this.router.patch(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.actualizar);
   }
+  private obtenerPlanillaTalleresPorCiclo = async (request: Request, response: Response, next: NextFunction) => {
+    const ciclo = request.params.ciclo;
+    const profesorId = request.body.profesorId;
+    let match: any = {
+      'cicloLectivo.anio': Number(ciclo),
+      activo: true,
+    };
+    if (profesorId) {
+      match = {
+        'cicloLectivo.anio': Number(ciclo),
+        activo: true,
+        profesor: ObjectId(profesorId),
+      };
+    }
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'profesores',
+          localField: 'profesor',
+          foreignField: '_id',
+          as: 'profesor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$profesor',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'asignaturas',
+          localField: 'asignatura',
+          foreignField: '_id',
+          as: 'asignatura',
+        },
+      },
+      {
+        $unwind: {
+          path: '$asignatura',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'cicloLectivo',
+          foreignField: '_id',
+          as: 'cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$cicloLectivo',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'curso',
+          foreignField: '_id',
+          as: 'curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$curso',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: match,
+      },
+      { $sort: { _id: -1 } },
+    ];
+    try {
+      const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
+      response.send(planillaTallerAggregate);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+  private obtenerPlanillaTalleresPorCicloProf = async (request: Request, response: Response, next: NextFunction) => {
+    const ciclo = request.params.ciclo;
+    const profesorId = request.body.profesorId;
+    let match: any = {
+      'cicloLectivo.anio': Number(ciclo),
+      activo: true,
+    };
+    if (profesorId) {
+      match = {
+        'cicloLectivo.anio': Number(ciclo),
+        activo: true,
+        'profesor._id': ObjectId(profesorId),
+      };
+    }
+    const opciones: any = [
+      {
+        $lookup: {
+          from: 'profesores',
+          localField: 'profesor',
+          foreignField: '_id',
+          as: 'profesor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$profesor',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'asignaturas',
+          localField: 'asignatura',
+          foreignField: '_id',
+          as: 'asignatura',
+        },
+      },
+      {
+        $unwind: {
+          path: '$asignatura',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'ciclolectivos',
+          localField: 'cicloLectivo',
+          foreignField: '_id',
+          as: 'cicloLectivo',
+        },
+      },
+      {
+        $unwind: {
+          path: '$cicloLectivo',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'curso',
+          foreignField: '_id',
+          as: 'curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$curso',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: match,
+      },
+      { $sort: { _id: -1 } },
+    ];
+    try {
+      const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
+      response.send(planillaTallerAggregate);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
 
   private obtenerPlanillasPorCursoCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, comision, division, cicloLectivo } = request.body;
@@ -442,77 +615,7 @@ class PlanillaTallerController implements Controller {
       next(new HttpException(400, 'No se encontró la planilla'));
     }
   };
-  private obtenerPlanillaTalleresPorCiclo = async (request: Request, response: Response, next: NextFunction) => {
-    const ciclo = request.params.ciclo;
-    const opciones: any = [
-      {
-        $lookup: {
-          from: 'profesores',
-          localField: 'profesor',
-          foreignField: '_id',
-          as: 'profesor',
-        },
-      },
-      {
-        $unwind: {
-          path: '$profesor',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'asignaturas',
-          localField: 'asignatura',
-          foreignField: '_id',
-          as: 'asignatura',
-        },
-      },
-      {
-        $unwind: {
-          path: '$asignatura',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'ciclolectivos',
-          localField: 'cicloLectivo',
-          foreignField: '_id',
-          as: 'cicloLectivo',
-        },
-      },
-      {
-        $unwind: {
-          path: '$cicloLectivo',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'cursos',
-          localField: 'curso',
-          foreignField: '_id',
-          as: 'curso',
-        },
-      },
-      {
-        $unwind: {
-          path: '$curso',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $match: {
-          'cicloLectivo.anio': Number(ciclo),
-          activo: true,
-        },
-      },
-      { $sort: { _id: -1 } },
-    ];
 
-    const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
-    response.send(planillaTallerAggregate);
-  };
   private paginar = async (request: Request, response: Response, next: NextFunction) => {
     const parametros = request.query;
     let campo: any = null;

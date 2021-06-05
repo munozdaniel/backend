@@ -34,6 +34,12 @@ class UsuarioController implements Controller {
       // passport.authenticate('jwt', { session: false }),
       this.cambiarRol
     );
+    this.router.post(
+      `${this.path}/asignar-profesor/:id`,
+      passport.authenticate('jwt', { session: false }),
+      // passport.authenticate('jwt', { session: false }),
+      this.asignarProfesor
+    );
     this.router.get(
       `${this.path}`,
       passport.authenticate('jwt', { session: false }),
@@ -55,7 +61,7 @@ class UsuarioController implements Controller {
   }
   private obtenerUsuarios = async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const usuario = await this.usuario.find({ activo: true });
+      const usuario = await this.usuario.find({ activo: true }).populate('profesor');
       if (usuario) {
         response.send(usuario);
       } else {
@@ -71,6 +77,22 @@ class UsuarioController implements Controller {
       const usuario = await this.usuario.find({ activo: false });
       if (usuario) {
         response.send(usuario);
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+  private asignarProfesor = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    const profesor: any = request.body.profesor;
+
+    try {
+      const usuario = await this.usuario.findByIdAndUpdate(id, { profesor }, { new: true });
+      if (usuario) {
+        response.send({ status: 200, usuario });
       } else {
         next(new NotFoundException());
       }

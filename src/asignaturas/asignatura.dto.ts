@@ -16,7 +16,7 @@ import {
 
 class CrearAsignaturaDto {
   @IsString({ message: 'El detalle no ha sido ingresado' })
-  @MinLength(7, {
+  @MinLength(5, {
     message: 'El detalle es muy corto',
   })
   @MaxLength(50, {

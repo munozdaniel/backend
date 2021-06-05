@@ -155,6 +155,7 @@ class AuthenticationController implements Controller {
                 email: usuario.email,
                 rol: usuario.rol,
                 picture: usuario.picture,
+                profesor: usuario.profesor,
               };
               //.populate('author', '-password') populate con imagen
               response.json({
