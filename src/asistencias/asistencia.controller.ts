@@ -320,6 +320,7 @@ class AsistenciaController implements Controller {
     }
   };
   private buscarAsistenciasPorFechas = async (request: Request, response: Response, next: NextFunction) => {
+    const turno = request.body.turno;
     let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
     let hasta: Date = new Date(moment.utc(request.body.hasta).format('YYYY-MM-DD'));
     let match;
@@ -405,6 +406,7 @@ class AsistenciaController implements Controller {
           $match: {
             fecha: match,
             presente: false,
+            'planillaTaller.turno': turno,
           },
         },
         {
