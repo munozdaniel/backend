@@ -24,7 +24,7 @@ class CrearAsignaturaDto {
   })
   public detalle: string;
   @IsString({ message: 'El tipo de asignatura no ha sido ingresado' })
-  @MinLength(6, {
+  @MinLength(4, {
     message: 'El tipo de asignatura es muy corto',
   })
   @MaxLength(15, {
