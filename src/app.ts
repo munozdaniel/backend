@@ -104,9 +104,7 @@ class App {
     this.app.use(cookieParser());
     const { ENTORNO } = process.env;
 
-    if (ENTORNO !== 'desarrollo') {
-      const __dirname = path.resolve(path.dirname(''));
-    }
+    const __dirname = path.resolve(path.dirname(''));
     this.app.use('/public', express.static(__dirname + '/public'));
     this.app.set('view engine', '.hbs');
     this.app.set('views', path.join(__dirname, 'views'));
