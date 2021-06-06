@@ -42,7 +42,8 @@ export const alumnoSchema = new mongoose.Schema({
 
   nombreCompletoTae: { type: String },
   emailTae: { type: String },
-  archivoDiagnostico: { type: String },
+  diagnostico: { type: String, require: false },
+  archivoDiagnostico: { type: [String], require: false },
   observaciones: { type: String },
   observacionTelefono: { type: String },
 

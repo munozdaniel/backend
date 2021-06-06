@@ -22,6 +22,7 @@ import moment from 'moment';
 import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import asistenciaModel from '../asistencias/asistencia.model';
 import passport from 'passport';
+import multerMiddleware from '../middleware/upload.middleware';
 const ObjectId = mongoose.Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
@@ -40,6 +41,7 @@ class AlumnoController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.post(`${this.path}/upload-diagnostico/:id`, multerMiddleware.single('diagnostico'), this.uploadDiagnostico);
     // Using the  route.all in such a way applies the middleware only to the route
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /alumnos.
     this.router
@@ -79,6 +81,51 @@ class AlumnoController implements Controller {
       );
   }
 
+  private uploadDiagnostico = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    console.log('subirImagen ', request.file);
+    console.log('subirImagen ', request.files);
+    console.log('subirImagen ', request.body);
+    try {
+      const alumno = await this.alumno.findById(id);
+      if (alumno) {
+        if (!request.file) {
+          response.send({ success: true, message: 'EXITO' });
+        } else {
+          console.log('=>', request.file.filename);
+          if (alumno.archivoDiagnostico && alumno.archivoDiagnostico.length > 0) {
+            alumno.archivoDiagnostico.push('public/imagenes/' + request.file.filename);
+          } else {
+            alumno.archivoDiagnostico = ['public/imagenes/' + request.file.filename];
+          }
+          try {
+            const alumnoActualizado = await this.alumno.findByIdAndUpdate(alumno._id, alumno, { new: true });
+            // const imagenData: ImagenDto = JSON.parse(request.body.imagen);
+            // console.log('request.file.filename', request.file.filename);
+            // imagenData.src = '/public/imagenes/' + request.file.filename;
+            // const imagenModel = new this.imagen({
+            //   ...imagenData,
+            // });
+            // const productoGuardado = await imagenModel.save();
+            // response.send(savedProducto);
+            response.send({
+              data: alumnoActualizado,
+              success: true,
+              message: 'EXITO',
+            });
+          } catch (error) {
+            console.log('[ERROR UPDATE]', error);
+            response.status(500).send('Error interno al actualizar el alumno');
+          }
+        }
+      } else {
+        response.status(400).send('No se encontró el alumno');
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      response.status(500).send('Error interno');
+    }
+  };
   private enviarEmailMasivo = async (request: Request, response: Response, next: NextFunction) => {
     const alumnos = request.body.alumnos;
     let fecha = moment.utc(request.body.fecha).format('DD/MM/YYYY');

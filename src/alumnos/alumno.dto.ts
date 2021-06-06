@@ -182,15 +182,15 @@ class CrearAlumnoDto {
     message: 'El email del TAE debe contener 70 caracteres máximo. ',
   })
   public emailTae: string;
-  @IsOptional()
-  @IsString({ message: 'El diagnositico no ha sido ingresado. ' })
-  @MinLength(4, {
-    message: 'El diagnostico debe contener al menos 4 caracteres. ',
-  })
-  @MaxLength(70, {
-    message: 'El diagnostico debe contener 70 caracteres máximo.',
-  })
-  public archivoDiagnostico: string;
+  // @IsOptional()
+  // @IsString({ message: 'El diagnositico no ha sido ingresado. ' })
+  // @MinLength(4, {
+  //   message: 'El diagnostico debe contener al menos 4 caracteres. ',
+  // })
+  // @MaxLength(70, {
+  //   message: 'El diagnostico debe contener 70 caracteres máximo.',
+  // })
+  // public archivoDiagnostico: string;
   @IsOptional()
   @IsDateString()
   fechaCreacion: string;

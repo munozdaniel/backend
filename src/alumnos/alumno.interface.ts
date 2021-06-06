@@ -32,7 +32,8 @@ interface IAlumno extends mongoose.Document {
 
   nombreCompletoTae: string;
   emailTae: string;
-  archivoDiagnostico: string;
+  diagnostico: string ;
+  archivoDiagnostico: string[];
 
   observacion?: string;
 
