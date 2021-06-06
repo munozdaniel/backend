@@ -314,6 +314,48 @@ class SeguimientoAlumnoController implements Controller {
           preserveNullAndEmptyArrays: true,
         },
       },
+      // Curso
+      {
+        $lookup: {
+          from: 'cursos',
+          localField: 'planillaTaller.curso',
+          foreignField: '_id',
+          as: 'planillaTaller.curso',
+        },
+      },
+      {
+        $unwind: {
+          path: '$planillaTaller.curso',
+        },
+      },
+      // Profesor
+      {
+        $lookup: {
+          from: 'profesores',
+          localField: 'planillaTaller.profesor',
+          foreignField: '_id',
+          as: 'planillaTaller.profesor',
+        },
+      },
+      {
+        $unwind: {
+          path: '$planillaTaller.profesor',
+        },
+      },
+      // Asignatura
+      {
+        $lookup: {
+          from: 'asignaturas',
+          localField: 'planillaTaller.asignatura',
+          foreignField: '_id',
+          as: 'planillaTaller.asignatura',
+        },
+      },
+      {
+        $unwind: {
+          path: '$planillaTaller.asignatura',
+        },
+      },
       {
         $lookup: {
           from: 'ciclolectivos',
