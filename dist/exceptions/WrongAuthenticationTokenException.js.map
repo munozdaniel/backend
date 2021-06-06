@@ -1,1 +1,0 @@
-{"version":3,"file":"WrongAuthenticationTokenException.js","sourceRoot":"","sources":["../../src/exceptions/WrongAuthenticationTokenException.ts"],"names":[],"mappings":"AAAA,OAAO,aAAa,MAAM,iBAAiB,CAAC;AAE5C,MAAM,iCAAkC,SAAQ,aAAa;IAC3D;QACE,KAAK,CAAC,GAAG,EAAE,4BAA4B,CAAC,CAAC;IAC3C,CAAC;CACF;AAED,eAAe,iCAAiC,CAAC"}
