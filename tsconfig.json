@@ -2,6 +2,7 @@
   "compilerOptions": {
     "sourceMap": true,
     "target": "es6", // es2017
+    "module": "commonjs",
     "outDir": "./dist",
     "baseUrl": "./src",
     "alwaysStrict": true,
@@ -16,7 +17,6 @@
     "typeRoots": ["@types", "./node_modules/@types"],
     "experimentalDecorators": true,
     "strictPropertyInitialization": false
-
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
