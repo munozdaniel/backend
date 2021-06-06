@@ -1,0 +1,41 @@
+import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
+const Schema = mongoose.Schema;
+import { autoIncrement } from 'mongoose-plugin-autoinc';
+import moment from 'moment';
+export const temaSchema = new mongoose.Schema({
+    temaNro: { type: Number, unique: true, required: false },
+    planillaTaller: {
+        type: Schema.Types.ObjectId,
+        ref: 'PlanillaTallere',
+        required: true,
+    },
+    fecha: { type: Date, required: false },
+    temaDelDia: { type: String, required: false },
+    tipoDesarrollo: { type: String, required: false },
+    temasProximaClase: { type: String, false: false },
+    nroClase: { type: Number, required: false },
+    unidad: { type: Number, required: false },
+    caracterClase: { type: String, required: false },
+    motivoSinDictar: { type: String, required: false, default: null },
+    observacionJefe: { type: String },
+    fechaCreacion: { type: Date, default: Date.now },
+    fechaModificacion: { type: Date },
+    activo: { type: Boolean, default: true },
+});
+// Modelo
+temaSchema.plugin(mongoosePaginate);
+// <ITema>
+temaSchema.plugin(autoIncrement, {
+    model: 'Tema',
+    field: 'temaNro',
+});
+const temaModel = mongoose.model('Tema', temaSchema);
+temaSchema.pre('update', function (next) {
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    this.fechaModificacion = hoy;
+    next();
+});
+export default temaModel;
+//# sourceMappingURL=tema.model.js.map

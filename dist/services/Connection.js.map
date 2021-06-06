@@ -1,0 +1,1 @@
+{"version":3,"file":"Connection.js","sourceRoot":"","sources":["../../src/services/Connection.ts"],"names":[],"mappings":"AAAA,MAAM,iBAAiB;IAErB,MAAM,CAAC,aAAa,CAAC,QAAa;QAChC,IAAI,CAAC,UAAU,GAAG,QAAQ,CAAC,UAAU,CAAC;IACxC,CAAC;IACD,MAAM,CAAC,aAAa;QAClB,OAAO,IAAI,CAAC,UAAU,CAAC;IACzB,CAAC;CACF;AACD,eAAe,iBAAiB,CAAC"}
