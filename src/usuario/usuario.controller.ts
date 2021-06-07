@@ -137,6 +137,34 @@ class UsuarioController implements Controller {
   };
   // -----
   // ---------
+  // private cambiarPasswordx = async (request: Request, response: Response, next: NextFunction) => {
+  //   console.log('cambiarPassword', request.body);
+  //   const { password, passwordConfirm, email, _id } = request.body;
+  //   if (password !== passwordConfirm) {
+  //     return response.status(400).send({ success: false, message: 'Las contraseñas no coinciden' });
+  //   }
+  //   const usuarioEncontrado: any = await this.usuario.findById(_id);
+  //   if (usuarioEncontrado && usuarioEncontrado.email === email) {
+  //     usuarioEncontrado.rese;
+  //   } else {
+  //     return response.status(400).send({ success: false, message: 'No se encontró el usuario con el email ingresado' });
+  //   }
+  //   // const usuarioPassportModel: any = usuarioModel;
+  //   usuarioEncontrado.changePassword(actual, password, async (err: any, user: any) => {
+  //     if (err || !user) {
+  //       return response.status(400).json({ error: 'Ocurrió un error al actualizar la contraseña' });
+  //     }
+  //     try {
+  //       // TODO:
+  //       // await this.enviarEmailConNuevoPassword(usuarioEncontrado, password);
+  //       // response.status(200).send({ usuario: user });
+  //       next(new HttpException(400, 'INCOMPLETO'));
+  //     } catch (error) {
+  //       console.log('[ERROR]', error);
+  //       next(new HttpException(400, 'No se pudo enviar el correo'));
+  //     }
+  //   });
+  // };
   private cambiarPassword = async (request: Request, response: Response, next: NextFunction) => {
     console.log('cambiarPassword', request.body);
     const { usuarioId, actual, password } = request.body;
@@ -194,8 +222,8 @@ class UsuarioController implements Controller {
         params: {
           link:
             ENTORNO === 'desarrollo'
-              ? `http://localhost:4200/auth/change/${usuario._id}`
-              : `http://app.cet30.edu.ar/auth/change/${usuario._id}`,
+              ? `http://localhost:4200/auth/reset/${usuario._id}`
+              : `http://app.cet30.edu.ar/auth/reset/${usuario._id}`,
         },
         templateId: 2,
         // textContent:
