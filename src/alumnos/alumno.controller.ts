@@ -1112,6 +1112,7 @@ class AlumnoController implements Controller {
         'estadoCursadas.cicloLectivo': ObjectId(cicloLectivo._id),
         'estadoCursadas.curso.curso': Number(curso),
         'estadoCursadas.curso.division': Number(division),
+        activo: true,
       };
 
       const opciones: any = [
