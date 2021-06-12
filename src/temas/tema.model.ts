@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 import ITema from './tema.interface';
-import mongoosePaginate from 'mongoose-paginate-v2';
+// import mongoosePaginate from 'mongoose-paginate-v2';
 const Schema = mongoose.Schema;
 import { autoIncrement } from 'mongoose-plugin-autoinc';
 import moment from 'moment';
@@ -29,7 +29,7 @@ export const temaSchema = new mongoose.Schema({
 });
 
 // Modelo
-temaSchema.plugin(mongoosePaginate);
+// temaSchema.plugin(mongoosePaginate);
 // <ITema>
 temaSchema.plugin(autoIncrement, {
   model: 'Tema',
