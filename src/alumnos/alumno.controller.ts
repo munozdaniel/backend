@@ -1667,10 +1667,8 @@ class AlumnoController implements Controller {
               x.curso,
               { upsert: true, new: true }
             );
-            console.log('curso', curso);
             x.curso = curso;
             if (x._id) {
-              console.log('con id', x);
               const now = new Date();
               const hoy = new Date(moment(now).format('YYYY-MM-DD'));
               x.fechaModificacion = hoy;

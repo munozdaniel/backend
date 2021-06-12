@@ -47,6 +47,7 @@ class AsistenciaController implements Controller {
       .put(`${this.path}`, this.guardarAsistencia)
       .patch(`${this.path}/:id`, this.actualizarAsistencia)
       .delete(`${this.path}/:id`, this.eliminar)
+      .get(`${this.path}/asistencias-hoy/:id`, this.buscarAsistenciasHoy)
       .post(`${this.path}/buscar-inasistencias`, this.buscarInasistencias)
       .post(`${this.path}/buscar-asistencias-por-fechas`, this.buscarAsistenciasPorFechas)
       .post(`${this.path}/tomar-asistencias`, this.tomarAsistenciaPorPlanilla)
@@ -205,6 +206,31 @@ class AsistenciaController implements Controller {
       response.send({
         saved,
       });
+    }
+  };
+  private buscarAsistenciasHoy = async (request: Request, response: Response, next: NextFunction) => {
+    const planillaId = request.params.id;
+    try {
+      const now = new Date();
+      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+      const asistencias = await this.asistencia.find({ planillaTaller: ObjectId(planillaId), fecha: hoy });
+      let presentes = 0;
+      let ausentes = 0;
+      await Promise.all(
+        asistencias.map((x) => {
+          if (x.presente) {
+            presentes++;
+          } else {
+            if (!x.ausentePermitido) {
+              ausentes++;
+            }
+          }
+        })
+      );
+      response.status(200).send({ presentes, ausentes });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
     }
   };
   private buscarInasistencias = async (request: Request, response: Response, next: NextFunction) => {
