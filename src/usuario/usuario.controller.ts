@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Router, Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
@@ -7,6 +8,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import NotFoundException from '../exceptions/NotFoundException';
 import passport from 'passport';
 import axios, { AxiosRequestConfig } from 'axios';
+const ObjectId = mongoose.Types.ObjectId;
 
 class UsuarioController implements Controller {
   public path = '/usuarios';
@@ -20,6 +22,7 @@ class UsuarioController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.obtenerUsuarioPorId);
+    this.router.delete(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.eliminar);
     this.router.get(`${this.path}/link/:email`, passport.authenticate('jwt', { session: false }), this.enviarLink);
     this.router.get(`${this.path}/completo/:id`, passport.authenticate('jwt', { session: false }), this.obtenerUsuarioPorIdCompleto);
     this.router.post(
@@ -41,6 +44,12 @@ class UsuarioController implements Controller {
       this.asignarProfesor
     );
     this.router.get(
+      `${this.path}/desasignar-profesor/:id`,
+      passport.authenticate('jwt', { session: false }),
+      // passport.authenticate('jwt', { session: false }),
+      this.quitarProfesor
+    );
+    this.router.get(
       `${this.path}`,
       passport.authenticate('jwt', { session: false }),
       // passport.authenticate('jwt', { session: false }),
@@ -59,6 +68,20 @@ class UsuarioController implements Controller {
       this.activarUsuario
     );
   }
+  private eliminar = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const usuario = await this.usuario.findByIdAndDelete(ObjectId(id));
+      if (usuario) {
+        response.send({ status: 200, usuario });
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
   private obtenerUsuarios = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const usuario = await this.usuario.find({ activo: true }).populate('profesor');
@@ -91,6 +114,21 @@ class UsuarioController implements Controller {
 
     try {
       const usuario = await this.usuario.findByIdAndUpdate(id, { profesor }, { new: true });
+      if (usuario) {
+        response.send({ status: 200, usuario });
+      } else {
+        next(new NotFoundException());
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+  private quitarProfesor = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+
+    try {
+      const usuario = await this.usuario.findByIdAndUpdate(id, { profesor: null }, { new: true });
       if (usuario) {
         response.send({ status: 200, usuario });
       } else {
