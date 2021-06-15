@@ -37,6 +37,11 @@ class SeguimientoAlumnoController implements Controller {
     this.router.post(`${this.path}/resueltos`, passport.authenticate('jwt', { session: false }), this.resueltos);
     // this.router.post(`${this.path}/por-planilla/:id`, this.obtenerSeguimientoAlumnoPorPlanilla);
     this.router.get(
+      `${this.path}/por-usuario/:id`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerSeguimientosNuevosPorUsuario
+    );
+    this.router.get(
       `${this.path}/por-planilla/:id`,
       passport.authenticate('jwt', { session: false }),
       this.obtenerSeguimientoAlumnoPorPlanilla
@@ -49,9 +54,168 @@ class SeguimientoAlumnoController implements Controller {
     this.router.get(`${this.path}/por-alumno/:alumnoId`, passport.authenticate('jwt', { session: false }), this.obtenerPorAlumno);
     this.router.put(`${this.path}`, passport.authenticate('jwt', { session: false }), this.agregarSeguimientoAlumno);
     this.router.get(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.obtenerSeguimientoPorId);
+    this.router.get(`${this.path}/completo/:id`, passport.authenticate('jwt', { session: false }), this.obtenerSeguimientoPorIdCompleto);
     this.router.patch(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.actualizarSeguimientoAlumno);
     this.router.delete(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.eliminar);
   }
+  private obtenerSeguimientoPorIdCompleto = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const opciones: any = [
+        // PlanillaTaller
+
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // Asignatura
+
+        {
+          $lookup: {
+            from: 'asignaturas',
+            localField: 'planillaTaller.asignatura',
+            foreignField: '_id',
+            as: 'planillaTaller.asignatura',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.asignatura',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // Profesor
+
+        {
+          $lookup: {
+            from: 'profesores',
+            localField: 'planillaTaller.profesor',
+            foreignField: '_id',
+            as: 'planillaTaller.profesor',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.profesor',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // Curso
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'planillaTaller.curso',
+            foreignField: '_id',
+            as: 'planillaTaller.curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.curso',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        //
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        // Usuario
+        {
+          $lookup: {
+            from: 'usuarios',
+            localField: 'modificadoPor',
+            foreignField: '_id',
+            as: 'modificadoPor',
+          },
+        },
+        {
+          $unwind: {
+            path: '$modificadoPor',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'usuarios',
+            localField: 'creadoPor',
+            foreignField: '_id',
+            as: 'creadoPor',
+          },
+        },
+        {
+          $unwind: {
+            path: '$creadoPor',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        // CicloLectivo
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'cicloLectivo',
+            foreignField: '_id',
+            as: 'cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$cicloLectivo',
+          },
+        },
+        {
+          $match: {
+            _id: ObjectId(id),
+          },
+        },
+      ];
+      const successResponse: any[] = await this.seguimientoAlumno.aggregate(opciones);
+      if (successResponse) {
+        const seguimiento = successResponse.length > 0 ? successResponse[0] : null;
+        // TODO: ELiminar hash y salt en todos lados que se recupere creadoPor y modificadoPor
+        if (seguimiento && seguimiento.creadorPor) {
+          seguimiento.creadoPor.hash = null;
+          seguimiento.creadoPor.salt = null;
+        }
+        if (seguimiento && seguimiento.modificadoPor) {
+          seguimiento.modificadoPor.hash = null;
+          seguimiento.modificadoPor.salt = null;
+        }
+
+        if (seguimiento && seguimiento.planillaTaller && !seguimiento.planillaTaller._id) {
+          seguimiento.planillaTaller = null;
+        }
+
+        response.send({ seguimiento: seguimiento });
+      } else {
+        next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
   private obtenerSeguimientoPorId = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     try {
@@ -496,6 +660,75 @@ class SeguimientoAlumnoController implements Controller {
     try {
       const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
       response.send(seguimientos);
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas en el servidor'));
+    }
+  };
+  private obtenerSeguimientosNuevosPorUsuario = async (request: Request, response: Response, next: NextFunction) => {
+    const email = request.params.id;
+    try {
+      const usuario = await this.usuario.findOne({ email }).populate('profesor');
+      // Si el usuario es administrador o jefe de taller tiene que recibir la notificacion de todas los seguimientos no leidos.
+      // Si elusuario es profesor entonces se van a buscar todos los registros no leidos de ese usuario
+      if (usuario) {
+        if (usuario.profesor) {
+          const opciones: any[] = [
+            {
+              $lookup: {
+                from: 'planillatalleres',
+                localField: 'planillaTaller',
+                foreignField: '_id',
+                as: 'planillaTaller',
+              },
+            },
+            {
+              $unwind: {
+                path: '$planillaTaller',
+              },
+            },
+            {
+              $lookup: {
+                from: 'alumnos',
+                localField: 'alumno',
+                foreignField: '_id',
+                as: 'alumno',
+              },
+            },
+            {
+              $unwind: {
+                path: '$alumno',
+              },
+            },
+            //
+            {
+              $match: {
+                'planillaTaller.profesor': ObjectId(usuario.profesor._id),
+                leido: false,
+                activo: true,
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                planillaTaller: 1,
+                'alumno._id': 1,
+                'alumno.nombreCompleto': 1,
+                tipoSeguimiento: 1,
+                resuelto: 1,
+                leido: 1,
+              },
+            },
+          ];
+          const seguimientos = await this.seguimientoAlumno.aggregate(opciones);
+          return response.status(200).send(seguimientos);
+        } else {
+          const seguimientos = await this.seguimientoAlumno.find({ leido: false, activo: true });
+          return response.status(200).send(seguimientos);
+        }
+      } else {
+        next(new HttpException(400, 'El usuario que solicita los seguimientos no existe'));
+      }
     } catch (error) {
       console.log('[ERROR]', error);
       next(new HttpException(500, 'Problemas en el servidor'));

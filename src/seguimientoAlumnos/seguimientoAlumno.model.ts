@@ -30,7 +30,7 @@ export const seguimientoAlumnoSchema = new mongoose.Schema({
   observacion: { type: String },
   observacion2: { type: String },
   observacionJefe: { type: String },
-
+  leido: { type: Boolean },
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
