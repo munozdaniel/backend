@@ -128,11 +128,11 @@ class AlumnoController implements Controller {
   };
   private enviarEmailMasivo = async (request: Request, response: Response, next: NextFunction) => {
     const alumnos = request.body.alumnos;
-    let fecha = moment.utc(request.body.fecha).format('DD/MM/YYYY');
     const remitentes = await Promise.all(
       alumnos.map(async (x: any) => {
         // ({ email: x.email, name: x.tipoAdulto })
         // Enviar Email
+        let fecha = moment.utc(x.fecha).format('DD/MM/YYYY');
         const { SENDINBLUE_API, ENTORNO, MI_EMAIL } = process.env;
         const url = 'https://api.sendinblue.com/v3/smtp/email';
         const options = {
