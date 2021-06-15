@@ -329,11 +329,19 @@ class AsistenciaController implements Controller {
       const alumnos: any[] = [];
       await Promise.all(
         alumnosInasistentes.map(async (x) => {
-          const index: number = await x.alumno.adultos.findIndex((y: any) => y.email);
-          let email = null;
-          if (index !== -1) {
-            email = x.alumno.adultos[index].email;
-            alumnos.push({ ...x, email, nombreAdulto: x.alumno.adultos[index].nombreCompleto });
+          if (x.alumno.adultos) {
+            const index: number = await x.alumno.adultos.findIndex((y: any) => y.email && this.validateEmail(y.email));
+            let email = null;
+            if (index !== -1) {
+              email = x.alumno.adultos[index].email;
+              alumnos.push({
+                ...x,
+                email,
+                nombreAdulto: x.alumno.adultos[index].nombreCompleto ? x.alumno.adultos[index].nombreCompleto : 'Sin Nombre',
+              });
+            } else {
+              alumnosNoRegistrados.push(x);
+            }
           } else {
             alumnosNoRegistrados.push(x);
           }
@@ -345,6 +353,11 @@ class AsistenciaController implements Controller {
       next(new HttpException(500, 'Problemas interno'));
     }
   };
+  private validateEmail(email: string) {
+    const re =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+  }
   private buscarAsistenciasPorFechas = async (request: Request, response: Response, next: NextFunction) => {
     const turno = request.body.turno;
     let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
