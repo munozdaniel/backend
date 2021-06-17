@@ -20,8 +20,10 @@ import { config } from './passport/config';
 import usuarioModel from './usuario/usuario.model';
 import methodOverride from 'method-override';
 import bodyParser from 'body-parser';
+import { RefreshTokenService } from "./services/RefreshToken";
 // Config
 const API_URL = '*';
+export const refreshTokensMemoria = new RefreshTokenService();
 class App {
   public app: express.Application;
   constructor(controllers: Controller[]) {

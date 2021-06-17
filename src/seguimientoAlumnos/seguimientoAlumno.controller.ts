@@ -53,6 +53,7 @@ class SeguimientoAlumnoController implements Controller {
     );
     this.router.get(`${this.path}/por-alumno/:alumnoId`, passport.authenticate('jwt', { session: false }), this.obtenerPorAlumno);
     this.router.put(`${this.path}`, passport.authenticate('jwt', { session: false }), this.agregarSeguimientoAlumno);
+    this.router.post(`${this.path}/marcar-leido`, passport.authenticate('jwt', { session: false }), this.marcarSeguimientoLeido);
     this.router.get(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.obtenerSeguimientoPorId);
     this.router.get(`${this.path}/completo/:id`, passport.authenticate('jwt', { session: false }), this.obtenerSeguimientoPorIdCompleto);
     this.router.patch(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.actualizarSeguimientoAlumno);
@@ -415,6 +416,20 @@ class SeguimientoAlumnoController implements Controller {
     } catch (e4) {
       console.log('[ERROR], ', e4);
       next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
+  private marcarSeguimientoLeido = async (request: Request, response: Response, next: NextFunction) => {
+    const seguimiento = request.body.seguimiento;
+    try {
+      const nuevoSeguimiento = await this.seguimientoAlumno.findByIdAndUpdate(ObjectId(seguimiento._id), { leido: true }, { new: true });
+      if (nuevoSeguimiento) {
+        return response.status(200).send(nuevoSeguimiento);
+      } else {
+        return response.status(404).send(null);
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
     }
   };
   private actualizarSeguimientoAlumno = async (request: Request, response: Response, next: NextFunction) => {

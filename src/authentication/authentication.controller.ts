@@ -11,6 +11,7 @@ import UserWithThatEmailAlreadyExistsException from '../exceptions/UserWithThatE
 import passport from 'passport';
 import HttpException from '../exceptions/HttpException';
 import axios, { AxiosRequestConfig } from 'axios';
+import { refreshTokensMemoria } from '../app';
 
 class AuthenticationController implements Controller {
   public path = '/auth';
@@ -25,11 +26,41 @@ class AuthenticationController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}/test`, this.test);
     this.router.post(`${this.path}/registrar`, validationMiddleware(UsuarioDto), this.registration);
+    this.router.post(`${this.path}/refresh-token`, passport.authenticate('jwt', { session: false }), this.refresh);
     this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), this.loggingIn);
     this.router.post(`${this.path}/forgot-password`, this.forgotPassword);
     this.router.post(`${this.path}/set-lost-password`, this.setNuevoPassword);
     this.router.post(`${this.path}/logout`, this.loggingOut);
   }
+  // -----
+  private refresh = async (request: Request, response: Response, next: NextFunction) => {
+    // var email = request.body.email;
+    var refreshToken = request.body.refreshToken;
+    if (!refreshToken) {
+      return response.status(401).send({ message: 'Inicie la sesión nuevamente' });
+    }
+    if (!refreshTokensMemoria.existRefreshToken(refreshToken)) {
+      return response.status(403).send({ message: 'Inicie la sesión nuevamente [2]' });
+    }
+    jwt.verify(refreshToken, config.passport.refreshTokenSecret, async (err: any, usuario: any) => {
+      if (err) {
+        return response.sendStatus(403);
+      }
+      const accessToken = jwt.sign({ usuarioId: usuario.usuarioId, email: usuario.email }, config.passport.secret, { expiresIn: '60m' });
+      const usuarioRecuperado = await this.usuario.findById(usuario.usuarioId);
+      const retorno = {
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        nombre: usuarioRecuperado.nombre,
+        apellido: usuarioRecuperado.apellido,
+        email: usuarioRecuperado.email,
+        _id: usuarioRecuperado._id,
+
+        rol: usuarioRecuperado.rol,
+      };
+      return response.status(200).send(retorno);
+    });
+  };
   // -----
   private forgotPassword = async (request: Request, response: Response, next: NextFunction) => {
     const { email } = request.body;
@@ -119,7 +150,36 @@ class AuthenticationController implements Controller {
           const headers: AxiosRequestConfig = { headers: options.headers };
           try {
             const resultado = await axios.post(url, options.body, headers);
-            response.status(200).send({ usuario: userToReturn, email: true });
+            // Los datos que necesita el front
+            // email: string;
+            // role: string;
+            // originalUserName: string;
+            // accessToken: string;
+            // refreshToken: string;
+            // agregado para recuperar el token
+            const token = jwt.sign({ usuarioId: userToReturn._id, email: userToReturn.email }, config.passport.secret, {
+              expiresIn: '120m',
+            });
+            const refreshToken = jwt.sign({ usuarioId: userToReturn._id, email: userToReturn.email }, config.passport.refreshTokenSecret);
+
+            refreshTokensMemoria.addRefreshTokens({
+              email: userToReturn.email,
+              token: token,
+              refreshToken: refreshToken,
+            });
+            response.json({
+              accessToken: token,
+              refreshToken: refreshToken,
+              nombre: userToReturn.nombre,
+              apellido: userToReturn.apellido,
+              email: userToReturn.email,
+              _id: userToReturn._id,
+
+              // favorito,
+              // success: true,
+              // message: "Authentication successful",
+              // carritoCantidad: carrito ? carrito.productosCarrito.length : 0,
+            });
           } catch (error) {
             console.log('[ERROR]', error);
             response.status(200).send({ usuario: userToReturn, email: false });
@@ -146,23 +206,29 @@ class AuthenticationController implements Controller {
             if (error) {
               response.json({ success: false, message: error });
             } else {
-              const token = jwt.sign({ usuarioId: usuario._id, email: usuario.email }, config.passport.secret, { expiresIn: '24h' });
-              delete usuario.hash;
-              delete usuario.salt;
-              const usuarioFiltrado = {
+              const token = jwt.sign({ usuarioId: usuario._id, email: usuario.email }, config.passport.secret, { expiresIn: '2h' });
+              const refreshToken = jwt.sign({ usuarioId: usuario._id, email: usuario.email }, config.passport.refreshTokenSecret);
+
+              refreshTokensMemoria.addRefreshTokens({
+                email: usuario.email,
+                token: token,
+                refreshToken: refreshToken,
+              });
+              // console.log('usuario antes, ', usuario);
+              // const u = await this.usuario.findById(usuario._id);
+              response.json({
+                accessToken: token,
+                refreshToken: refreshToken,
                 nombre: usuario.nombre,
                 apellido: usuario.apellido,
                 email: usuario.email,
-                rol: usuario.rol,
-                picture: usuario.picture,
-                profesor: usuario.profesor,
-              };
-              //.populate('author', '-password') populate con imagen
-              response.json({
-                token,
-                ...usuarioFiltrado,
+                _id: usuario._id,
                 success: true,
-                message: 'Authentication successful',
+                rol: usuario.rol,
+                // favorito,
+                // success: true,
+                // message: "Authentication successful",
+                // carritoCantidad: carrito ? carrito.productosCarrito.length : 0,
               });
             }
           });
