@@ -359,6 +359,7 @@ class AsistenciaController implements Controller {
     return re.test(String(email).toLowerCase());
   }
   private buscarAsistenciasPorFechas = async (request: Request, response: Response, next: NextFunction) => {
+    const curso = Number(request.body.curso);
     const turno = request.body.turno;
     let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
     let hasta: Date = new Date(moment.utc(request.body.hasta).format('YYYY-MM-DD'));
@@ -446,6 +447,7 @@ class AsistenciaController implements Controller {
             fecha: match,
             presente: false,
             'planillaTaller.turno': turno,
+            'planillaTaller.curso.curso': curso,
           },
         },
         {
