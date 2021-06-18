@@ -127,7 +127,7 @@ class AuthenticationController implements Controller {
             body: JSON.stringify({
               sender: {
                 name: 'Registro Exitoso - CET 30',
-                email: 'no-reply@propet.com',
+                email: 'no-reply@cet30.edu.ar',
               },
               to: [
                 {
@@ -282,7 +282,7 @@ class AuthenticationController implements Controller {
       body: JSON.stringify({
         sender: {
           name: 'Colegio CET 30 - No responder',
-          email: 'no-reply@propet.com',
+          email: 'no-reply@cet30.edu.ar',
         },
         to: [
           {

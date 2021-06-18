@@ -248,7 +248,7 @@ class UsuarioController implements Controller {
       body: JSON.stringify({
         sender: {
           name: 'Recuperar Contraseña - CET 30',
-          email: 'no-reply@propet.com',
+          email: 'no-reply@cet30.edu.ar',
         },
         to: [
           {

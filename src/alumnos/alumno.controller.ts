@@ -145,7 +145,7 @@ class AlumnoController implements Controller {
           body: JSON.stringify({
             sender: {
               name: 'Notificación de Ausencia - CET 30',
-              email: 'no-reply@propet.com',
+              email: 'no-reply@cet30.edu.ar',
             },
             to: [{ email: ENTORNO === 'desarrollo' ? MI_EMAIL : MI_EMAIL, name: x.tipoAdulto }],
             // bcc: 'munozda87@hotmail.com',
@@ -154,6 +154,7 @@ class AlumnoController implements Controller {
               nombreAdulto: x.nombreAdulto && x.nombreAdulto !== 'Sin Nombre' ? x.nombreAdulto : '',
               nombreAlumno: x.alumno.nombreCompleto,
               fechaInasitencia: fecha,
+              asignatura: x.planillaTaller.asignatura.detalle,
             },
             templateId: 3,
             // textContent:
@@ -578,7 +579,7 @@ class AlumnoController implements Controller {
       body: JSON.stringify({
         sender: {
           name: 'Notificación de Ausencia - CET 30',
-          email: 'no-reply@propet.com',
+          email: 'no-reply@cet30.edu.ar',
         },
         to: [
           {
