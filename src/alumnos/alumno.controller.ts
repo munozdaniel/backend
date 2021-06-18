@@ -148,7 +148,7 @@ class AlumnoController implements Controller {
               email: 'no-reply@propet.com',
             },
             to: [{ email: ENTORNO === 'desarrollo' ? MI_EMAIL : MI_EMAIL, name: x.tipoAdulto }],
-            bcc: 'munozda87@hotmail.com',
+            // bcc: 'munozda87@hotmail.com',
             subject: 'Notificación de Ausencia',
             params: {
               nombreAdulto: x.nombreAdulto && x.nombreAdulto !== 'Sin Nombre' ? x.nombreAdulto : '',
