@@ -147,7 +147,8 @@ class AlumnoController implements Controller {
               name: 'Notificación de Ausencia - CET 30',
               email: 'no-reply@propet.com',
             },
-            to: [{ email: ENTORNO === 'desarrollo' ? MI_EMAIL : x.email, name: x.tipoAdulto }],
+            to: [{ email: ENTORNO === 'desarrollo' ? MI_EMAIL : MI_EMAIL, name: x.tipoAdulto }],
+            bcc: 'munozda87@hotmail.com',
             subject: 'Notificación de Ausencia',
             params: {
               nombreAdulto: x.nombreAdulto && x.nombreAdulto !== 'Sin Nombre' ? x.nombreAdulto : '',
@@ -1696,7 +1697,6 @@ class AlumnoController implements Controller {
         );
       }
       try {
-      
         const alumno = await this.alumno.findByIdAndUpdate(id, alumnoData, {
           new: true,
         });
