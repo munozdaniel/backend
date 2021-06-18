@@ -235,18 +235,33 @@ class AsistenciaController implements Controller {
   };
   private buscarInasistencias = async (request: Request, response: Response, next: NextFunction) => {
     const turno = request.body.turno;
+    const curso = request.body.curso;
     let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
     let hasta: Date = new Date(moment.utc(request.body.hasta).format('YYYY-MM-DD'));
-    let match;
+    let match: any = {};
+    let matchFecha: any = {};
     if (request.body.hasta) {
-      match = {
+      matchFecha = {
         $gte: desde,
         $lt: hasta,
       };
     } else {
-      match = {
+      matchFecha = {
         $eq: desde,
       };
+    }
+    if (curso) {
+      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), presente: false };
+      // {
+      //   '$match': {
+      //     fecha: [Object],
+      //     presente: false,
+      //     'planillaTaller.turno': 'MAÑANA',
+      //     'planillaTaller.curso.curso': 1
+      //   }
+      // },
+    } else {
+      match = { fecha: matchFecha, presente: false };
     }
     try {
       const opciones: any[] = [
@@ -316,13 +331,14 @@ class AsistenciaController implements Controller {
             path: '$planillaTaller.asignatura',
           },
         },
-        {
-          $match: {
-            presente: false,
-            fecha: match,
-            'planillaTaller.turno': turno,
-          },
-        },
+        // {
+        //   $match: {
+        //     presente: false,
+        //     fecha: match,
+        //     'planillaTaller.turno': turno,
+        //   },
+        // },
+        { $match: { ...match } },
       ];
       const alumnosInasistentes = await this.asistencia.aggregate(opciones);
       const alumnosNoRegistrados: any[] = [];

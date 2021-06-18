@@ -33,7 +33,6 @@ class TemaPendienteController implements Controller {
   private eliminarTemaPendiente = async (request: Request, response: Response, next: NextFunction) => {
     const tema = request.body.tema;
     try {
-      console.log('eliminarTemaPendiente', tema);
       const fecha = new Date(moment.utc(tema.fecha).format('YYYY-MM-DD'));
       const successResponse = await this.temaPendiente.findOneAndDelete({
         planillaTaller: ObjectId(tema.planillaTaller._id),

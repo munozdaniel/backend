@@ -83,16 +83,16 @@ class AlumnoController implements Controller {
 
   private uploadDiagnostico = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
-    console.log('subirImagen ', request.file);
-    console.log('subirImagen ', request.files);
-    console.log('subirImagen ', request.body);
+    // console.log('subirImagen ', request.file);
+    // console.log('subirImagen ', request.files);
+    // console.log('subirImagen ', request.body);
     try {
       const alumno = await this.alumno.findById(id);
       if (alumno) {
         if (!request.file) {
           response.send({ success: true, message: 'EXITO' });
         } else {
-          console.log('=>', request.file.filename);
+          // console.log('=>', request.file.filename);
           if (alumno.archivoDiagnostico && alumno.archivoDiagnostico.length > 0) {
             alumno.archivoDiagnostico.push('public/imagenes/' + request.file.filename);
           } else {
@@ -150,8 +150,8 @@ class AlumnoController implements Controller {
             to: [{ email: ENTORNO === 'desarrollo' ? MI_EMAIL : x.email, name: x.tipoAdulto }],
             subject: 'Notificación de Ausencia',
             params: {
-              nombreAdulto: x.nombreAdulto,
-              nombreAlumno: x.nombreCompleto,
+              nombreAdulto: x.nombreAdulto && x.nombreAdulto !== 'Sin Nombre' ? x.nombreAdulto : '',
+              nombreAlumno: x.alumno.nombreCompleto,
               fechaInasitencia: fecha,
             },
             templateId: 3,
@@ -226,7 +226,6 @@ class AlumnoController implements Controller {
       if (!alumnoActualizado) {
         next(new NotFoundException(alumnoId));
       } else {
-        // console.log('alumnoActualizado', alumnoActualizado);
         response.send(alumnoActualizado);
       }
     }
@@ -462,7 +461,6 @@ class AlumnoController implements Controller {
       if (alumnosSaved && alumnosSaved.length > 0) {
         const alumnosConEstados = await Promise.all(
           alumnos.map(async (x: any) => {
-            console.log(x);
             const { curso, division, comision, cicloLectivo, condicion } = x;
             if (!curso || !division || !cicloLectivo) {
               return x;
@@ -1688,7 +1686,6 @@ class AlumnoController implements Controller {
                 });
 
                 const saved = await createdEstadoCursada.save();
-                console.log('sin id', saved, saved._id);
                 return saved;
               } catch (e) {
                 console.log('[ERROR GUARDANDO ESTADO CURSADA NUEVO]', e);
@@ -1699,9 +1696,7 @@ class AlumnoController implements Controller {
         );
       }
       try {
-        console.log('=============================');
-        console.log('alumnoData', alumnoData);
-        console.log('=============================');
+      
         const alumno = await this.alumno.findByIdAndUpdate(id, alumnoData, {
           new: true,
         });

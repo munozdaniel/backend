@@ -24,7 +24,6 @@ usuarioSchema.pre('save', async function (this: IUsuario, next: any) {
   const SALT_FACTOR = 5;
   if (!this.isModified('password')) return next();
 
-  console.log('usuarioSchema', 'save');
   const now = new Date();
   if (!this.fechaCreacion) {
     this.fechaCreacion = now;

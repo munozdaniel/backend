@@ -60,16 +60,13 @@ class CalendarioController implements Controller {
       })
     );
     // Obtengo por parametro la fecha de inicio de clases
-    console.log('calendarioEliminado', calendarioEliminado);
     const fechaFinal = request.body.fechaFinal;
     // cicloLectivoActual
     const calendarioNuevo = [];
     let normal = true;
     let fechaInicio = moment(request.body.fechaInicio, 'YYYY-MM-DD').utc(); // .add(-1, 'day')
     //let fechaInicio = moment(request.body.fechaInicio).utc();
-    console.log('UINUI', request.body.fechaInicio);
-    console.log('UINUI', fechaFinal);
-    console.log('UINUI', moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio));
+
     let miercolesSi = true;
     while (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio)) {
       const fechaNombre = moment.utc(fechaInicio).format('dddd').toLowerCase();
@@ -160,7 +157,6 @@ class CalendarioController implements Controller {
 
       //    fechaInicio = moment(fechaInicio).utc().add(1, 'day');
     }
-    console.log('calendarioNuevo', calendarioNuevo);
     try {
       const saved = await this.calendario.insertMany(calendarioNuevo);
 
@@ -201,16 +197,13 @@ class CalendarioController implements Controller {
       })
     );
     // Obtengo por parametro la fecha de inicio de clases
-    console.log('calendarioEliminado', calendarioEliminado);
     const fechaFinal = request.body.fechaFinal;
     // cicloLectivoActual
     const calendarioNuevo = [];
     let normal = true;
     let fechaInicio = moment(request.body.fechaInicio, 'YYYY-MM-DD').utc().add(-1, 'day');
     //let fechaInicio = moment(request.body.fechaInicio).utc();
-    console.log('UINUI', request.body.fechaInicio);
-    console.log('UINUI', fechaFinal);
-    console.log('UINUI', moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio));
+  
     let miercolesSi = true;
     while (moment(fechaFinal, 'YYYY-MM-DD').utc().isSameOrAfter(fechaInicio)) {
       if (normal) {
@@ -311,7 +304,6 @@ class CalendarioController implements Controller {
       normal = !normal;
       //    fechaInicio = moment(fechaInicio).utc().add(1, 'day');
     }
-    console.log('calendarioNuevo', calendarioNuevo);
     try {
       const saved = await this.calendario.insertMany(calendarioNuevo);
 

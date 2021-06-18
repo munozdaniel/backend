@@ -93,7 +93,6 @@ class CalificacionController implements Controller {
     } else {
       alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
     }
-    console.log('alumnos', alumnos);
     const reporteAlumnos = await Promise.all(
       alumnos.map(async (alumno: any) => {
         let alumnoRetorno: any = null;
@@ -107,7 +106,6 @@ class CalificacionController implements Controller {
           },
         ];
 
-        console.log('opcionesC', opcionesC);
         const calificaciones = await this.calificacion.aggregate(opcionesC);
         const opciones: any[] = [
           {
