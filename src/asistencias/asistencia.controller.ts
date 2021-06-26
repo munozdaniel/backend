@@ -236,6 +236,7 @@ class AsistenciaController implements Controller {
   private buscarInasistencias = async (request: Request, response: Response, next: NextFunction) => {
     const turno = request.body.turno;
     const curso = request.body.curso;
+    const division = request.body.division;
     let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
     let hasta: Date = new Date(moment.utc(request.body.hasta).format('YYYY-MM-DD'));
     let match: any = {};
@@ -252,17 +253,13 @@ class AsistenciaController implements Controller {
     }
     if (curso) {
       match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), presente: false, 'planillaTaller.turno': turno };
-      // {
-      //   '$match': {
-      //     fecha: [Object],
-      //     presente: false,
-      //     'planillaTaller.turno': 'MAÑANA',
-      //     'planillaTaller.curso.curso': 1
-      //   }
-      // },
     } else {
       match = { fecha: matchFecha, presente: false, 'planillaTaller.turno': turno };
     }
+    if (division) {
+      match = { ...match, 'planillaTaller.curso.division': division };
+    }
+    // console.log('match', match);
     try {
       const opciones: any[] = [
         {
@@ -340,7 +337,6 @@ class AsistenciaController implements Controller {
         // },
         { $match: { ...match } },
       ];
-      console.log('match', match);
       const alumnosInasistentes = await this.asistencia.aggregate(opciones);
       const alumnosNoRegistrados: any[] = [];
       const alumnos: any[] = [];
