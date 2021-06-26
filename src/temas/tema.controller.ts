@@ -45,6 +45,7 @@ class TemaController implements Controller {
       passport.authenticate('jwt', { session: false }),
       this.informeTemasPorPlanillaTaller
     );
+    this.router.post(`${this.path}/eliminar-temas`, passport.authenticate('jwt', { session: false }), this.eliminarTemas);
   }
 
   private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {
@@ -633,6 +634,32 @@ class TemaController implements Controller {
         });
       } else {
         next(new NotFoundException(id));
+      }
+    } catch (e) {
+      console.log('[ERROR]', e);
+      next(new HttpException(400, 'Parametros Incorrectos'));
+    }
+  };
+  private eliminarTemas = async (request: Request, response: Response, next: NextFunction) => {
+    const temas = request.body.temas;
+    try {
+      const eliminados = await Promise.all(
+        temas.map(async (x: any) => {
+          return await this.tema.findByIdAndDelete(x._id);
+        })
+      );
+      if (eliminados) {
+        response.send({
+          status: 200,
+          success: true,
+          message: 'Operación Exitosa',
+        });
+      } else {
+        response.send({
+          status: 200,
+          success: false,
+          message: 'No se eliminó ningun tema',
+        });
       }
     } catch (e) {
       console.log('[ERROR]', e);

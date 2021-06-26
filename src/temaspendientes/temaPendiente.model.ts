@@ -14,6 +14,7 @@ export const temaPendienteSchema = new mongoose.Schema({
     ref: 'Profesore',
     required: false,
   },
+  motivoAlerta: { type: String, default: null, required: false },
 });
 
 const temaPendienteModel = mongoose.model('temaPendiente', temaPendienteSchema);
