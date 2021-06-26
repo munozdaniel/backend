@@ -251,7 +251,7 @@ class AsistenciaController implements Controller {
       };
     }
     if (curso) {
-      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), presente: false };
+      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), presente: false, 'planillaTaller.turno': turno };
       // {
       //   '$match': {
       //     fecha: [Object],
@@ -261,7 +261,7 @@ class AsistenciaController implements Controller {
       //   }
       // },
     } else {
-      match = { fecha: matchFecha, presente: false };
+      match = { fecha: matchFecha, presente: false, 'planillaTaller.turno': turno };
     }
     try {
       const opciones: any[] = [
@@ -289,7 +289,7 @@ class AsistenciaController implements Controller {
         {
           $unwind: {
             path: '$planillaTaller',
-            preserveNullAndEmptyArrays: false,
+            // preserveNullAndEmptyArrays: false,
           },
         },
         {
@@ -340,6 +340,7 @@ class AsistenciaController implements Controller {
         // },
         { $match: { ...match } },
       ];
+      console.log('match', match);
       const alumnosInasistentes = await this.asistencia.aggregate(opciones);
       const alumnosNoRegistrados: any[] = [];
       const alumnos: any[] = [];
