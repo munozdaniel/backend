@@ -373,20 +373,31 @@ class AsistenciaController implements Controller {
   }
   private buscarAsistenciasPorFechas = async (request: Request, response: Response, next: NextFunction) => {
     const curso = Number(request.body.curso);
+    const division = Number(request.body.division);
     const turno = request.body.turno;
     let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
     let hasta: Date = new Date(moment.utc(request.body.hasta).format('YYYY-MM-DD'));
     let match;
+    let matchFecha: any = {};
     if (request.body.hasta) {
-      match = {
+      matchFecha = {
         $gte: desde,
         $lt: hasta,
       };
     } else {
-      match = {
+      matchFecha = {
         $eq: desde,
       };
     }
+    if (curso) {
+      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), presente: false, 'planillaTaller.turno': turno };
+    } else {
+      match = { fecha: matchFecha, presente: false, 'planillaTaller.turno': turno };
+    }
+    if (division) {
+      match = { ...match, 'planillaTaller.curso.division': division };
+    }
+    console.log('match', match);
     try {
       const opciones: any[] = [
         {
@@ -413,7 +424,7 @@ class AsistenciaController implements Controller {
         {
           $unwind: {
             path: '$planillaTaller',
-            preserveNullAndEmptyArrays: false,
+            //   preserveNullAndEmptyArrays: false,
           },
         },
         {
@@ -455,14 +466,16 @@ class AsistenciaController implements Controller {
             path: '$planillaTaller.asignatura',
           },
         },
-        {
-          $match: {
-            fecha: match,
-            presente: false,
-            'planillaTaller.turno': turno,
-            'planillaTaller.curso.curso': curso,
-          },
-        },
+        { $match: { ...match } },
+
+        // {
+        //   $match: {
+        //     fecha: match,
+        //     presente: false,
+        //     'planillaTaller.turno': turno,
+        //     // 'planillaTaller.curso.curso': curso,
+        //   },
+        // },
         {
           $sort: {
             fecha: 1,
