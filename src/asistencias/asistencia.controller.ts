@@ -397,7 +397,6 @@ class AsistenciaController implements Controller {
     if (division) {
       match = { ...match, 'planillaTaller.curso.division': division };
     }
-    console.log('match', match);
     try {
       const opciones: any[] = [
         {
