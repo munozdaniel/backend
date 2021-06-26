@@ -42,6 +42,7 @@ class AlumnoController implements Controller {
 
   private initializeRoutes() {
     this.router.post(`${this.path}/upload-diagnostico/:id`, multerMiddleware.single('diagnostico'), this.uploadDiagnostico);
+    this.router.get(`${this.path}/limpiar-datos`, this.limpiarDatos);
     // Using the  route.all in such a way applies the middleware only to the route
     // handlers in the chain that match the  `${this.path}/*` route, including  POST /alumnos.
     this.router
@@ -81,6 +82,41 @@ class AlumnoController implements Controller {
       );
   }
 
+  private limpiarDatos = async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const alumnos = await this.alumno.find();
+      const refactorizados = Promise.all(
+        alumnos.map(async (x) => {
+          if (x.fechaNacimiento === 'Sin Registrar') {
+            x.fechaNacimiento = null;
+          }
+          if (x.fechaNacimiento !== null) {
+            const ff = new Date(moment(x.fechaNacimiento).add(1, 'day').utc().format('YYYY-MM-DD'));
+            x.fechaNacimiento = ff;
+          }
+          if (x.fechaIngreso === 'Sin Registrar') {
+            x.fechaIngreso = null;
+          }
+          if (x.motivoDeBaja === '0' || x.motivoDeBaja === 0) {
+            x.motivoDeBaja = null;
+          }
+          return await this.alumno.findByIdAndUpdate(
+            x._id,
+            {
+              fechaNacimiento: x.fechaNacimiento,
+              fechaIngreso: x.fechaIngreso,
+              motivoDeBaja: x.motivoDeBaja,
+            },
+            { new: true }
+          );
+        })
+      );
+      response.status(200).send({ refactorizados });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
+    }
+  };
   private uploadDiagnostico = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     // console.log('subirImagen ', request.file);

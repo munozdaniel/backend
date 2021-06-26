@@ -51,8 +51,10 @@ pwd: "123456",
 # PASOS MIGRACION
 
 ## migrar nuevo analisis
+
 localhost:8083/api/comisiones/migrar-unicas
 localhost:8083/api/alumnos/migrar
+
 ## migrar alumnos
 
 alumnos/migrar
@@ -77,3 +79,11 @@ planilla_temario_por_dia
 planillaaportesdetaller
 profesoresoriginals <<mod>>
 seguimiento_de_alumnos
+
+# comandos
+
+## Backup de la bd sacando la seguridad de la configuracion /etc/mongod.conf
+
+sudo mongodump --db sega30 --out /var/backups/mongobackups/`date +"%m-%d-%y"`
+
+sudo mongodump --username adminEscuela --password system2021cet30 --db sega30 --out /var/backups/mongobackups/`date +"%m-%d-%y"` --authenticationDatabase admin
