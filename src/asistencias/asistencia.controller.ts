@@ -908,7 +908,7 @@ class AsistenciaController implements Controller {
   private actualizarAsistencia = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const asistencia = request.body.asistencia;
-    const ini = new Date(moment(asistencia.fecha).format('YYYY-MM-DD'));
+    const ini = new Date(moment.utc(asistencia.fecha).format('YYYY-MM-DD'));
     asistencia.fecha = ini;
     try {
       const updated = await this.asistencia.findByIdAndUpdate(id, asistencia, { new: true });
