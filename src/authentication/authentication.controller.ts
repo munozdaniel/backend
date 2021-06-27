@@ -56,6 +56,7 @@ class AuthenticationController implements Controller {
         email: usuarioRecuperado.email,
         _id: usuarioRecuperado._id,
 
+        profesor: usuarioRecuperado.profesor,
         rol: usuarioRecuperado.rol,
       };
       return response.status(200).send(retorno);
@@ -174,6 +175,7 @@ class AuthenticationController implements Controller {
               apellido: userToReturn.apellido,
               email: userToReturn.email,
               _id: userToReturn._id,
+              // profesor:userToReturn.profesor // no se pone el rol ni el profesor porque al registrar no se asignan
 
               // favorito,
               // success: true,
@@ -214,7 +216,7 @@ class AuthenticationController implements Controller {
                 token: token,
                 refreshToken: refreshToken,
               });
-              // console.log('usuario antes, ', usuario);
+              console.log('usuario antes, ', usuario);
               // const u = await this.usuario.findById(usuario._id);
               response.json({
                 accessToken: token,
@@ -225,6 +227,7 @@ class AuthenticationController implements Controller {
                 _id: usuario._id,
                 success: true,
                 rol: usuario.rol,
+                profesor: usuario.profesor,
                 // favorito,
                 // success: true,
                 // message: "Authentication successful",

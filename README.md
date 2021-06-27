@@ -87,3 +87,5 @@ seguimiento_de_alumnos
 sudo mongodump --db sega30 --out /var/backups/mongobackups/`date +"%m-%d-%y"`
 
 sudo mongodump --username adminEscuela --password system2021cet30 --db sega30 --out /var/backups/mongobackups/`date +"%m-%d-%y"` --authenticationDatabase admin
+
+pm2 start npm -- run prod
