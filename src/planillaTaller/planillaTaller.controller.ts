@@ -117,7 +117,7 @@ class PlanillaTallerController implements Controller {
       {
         $unwind: {
           path: '$cicloLectivo',
-          preserveNullAndEmptyArrays: true,
+          // preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -139,6 +139,7 @@ class PlanillaTallerController implements Controller {
       },
       { $sort: { _id: -1 } },
     ];
+    console.log('match', match);
     try {
       const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
       response.send(planillaTallerAggregate);
