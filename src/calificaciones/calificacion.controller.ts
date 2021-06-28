@@ -141,11 +141,14 @@ class CalificacionController implements Controller {
           calificaciones,
           inasistencias,
           temas,
-          totalClases: temas.length,
-          porcentajeAsistencias: asistencias.length < 1 ? 0 : ((totalAsistencias * 100) / asistencias.length).toFixed(2),
-          porcentajeTarde: asistencias.length < 1 ? 0 : ((llegadasTardes * 100) / asistencias.length).toFixed(2),
+          totalClases: asistencias.length,
+          porcentajeAsistencias: totalAsistencias,
+          porcentajeInasistencias: totalAusentes,
+          // porcentajeAsistencias: asistencias.length < 1 ? 0 : ((totalAsistencias * 100) / asistencias.length).toFixed(2),
+          // porcentajeTarde: asistencias.length < 1 ? 0 : ((llegadasTardes * 100) / asistencias.length).toFixed(2),
           llegadasTardes,
-          porcentajeInasistencias: asistencias.length < 1 ? 0 : ((totalAusentes * 100) / asistencias.length).toFixed(2),
+          // porcentajeInasistencias: asistencias.length < 1 ? 0 : ((totalAusentes * 100) / asistencias.length).toFixed(2),
+          // porcentajeInasistencias: asistencias.length < 1 ? 0 : ((totalAusentes * 100) / asistencias.length).toFixed(2),
         };
 
         // {
