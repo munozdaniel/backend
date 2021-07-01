@@ -62,6 +62,7 @@ class CrearAlumnoDto {
     message: 'El nombre no puede superar los 250 caracteres',
   })
   public nombreCompleto: string;
+  @IsOptional()
   @IsDateString({ message: 'La fecha de nacimiento no es válida' })
   public fechaNacimiento: string;
   @IsString()
@@ -79,6 +80,7 @@ class CrearAlumnoDto {
   @MaxLength(50, {
     message: 'La nacionalidad debe contener 50 caracteres máximo',
   })
+  @IsOptional()
   public nacionalidad: string;
   @IsOptional()
   @IsString({ message: 'El telefono no fue ingresado' })
@@ -106,7 +108,9 @@ class CrearAlumnoDto {
   @MaxLength(70, {
     message: 'El email debe contener 70 caracteres máximo',
   })
+  @IsOptional()
   public email: string;
+  @IsOptional()
   @IsDateString({ message: 'La fecha de ingreso no es válida' })
   public fechaIngreso: string;
   @IsString()

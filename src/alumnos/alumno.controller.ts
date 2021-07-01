@@ -218,54 +218,105 @@ class AlumnoController implements Controller {
     });
     response.status(200).send({ remitentes: remitentes });
   };
+  private async persistirEstadoCursada(alumno: IAlumno, estadoCursada: IEstadoCursada) {
+    const nuevo = {
+      curso: estadoCursada.curso.curso,
+      comision: estadoCursada.curso.comision,
+      division: estadoCursada.curso.division,
+      // fechaCreacion: hoy,
+      activo: true,
+    };
+    const match = {
+      curso: estadoCursada.curso.curso,
+      comision: estadoCursada.curso.comision,
+      division: estadoCursada.curso.division,
+    };
+    const curso = await this.curso.findOneAndUpdate(match, nuevo, {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    });
+    const now = new Date();
+    const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+    const createdEstadoCursada = new this.estadoCursada({
+      curso,
+      condicion: estadoCursada.condicion,
+      cicloLectivo: estadoCursada.cicloLectivo,
+      fechaCreacion: hoy,
+      activo: true,
+    });
+    const creado = await createdEstadoCursada.save();
+    createdEstadoCursada._id = creado;
+    if (!alumno.estadoCursadas) {
+      alumno.estadoCursadas = [createdEstadoCursada];
+    } else {
+      alumno.estadoCursadas.push(createdEstadoCursada);
+    }
+    const alumnoActualizado = await this.alumno.findOneAndUpdate(
+      { _id: alumno._id },
+      { estadoCursadas: alumno.estadoCursadas },
+      { new: true }
+    );
+    if (!alumnoActualizado) {
+      return null;
+    } else {
+      return alumnoActualizado;
+    }
+  }
   private agregarEstadoCursada = async (request: Request, response: Response, next: NextFunction) => {
     const alumnoId = request.params.id;
     const alumno: IAlumno = await this.alumno.findById(alumnoId).populate('estadoCursadas');
     if (alumno) {
       const estadoCursada: IEstadoCursada = request.body.estadoCursada;
-      const nuevo = {
-        curso: estadoCursada.curso.curso,
-        comision: estadoCursada.curso.comision,
-        division: estadoCursada.curso.division,
-        // fechaCreacion: hoy,
-        activo: true,
-      };
-      const match = {
-        curso: estadoCursada.curso.curso,
-        comision: estadoCursada.curso.comision,
-        division: estadoCursada.curso.division,
-      };
-      const curso = await this.curso.findOneAndUpdate(match, nuevo, {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true,
-      });
-      const now = new Date();
-      const hoy = new Date(moment(now).format('YYYY-MM-DD'));
-      const createdEstadoCursada = new this.estadoCursada({
-        curso,
-        condicion: estadoCursada.condicion,
-        cicloLectivo: estadoCursada.cicloLectivo,
-        fechaCreacion: hoy,
-        activo: true,
-      });
-      const creado = await createdEstadoCursada.save();
-      createdEstadoCursada._id = creado;
-      if (!alumno.estadoCursadas) {
-        alumno.estadoCursadas = [createdEstadoCursada];
-      } else {
-        alumno.estadoCursadas.push(createdEstadoCursada);
-      }
-      const alumnoActualizado = await this.alumno.findOneAndUpdate(
-        { _id: alumnoId },
-        { estadoCursadas: alumno.estadoCursadas },
-        { new: true }
-      );
+      const alumnoActualizado = await this.persistirEstadoCursada(alumno, estadoCursada);
       if (!alumnoActualizado) {
         next(new NotFoundException(alumnoId));
       } else {
         response.send(alumnoActualizado);
       }
+      //   const nuevo = {
+      //     curso: estadoCursada.curso.curso,
+      //     comision: estadoCursada.curso.comision,
+      //     division: estadoCursada.curso.division,
+      //     // fechaCreacion: hoy,
+      //     activo: true,
+      //   };
+      //   const match = {
+      //     curso: estadoCursada.curso.curso,
+      //     comision: estadoCursada.curso.comision,
+      //     division: estadoCursada.curso.division,
+      //   };
+      //   const curso = await this.curso.findOneAndUpdate(match, nuevo, {
+      //     upsert: true,
+      //     new: true,
+      //     setDefaultsOnInsert: true,
+      //   });
+      //   const now = new Date();
+      //   const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+      //   const createdEstadoCursada = new this.estadoCursada({
+      //     curso,
+      //     condicion: estadoCursada.condicion,
+      //     cicloLectivo: estadoCursada.cicloLectivo,
+      //     fechaCreacion: hoy,
+      //     activo: true,
+      //   });
+      //   const creado = await createdEstadoCursada.save();
+      //   createdEstadoCursada._id = creado;
+      //   if (!alumno.estadoCursadas) {
+      //     alumno.estadoCursadas = [createdEstadoCursada];
+      //   } else {
+      //     alumno.estadoCursadas.push(createdEstadoCursada);
+      //   }
+      //   const alumnoActualizado = await this.alumno.findOneAndUpdate(
+      //     { _id: alumnoId },
+      //     { estadoCursadas: alumno.estadoCursadas },
+      //     { new: true }
+      //   );
+      //   if (!alumnoActualizado) {
+      //     next(new NotFoundException(alumnoId));
+      //   } else {
+      //     response.send(alumnoActualizado);
+      //   }
     }
   };
 
@@ -1755,13 +1806,22 @@ class AlumnoController implements Controller {
 
   private createAlumno = async (request: Request, response: Response, next: NextFunction) => {
     // Agregar datos
-    const alumnoData: CreateAlumnoDto = request.body;
+    const alumnoData: CreateAlumnoDto & any = request.body;
+    const estadoCursadas = request.body.estadoCursadas;
+    delete alumnoData.estadoCursadas;
     const createdAlumno = new this.alumno({
       ...alumnoData,
       // author: request.user ? request.user._id : null,
     });
     try {
       const savedAlumno = await createdAlumno.save();
+      const eC = await Promise.all(
+        estadoCursadas.map(async (x: any) => {
+          await this.persistirEstadoCursada(savedAlumno, x);
+          return x;
+        })
+      );
+      savedAlumno.estadoCursadas = eC;
       response.send(savedAlumno);
     } catch (error) {
       console.log('[ERROR]', error);
