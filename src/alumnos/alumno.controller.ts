@@ -183,7 +183,7 @@ class AlumnoController implements Controller {
               name: 'Notificación de Ausencia - CET 30',
               email: 'no-reply@cet30.edu.ar',
             },
-            to: [{ email: ENTORNO === 'desarrollo' ? MI_EMAIL : MI_EMAIL, name: x.tipoAdulto }],
+            to: [{ email: ENTORNO === 'desarrollo' ? MI_EMAIL : x.email, name: x.tipoAdulto }],
             // bcc: 'munozda87@hotmail.com',
             subject: 'Notificación de Ausencia',
             params: {
