@@ -9,6 +9,7 @@ interface IAdulto extends mongoose.Document {
   fechaCreacion: Date;
   fechaModificacion?: Date;
   activo: boolean;
+  preferencia?:boolean;
 }
 
 export default IAdulto;

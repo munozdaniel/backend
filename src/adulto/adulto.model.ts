@@ -12,6 +12,7 @@ export const adultoSchema = new mongoose.Schema({
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date },
   activo: { type: Boolean, default: true },
+  preferencia: { type: Boolean, default: false },
 });
 
 // Modelo

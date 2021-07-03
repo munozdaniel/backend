@@ -14,6 +14,7 @@ import moment from 'moment';
 import calendarioModel from '../calendario/calendario.model';
 import * as _ from 'lodash';
 import passport from 'passport';
+import IAdulto from '../adulto/adulto.interface';
 
 const ObjectId = mongoose.Types.ObjectId;
 class AsistenciaController implements Controller {
@@ -343,17 +344,30 @@ class AsistenciaController implements Controller {
       await Promise.all(
         alumnosInasistentes.map(async (x) => {
           if (x.alumno.adultos) {
-            const index: number = await x.alumno.adultos.findIndex((y: any) => y.email && this.validateEmail(y.email));
-            let email = null;
-            if (index !== -1) {
-              email = x.alumno.adultos[index].email;
-              alumnos.push({
-                ...x,
-                email,
-                nombreAdulto: x.alumno.adultos[index].nombreCompleto ? x.alumno.adultos[index].nombreCompleto : 'Sin Nombre',
-              });
+            const adultoPreferido = await x.alumno.adultos.filter((y: IAdulto) => y.preferencia && y.email && this.validateEmail(y.email));
+            if (adultoPreferido && adultoPreferido.length > 0) {
+              await Promise.all(
+                adultoPreferido.map((z: IAdulto) => {
+                  alumnos.push({
+                    ...x,
+                    email: z.email,
+                    nombreAdulto: z.nombreCompleto ? z.nombreCompleto : 'Sin Nombre',
+                  });
+                })
+              );
             } else {
-              alumnosNoRegistrados.push(x);
+              const index: number = await x.alumno.adultos.findIndex((y: any) => y.email && this.validateEmail(y.email));
+              let email = null;
+              if (index !== -1) {
+                email = x.alumno.adultos[index].email;
+                alumnos.push({
+                  ...x,
+                  email,
+                  nombreAdulto: x.alumno.adultos[index].nombreCompleto ? x.alumno.adultos[index].nombreCompleto : 'Sin Nombre',
+                });
+              } else {
+                alumnosNoRegistrados.push(x);
+              }
             }
           } else {
             alumnosNoRegistrados.push(x);
