@@ -334,6 +334,7 @@ class AlumnoTallerController implements Controller {
             };
           })
         );
+        // console.log('alumnosRetorno', alumnosRetorno);
         return response.status(200).send(alumnosRetorno);
       } else {
         const alumnosRetorno = await Promise.all(
@@ -356,6 +357,10 @@ class AlumnoTallerController implements Controller {
             }
           })
         );
+        // console.log(
+        //   'alumnosRetorno2',
+        //   alumnosRetorno.filter((x) => x.selected)
+        // );
         return response.status(200).send(alumnosRetorno);
       }
     } catch (error) {

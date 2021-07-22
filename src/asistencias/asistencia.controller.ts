@@ -253,9 +253,15 @@ class AsistenciaController implements Controller {
       };
     }
     if (curso) {
-      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), presente: false, 'planillaTaller.turno': turno };
+      match = {
+        fecha: matchFecha,
+        'planillaTaller.curso.curso': Number(curso),
+        presente: false,
+        'planillaTaller.turno': turno,
+        ausentePermitido: false,
+      };
     } else {
-      match = { fecha: matchFecha, presente: false, 'planillaTaller.turno': turno };
+      match = { fecha: matchFecha, presente: false, 'planillaTaller.turno': turno, ausentePermitido: false };
     }
     if (division) {
       match = { ...match, 'planillaTaller.curso.division': division };
