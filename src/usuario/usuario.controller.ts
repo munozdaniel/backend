@@ -23,14 +23,9 @@ class UsuarioController implements Controller {
     this.router.get(`${this.path}/test`, this.test);
     this.router.get(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.obtenerUsuarioPorId);
     this.router.delete(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.eliminar);
-    this.router.get(`${this.path}/link/:email`, passport.authenticate('jwt', { session: false }), this.enviarLink);
+    this.router.get(`${this.path}/link/:email`, this.enviarLink);
     this.router.get(`${this.path}/completo/:id`, passport.authenticate('jwt', { session: false }), this.obtenerUsuarioPorIdCompleto);
-    this.router.post(
-      `${this.path}/change-password`,
-      passport.authenticate('jwt', { session: false }),
-      // passport.authenticate('jwt', { session: false }),
-      this.cambiarPassword
-    );
+
     this.router.post(
       `${this.path}/change-role/:id`,
       passport.authenticate('jwt', { session: false }),
@@ -203,79 +198,76 @@ class UsuarioController implements Controller {
   //     }
   //   });
   // };
-  private cambiarPassword = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('cambiarPassword', request.body);
-    const { usuarioId, actual, password } = request.body;
-    const usuarioEncontrado: any = await this.usuario.findById(usuarioId);
-    // const usuarioPassportModel: any = usuarioModel;
-    usuarioEncontrado.changePassword(actual, password, async (err: any, user: any) => {
-      if (err || !user) {
-        return response.status(400).json({ error: 'Ocurrió un error al actualizar la contraseña' });
-      }
-      try {
-        // TODO:
-        // await this.enviarEmailConNuevoPassword(usuarioEncontrado, password);
-        // response.status(200).send({ usuario: user });
-        next(new HttpException(400, 'INCOMPLETO'));
-      } catch (error) {
-        console.log('[ERROR]', error);
-        next(new HttpException(400, 'No se pudo enviar el correo'));
-      }
-    });
-  };
-  // -----
-  private async enviarEmailConNuevoPassword(user: any, contrasena: string) {}
-  // -----
 
   private test = async (request: Request, response: Response, next: NextFunction) => {
     response.send({ success: true, code: 200, message: 'YEahh baby' });
   };
+  private randomCode(longitud: number) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < longitud; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
   private enviarLink = async (request: Request, response: Response, next: NextFunction) => {
+    const code = this.randomCode(5);
     const email = request.params.email;
     const usuario = await this.usuario.findOne({ email });
+    console.log('usuario', usuario);
     if (!usuario) {
       return response.status(401).send({ usuario: null, success: false });
     }
-    const { SENDINBLUE_API, ENTORNO, MI_EMAIL } = process.env;
-    const url = 'https://api.sendinblue.com/v3/smtp/email';
-    const options = {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'api-key': SENDINBLUE_API,
-      },
-      body: JSON.stringify({
-        sender: {
-          name: 'Recuperar Contraseña - CET 30',
-          email: 'no-reply@cet30.edu.ar',
-        },
-        to: [
-          {
-            email: email,
-            name: usuario.apellido + ',' + usuario.nombre,
-          },
-        ],
-        subject: 'Recuperar Contraseña',
-        params: {
-          link:
-            ENTORNO === 'desarrollo'
-              ? `http://localhost:4200/auth/reset/${usuario._id}`
-              : `http://app.cet30.edu.ar/auth/reset/${usuario._id}`,
-        },
-        templateId: 2,
-        // textContent:
-        //   "Please confirm your email address by clicking on the link https://text.domain.com",
-      }),
-    };
-
-    const headers: AxiosRequestConfig = { headers: options.headers };
+    usuario.code = code;
+    const usuarioUpdate = await this.usuario.findByIdAndUpdate(usuario._id, { code }, { new: true });
     try {
-      const resultado = await axios.post(url, options.body, headers);
-      response.status(200).send({ usuario, success: true });
+      console.log('usuarioUpdate', usuarioUpdate);
+      const { SENDINBLUE_API, ENTORNO, MI_EMAIL } = process.env;
+      const url = 'https://api.sendinblue.com/v3/smtp/email';
+      const options = {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'api-key': SENDINBLUE_API,
+        },
+        body: JSON.stringify({
+          sender: {
+            name: 'Recuperar Contraseña - CET 30',
+            email: 'no-reply@cet30.edu.ar',
+          },
+          to: [
+            {
+              email: email,
+              name: usuario.apellido + ',' + usuario.nombre,
+            },
+          ],
+          subject: 'Recuperar Contraseña',
+          params: {
+            code,
+            link:
+              ENTORNO === 'desarrollo'
+                ? `http://localhost:4200/auth/reset/${usuario._id}`
+                : `http://app.cet30.edu.ar/auth/reset/${usuario._id}`,
+          },
+          templateId: 2,
+          // textContent:
+          //   "Please confirm your email address by clicking on the link https://text.domain.com",
+        }),
+      };
+
+      const headers: AxiosRequestConfig = { headers: options.headers };
+      try {
+        const resultado = await axios.post(url, options.body, headers);
+        response.status(200).send({ usuario, success: true });
+      } catch (error) {
+        console.log('[ERROR]', error);
+        response.status(200).send({ usuario, success: false });
+      }
     } catch (error) {
       console.log('[ERROR]', error);
-      response.status(200).send({ usuario, success: false });
+      next(new HttpException(500, 'Problemas interno'));
     }
   };
   private obtenerUsuarioPorId = async (request: Request, response: Response, next: NextFunction) => {

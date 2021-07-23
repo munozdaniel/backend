@@ -86,13 +86,81 @@ class AuthenticationController implements Controller {
   };
   // ---------
   private setNuevoPassword = async (request: Request, response: Response, next: NextFunction) => {
-    const usuarioPassportModel: any = usuarioModel;
-    usuarioPassportModel.setPassword(request.body.password, function (err: any, user: any) {
-      if (err || !user) {
-        return response.status(400).json({ error: 'Ocurrió un error al recuperar la contraseña' });
+    const id = request.body._id;
+    const code = request.body.code;
+    const password = request.body.password;
+    try {
+      const usuario: any = await this.usuario.findById(id);
+      if (!usuario) {
+        return response.status(400).json({ error: 'No se encontró el usuario solicitado' });
+      } else {
+        if (usuario.code !== code) {
+          console.log(usuario, ',', code);
+          return response.status(400).json({ error: 'El código ingresado es incorrecto' });
+        }
+        usuario.setPassword(password, (err1: any, user1: any) => {
+          if (err1 || !user1) {
+            return response.status(400).json({ error: 'Ocurrió un error al recuperar la contraseña' });
+          }
+          usuario.save((errorSave: any, usuarioSave: any) => {
+            if (errorSave) {
+              return response.status(400).json({ error: 'Ocurrió un error al GUARDAR la contraseña' });
+            }
+            passport.authenticate('local', (err: any, usuario: any, info: any) => {
+              if (err) {
+                response.json({ success: false, message: err });
+              } else {
+                if (!usuario) {
+                  // next(new WrongCredentialsException());
+                  response.json({
+                    success: false,
+                    message: 'Contraseña o email incorrecto',
+                  });
+                } else {
+                  request.login(usuario, async (error: any) => {
+                    if (error) {
+                      response.json({ success: false, message: error });
+                    } else {
+                      const token = jwt.sign({ usuarioId: usuario._id, email: usuario.email }, config.passport.secret, {
+                        expiresIn: '120m',
+                      });
+                      const refreshToken = jwt.sign({ usuarioId: usuario._id, email: usuario.email }, config.passport.refreshTokenSecret);
+
+                      refreshTokensMemoria.addRefreshTokens({
+                        email: usuario.email,
+                        token: token,
+                        refreshToken: refreshToken,
+                      });
+
+                      response.json({
+                        accessToken: token,
+                        refreshToken: refreshToken,
+                        usuario: {
+                          nombre: usuario.nombre,
+                          apellido: usuario.apellido,
+                          email: usuario.email,
+                          _id: usuario._id,
+                        },
+
+                        success: true,
+                        // favorito,
+                        // success: true,
+                        // message: "Authentication successful",
+                        // carritoCantidad: carrito ? carrito.productosCarrito.length : 0,
+                      });
+                    }
+                  });
+                }
+              }
+            })(request, response);
+          });
+        });
+        //
       }
-      response.status(200).send({ usuario: user });
-    });
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
+    }
   };
 
   // ---------

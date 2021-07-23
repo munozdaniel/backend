@@ -17,6 +17,7 @@ export const usuarioSchema = new Schema({
   fechaCreacion: { type: Date, default: Date.now },
   fechaModificacion: { type: Date, default: Date.now },
   activo: { type: Boolean, default: true },
+  code: { type: String, required: false, default: '' },
 });
 
 // Hooks

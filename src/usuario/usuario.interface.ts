@@ -13,4 +13,5 @@ export interface IUsuario extends mongoose.Document {
   fechaCreacion: Date;
   usuarioCreacion: string | null;
   activo: boolean;
+  code?:string;
 }
