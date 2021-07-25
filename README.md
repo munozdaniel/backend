@@ -84,8 +84,6 @@ seguimiento_de_alumnos
 
 ## Backup de la bd sacando la seguridad de la configuracion /etc/mongod.conf
 
-sudo mongodump --db sega30 --out /var/backups/mongobackups/`date +"%m-%d-%y"`
-
-sudo mongodump --username adminEscuela --password system2021cet30 --db sega30 --out /var/backups/mongobackups/`date +"%m-%d-%y"` --authenticationDatabase admin
+sudo mongodump --username adminEscuela --password 'system2021$cet30' --db sega30 --out /var/backups/mongobackups/`date +"%m-%d-%y"`--gzip --authenticationDatabase admin
 
 pm2 start npm -- run prod

@@ -246,7 +246,10 @@ class UsuarioController implements Controller {
           subject: 'Recuperar Contraseña',
           params: {
             code,
-            link: ENTORNO === 'desarrollo' ? `${usuario._id}` : `${usuario._id}`,
+            link:
+              ENTORNO === 'desarrollo'
+                ? `http://localhost:4200/auth/reset/${usuario._id}`
+                : `http://app.cet30.edu.ar/auth/reset/${usuario._id}`,
           },
           templateId: 2,
           // textContent:
