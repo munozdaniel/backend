@@ -39,7 +39,9 @@ class CicloLectivoController implements Controller {
   };
 
   private listar = async (request: Request, response: Response) => {
-    const ciclolectivos = await this.ciclolectivo.find().sort('_id');
+    const now = new Date();
+    const hoy: string = moment(now).format('YYYY');
+    const ciclolectivos = await this.ciclolectivo.find({ anio: { $lte: Number(hoy) } }).sort({ anio: -1 });
 
     response.send(ciclolectivos);
   };
