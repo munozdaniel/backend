@@ -415,7 +415,7 @@ class AsistenciaController implements Controller {
       match = { fecha: matchFecha, presente: false, 'planillaTaller.turno': turno };
     }
     if (division) {
-      match = { ...match, 'planillaTaller.curso.division': division };
+      match = { ...match, ausentePermitido: false, 'planillaTaller.curso.division': division };
     }
     try {
       const opciones: any[] = [
