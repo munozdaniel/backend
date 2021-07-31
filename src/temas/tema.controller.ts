@@ -66,50 +66,61 @@ class TemaController implements Controller {
     const now = new Date();
     const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const planilla = request.body.planillaTaller;
-    let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
-    const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
-    // Obtenemos el calendario
-    const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
-    const temasPorFecha = await Promise.all(
-      calendario.map(async (x: any) => {
-        const f: any = new Date(moment.utc(x.fecha).format('YYYY-MM-DD'));
-        const opciones: any[] = [
-          {
-            $match: {
-              planillaTaller: ObjectId(planilla._id),
-              fecha: f,
-            },
-          },
-        ];
-        const temas = await this.tema.aggregate(opciones);
-        if (temas && temas.length > 0) {
-          return {
-            fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
-            temaNro: temas[0].temaNro,
-            temaDelDia: temas[0].temaDelDia,
-            tipoDesarrollo: temas[0].tipoDesarrollo,
-            temasProximaClase: temas[0].temasProximaClase,
-            unidad: temas[0].unidad,
-            caracterClase: temas[0].caracterClase,
-            observacionJefe: temas[0].observacionJefe,
-            encontrada: true,
-          };
-        } else {
-          return {
-            fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
-            temaNro: '',
-            temaDelDia: 'No registra tema',
-            tipoDesarrollo: null,
-            temasProximaClase: null,
-            unidad: null,
-            caracterClase: null,
-            observacionJefe: null,
-            encontrada: false,
-          };
-        }
-      })
-    );
-    return response.send({ temasPorFecha });
+    const opciones: any[] = [
+      {
+        $match: {
+          planillaTaller: ObjectId(planilla._id),
+          caracterClase: { $ne: null },
+        },
+      },
+    ];
+    const temas = await this.tema.aggregate(opciones);
+    return response.send({ temasPorFecha: temas });
+
+    // let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
+    // const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
+    // // Obtenemos el calendario
+    // const calendario = await this.obtenerCalendarioEntreFechas(fechaInicio, fechaFinalizacion);
+    // const temasPorFecha = await Promise.all(
+    //   calendario.map(async (x: any) => {
+    //     const f: any = new Date(moment.utc(x.fecha).format('YYYY-MM-DD'));
+    //     const opciones: any[] = [
+    //       {
+    //         $match: {
+    //           planillaTaller: ObjectId(planilla._id),
+    //           fecha: f,
+    //         },
+    //       },
+    //     ];
+    //     const temas = await this.tema.aggregate(opciones);
+    //     if (temas && temas.length > 0) {
+    //       return {
+    //         fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+    //         temaNro: temas[0].temaNro,
+    //         temaDelDia: temas[0].temaDelDia,
+    //         tipoDesarrollo: temas[0].tipoDesarrollo,
+    //         temasProximaClase: temas[0].temasProximaClase,
+    //         unidad: temas[0].unidad,
+    //         caracterClase: temas[0].caracterClase,
+    //         observacionJefe: temas[0].observacionJefe,
+    //         encontrada: true,
+    //       };
+    //     } else {
+    //       return {
+    //         fecha: moment.utc(x.fecha).format('DD/MM/YYYY'),
+    //         temaNro: '',
+    //         temaDelDia: 'No registra tema',
+    //         tipoDesarrollo: null,
+    //         temasProximaClase: null,
+    //         unidad: null,
+    //         caracterClase: null,
+    //         observacionJefe: null,
+    //         encontrada: false,
+    //       };
+    //     }
+    //   })
+    // );
+    // return response.send({ temasPorFecha });
   };
 
   async calendarioTaller(temas: ITema[], planilla: IPlanillaTaller) {
