@@ -70,12 +70,27 @@ class TemaController implements Controller {
       {
         $match: {
           planillaTaller: ObjectId(planilla._id),
-          caracterClase: { $ne: null },
+          // caracterClase: { $ne: null },
         },
       },
     ];
     const temas = await this.tema.aggregate(opciones);
-    return response.send({ temasPorFecha: temas });
+    let totalClases = temas.length;
+    let totalClasesDictadas = 0;
+    if (temas && temas.length > 0) {
+      const temasDictados = await Promise.all(
+        temas.map((x) => {
+          if (x.caracterClase) {
+            if (x.caracterClase !== 'SIN DICTAR') {
+              totalClasesDictadas++;
+            }
+            return x;
+          }
+        })
+      );
+      return response.send({ temasPorFecha: temasDictados.filter((x) => x), totalClases, totalClasesDictadas });
+    }
+    return response.send({ temasPorFecha: [], totalClases, totalClasesDictadas });
 
     // let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
     // const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
