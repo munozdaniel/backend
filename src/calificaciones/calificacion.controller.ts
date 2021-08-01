@@ -269,6 +269,10 @@ class CalificacionController implements Controller {
     }
     const calificacionesPorAlumno = await Promise.all(
       alumnos.map(async (alumno: any) => {
+        if (!alumno.activo) {
+          return null;
+        }
+
         // Por cada alumno y planilla buscamos el
         const opciones: any[] = [
           {
@@ -298,7 +302,7 @@ class CalificacionController implements Controller {
         };
       })
     );
-    return response.send({ calificaciones: calificacionesPorAlumno });
+    return response.send({ calificaciones: calificacionesPorAlumno.filter((x) => x) });
   };
   private eliminar = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
