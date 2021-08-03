@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/server.ts",
+  "type": "module",
   "dependencies": {
     "@types/bcrypt": "^3.0.0",
     "@types/mongoose-aggregate-paginate-v2": "^1.0.1",
