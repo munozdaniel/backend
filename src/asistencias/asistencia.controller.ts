@@ -418,7 +418,6 @@ class AsistenciaController implements Controller {
       match = { ...match, 'planillaTaller.curso.division': division };
     }
     match = { ...match, ausentePermitido: { $ne: true } };
-    console.log('match', match);
     try {
       const opciones: any[] = [
         {
@@ -503,7 +502,6 @@ class AsistenciaController implements Controller {
           },
         },
       ];
-      console.log('opciones', opciones);
       const alumnosInasistentes = await this.asistencia.aggregate(opciones);
 
       response.send({ alumnos: alumnosInasistentes });
