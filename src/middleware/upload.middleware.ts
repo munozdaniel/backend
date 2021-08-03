@@ -2,19 +2,12 @@ import multer from 'multer';
 import path from 'path';
 
 const storage = multer.diskStorage({
-  destination: (
-    req: Express.Request,
-    file: Express.Multer.File,
-    callback: (error: Error | null, destination: string) => void
-  ) => {
+  destination: (req: Express.Request, file: Express.Multer.File, callback: (error: Error | null, destination: string) => void) => {
+    console.log(path.join(`${__dirname}/../public/imagenes`));
     callback(null, path.join(`${__dirname}/../public/imagenes`));
   },
 
-  filename: (
-    req: any,
-    file: Express.Multer.File,
-    callback: (error: Error | null, filename: string) => void
-  ) => {
+  filename: (req: any, file: Express.Multer.File, callback: (error: Error | null, filename: string) => void) => {
     // const match = ['image/png', 'image/jpeg'];
 
     // if (match.indexOf(file.mimetype) === -1) {
@@ -25,22 +18,12 @@ const storage = multer.diskStorage({
     //   file.originalname
     // )}`;
     // El archivo se va a guardar con el nombre que provenga - fecha .extension...
-    const filename = `${file.fieldname}-${Date.now()}${path.extname(
-      file.originalname
-    )}`;
+    const filename = `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`;
     callback(null, filename);
   },
 });
-const fileFilter = (
-  req: any,
-  file: { mimetype: string },
-  cb: (arg0: any, arg1: boolean) => void
-) => {
-  if (
-    file.mimetype === 'image/jpeg' ||
-    file.mimetype === 'image/png' ||
-    file.mimetype === 'image/jpg'
-  ) {
+const fileFilter = (req: any, file: { mimetype: string }, cb: (arg0: any, arg1: boolean) => void) => {
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpg') {
     cb(null, true);
   } else {
     cb(null, false);
