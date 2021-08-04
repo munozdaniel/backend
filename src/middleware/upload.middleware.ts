@@ -3,6 +3,7 @@ import path from 'path';
 
 const storage = multer.diskStorage({
   destination: (req: Express.Request, file: Express.Multer.File, callback: (error: Error | null, destination: string) => void) => {
+    const __dirname = path.resolve(path.dirname(''));
     console.log(path.join(`${__dirname}/../public/imagenes`));
     callback(null, path.join(`${__dirname}/../public/imagenes`));
   },

@@ -284,7 +284,6 @@ class AuthenticationController implements Controller {
                 token: token,
                 refreshToken: refreshToken,
               });
-              console.log('usuario antes, ', usuario);
               // const u = await this.usuario.findById(usuario._id);
               response.json({
                 accessToken: token,
