@@ -3,9 +3,14 @@ import path from 'path';
 
 const storage = multer.diskStorage({
   destination: (req: Express.Request, file: Express.Multer.File, callback: (error: Error | null, destination: string) => void) => {
-    const __dirname = path.resolve(path.dirname(''));
-    console.log(path.join(`${__dirname}/../public/imagenes`));
-    callback(null, path.join(`${__dirname}/../public/imagenes`));
+    const { ENTORNO } = process.env;
+    if (ENTORNO === 'desarrollo') {
+      callback(null, path.join(`${__dirname}/../public/imagenes`));
+    } else {
+      const __dirname = path.resolve(path.dirname(''));
+      callback(null, path.join(`${__dirname}/public/imagenes`));
+    }
+    console.log('>> PATH ', path.join(`${__dirname}/../public/imagenes`));
   },
 
   filename: (req: any, file: Express.Multer.File, callback: (error: Error | null, filename: string) => void) => {
