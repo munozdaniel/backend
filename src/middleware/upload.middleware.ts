@@ -9,8 +9,8 @@ const storage = multer.diskStorage({
     } else {
       const __dirname = path.resolve(path.dirname(''));
       callback(null, path.join(`${__dirname}/public/imagenes`));
+      console.log('>> PATH ', path.join(`${__dirname}/public/imagenes`));
     }
-    console.log('>> PATH ', path.join(`${__dirname}/../public/imagenes`));
   },
 
   filename: (req: any, file: Express.Multer.File, callback: (error: Error | null, filename: string) => void) => {
