@@ -44,7 +44,7 @@ class AuthenticationController implements Controller {
     }
     jwt.verify(refreshToken, config.passport.refreshTokenSecret, async (err: any, usuario: any) => {
       if (err) {
-        return response.sendStatus(403);
+        return response.status(403);
       }
       const accessToken = jwt.sign({ usuarioId: usuario.usuarioId, email: usuario.email }, config.passport.secret, { expiresIn: '60m' });
       const usuarioRecuperado = await this.usuario.findById(usuario.usuarioId);
