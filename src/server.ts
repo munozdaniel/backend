@@ -16,6 +16,7 @@ import CicloLectivoController from './ciclolectivos/ciclolectivo.controller';
 import CalendarioController from './calendario/calendario.controller';
 import AlumnoTallerController from './alumnostalleres/alumnoTaller.controller';
 import TemaPendienteController from './temaspendientes/temaPendiente.controller';
+import ExamenController from './examen/examen.controller';
 
 validateEnv();
 dotenv.config();
@@ -38,6 +39,7 @@ const app = new App([
   new CalendarioController(),
   new AlumnoTallerController(),
   new TemaPendienteController(),
+  new ExamenController(),
 ]);
 
 app.listen();

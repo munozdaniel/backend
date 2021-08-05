@@ -287,7 +287,6 @@ class CursoController implements Controller {
     response.send(savedCurso);
   };
   private deleteCurso = async (request: Request, response: Response, next: NextFunction) => {
-    console.log('deleteCurso');
     const id = request.params.id;
     try {
       const successResponse = await this.curso.findByIdAndDelete(id);
