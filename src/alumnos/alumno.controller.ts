@@ -23,6 +23,9 @@ import planillaTallerModel from '../planillaTaller/planillaTaller.model';
 import asistenciaModel from '../asistencias/asistencia.model';
 import passport from 'passport';
 import multerMiddleware from '../middleware/upload.middleware';
+import path from 'path';
+const fs = require('fs');
+
 const ObjectId = mongoose.Types.ObjectId;
 class AlumnoController implements Controller {
   public path = '/alumnos';
@@ -72,6 +75,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/actualizar-estado-cursada/:id`, this.actualizarEstadoCursada)
       .post(`${this.path}/enviar-email-masivo`, this.enviarEmailMasivo)
       .post(`${this.path}/informe-inasistencia-por-dia`, this.obtenerInformeInasistenciaPorDia)
+      .post(`${this.path}/eliminar-archivo/:id`, this.eliminarArchivo)
       .get(`${this.path}/informe-por-planilla/:id`, this.obtenerInformeAlumnosPorPlanilla)
       .put(`${this.path}/guardar-masivo`, this.guardarMasivo)
       .put(
@@ -82,6 +86,57 @@ class AlumnoController implements Controller {
       );
   }
 
+  private eliminarArchivo = async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const id = request.params.id;
+      const archivo = request.body.archivo;
+      const alumno = await this.alumno.findById(id);
+      let alumnoActualizado: any;
+      if (alumno) {
+        try {
+          const { ENTORNO } = process.env;
+          if (ENTORNO === 'desarrollo') {
+            fs.unlinkSync(`${__dirname}/../${archivo}`);
+            const index = alumno.archivoDiagnostico.findIndex((x: string) => x === archivo);
+            if (index !== -1) {
+              alumno.archivoDiagnostico.splice(index, 1);
+              alumnoActualizado = await this.alumno.findByIdAndUpdate(id, { archivoDiagnostico: alumno.archivoDiagnostico }, { new: true });
+              if (alumnoActualizado) {
+              } else {
+                response.status(400).send('No se pudo borrar el archivo');
+              }
+            } else {
+              response.status(400).send('No se encontró el archivo a eliminar');
+            }
+            return response.status(200).send(alumnoActualizado.archivoDiagnostico);
+          } else {
+            const __dirname = path.resolve(path.dirname(''));
+            fs.unlinkSync(`${__dirname}/${archivo}`);
+            const index = alumno.archivoDiagnostico.findIndex((x: string) => x === archivo);
+            if (index !== -1) {
+              alumno.archivoDiagnostico.splice(index, 1);
+              alumnoActualizado = await this.alumno.findByIdAndUpdate(id, { archivoDiagnostico: alumno.archivoDiagnostico }, { new: true });
+              if (alumnoActualizado) {
+              } else {
+                response.status(400).send('No se pudo borrar el archivo');
+              }
+            } else {
+              response.status(400).send('No se encontró el archivo a eliminar');
+            }
+            return response.status(200).send(alumnoActualizado.archivoDiagnostico);
+          }
+          //file removed
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        response.status(400).send('No se encontró el alumno');
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas interno'));
+    }
+  };
   private limpiarDatos = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const alumnos = await this.alumno.find();
