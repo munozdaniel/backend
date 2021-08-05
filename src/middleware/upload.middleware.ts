@@ -9,7 +9,6 @@ const storage = multer.diskStorage({
     } else {
       const __dirname = path.resolve(path.dirname(''));
       callback(null, path.join(`${__dirname}/public/imagenes`));
-      console.log('>> PATH ', path.join(`${__dirname}/public/imagenes`));
     }
   },
 
@@ -40,7 +39,7 @@ const multerMiddleware = multer({
   fileFilter,
   limits: {
     // Setting Image Size Limit to 2MBs
-    fileSize: 2000000,
+    fileSize: 10000000,
   },
 });
 export default multerMiddleware;
