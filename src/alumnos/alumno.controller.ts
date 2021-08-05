@@ -24,7 +24,8 @@ import asistenciaModel from '../asistencias/asistencia.model';
 import passport from 'passport';
 import multerMiddleware from '../middleware/upload.middleware';
 import path from 'path';
-const fs = require('fs');
+// const fs = require('fs');
+import * as fs from 'fs';
 
 const ObjectId = mongoose.Types.ObjectId;
 class AlumnoController implements Controller {
