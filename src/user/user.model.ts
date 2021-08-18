@@ -28,7 +28,6 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.virtual('fullName').get((firstName: string, lastName: string) => {
-  console.log('firstName', firstName);
   return `${firstName} ${lastName}`;
 });
 

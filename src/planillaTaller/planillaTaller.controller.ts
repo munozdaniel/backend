@@ -39,7 +39,6 @@ class PlanillaTallerController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('PlanillaTallerController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrarPlanillaTalleres);
     this.router.get(`${this.path}/paginar`, passport.authenticate('jwt', { session: false }), this.paginar);
     this.router.get(`${this.path}/ciclo/:ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillaTalleresPorCiclo);
@@ -62,7 +61,22 @@ class PlanillaTallerController implements Controller {
     this.router.put(`${this.path}`, passport.authenticate('jwt', { session: false }), this.agregar);
     this.router.post(`${this.path}/por-curso-ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillasPorCursoCiclo);
     this.router.patch(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.actualizar);
+    this.router.delete(`${this.path}/:id`, passport.authenticate('jwt', { session: false }), this.eliminar);
   }
+  private eliminar = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id;
+    try {
+      const planilla = await this.planillaTaller.findByIdAndUpdate(id, { activo: false }, { new: true });
+      if (planilla) {
+        response.status(200).send(true);
+      } else {
+        response.status(404).send(false);
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un error interno'));
+    }
+  };
   private obtenerPlanillaTalleresPorCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const ciclo = request.params.ciclo;
     const profesorId = request.body.profesorId;
@@ -139,7 +153,6 @@ class PlanillaTallerController implements Controller {
       },
       { $sort: { _id: -1 } },
     ];
-    console.log('match', match);
     try {
       const planillaTallerAggregate = await this.planillaTaller.aggregate(opciones);
       response.send(planillaTallerAggregate);

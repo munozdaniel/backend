@@ -24,7 +24,6 @@ class CalendarioController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('CalendarioController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}`, passport.authenticate('jwt', { session: false }), this.obtenerCalendario);
     this.router.get(`${this.path}/por-ciclo/:ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerCalendarioPorCiclo);

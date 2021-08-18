@@ -75,7 +75,7 @@ class App {
           secretOrKey: config.passport.secret,
         },
         (jwtPayload, cb) => {
-          console.log('jwtPayload, ', jwtPayload);
+          // console.log('jwtPayload, ', jwtPayload);
           // find the user in db if needed.
           // This functionality may be omitted if you store everything you'll need in JWT payload.
           return usuarioModel
@@ -127,7 +127,7 @@ class App {
 
     // var url = 'mongodb://propet:propet321@localhost:27017/escuela';
     const url = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`;
-    console.log('CADENA', url);
+    // console.log('CADENA', url);
     try {
       await mongoose
         .connect(url, {
@@ -148,7 +148,6 @@ class App {
           process.exit(1);
         });
       // mongoose.connection.readyState => 0: disconnected - 1: connected - 2: connecting - 3: disconnecting
-      console.log(mongoose.connection.readyState);
       ConnectionService.setConnection(mongoose);
       //   mongoose.set('useCreateIndex', true); // elimina los deprecration warnings
       // this.AutoIncrement.initialize(mongoose.connection);

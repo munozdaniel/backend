@@ -20,7 +20,6 @@ class TemaPendienteController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('TemaPendienteController/initializeRoutes');
     this.router
       .all(`${this.path}/*`, passport.authenticate('jwt', { session: false }))
       .get(`${this.path}/:id`, this.obtenerTemasPorPlanilla)

@@ -1100,7 +1100,7 @@ class AsistenciaController implements Controller {
             return null;
           }
         } catch (ero) {
-          console.log('ero', ero);
+          console.log('error', ero);
         }
         try {
           if (x.id_alumnos && x.id_alumnos !== 0) {
@@ -1114,7 +1114,7 @@ class AsistenciaController implements Controller {
             return null;
           }
         } catch (ero) {
-          console.log('ero', ero);
+          console.log('error', ero);
         }
         const fechadate = new Date(x.Fecha);
         const fecha = new Date(moment.utc(fechadate).format('YYYY-MM-DD'));

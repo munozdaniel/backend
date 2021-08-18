@@ -95,7 +95,6 @@ class AuthenticationController implements Controller {
         return response.status(400).json({ error: 'No se encontró el usuario solicitado' });
       } else {
         if (usuario.code !== code) {
-          console.log(usuario, ',', code);
           return response.status(400).json({ error: 'El código ingresado es incorrecto' });
         }
         usuario.setPassword(password, (err1: any, user1: any) => {

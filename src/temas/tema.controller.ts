@@ -28,7 +28,6 @@ class TemaController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('TemaController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.get(`${this.path}/por-planilla/:id`, passport.authenticate('jwt', { session: false }), this.obtenerTemaPorPlanillaTaller);
     // this.router.post(`${this.path}/temas-calendario`, this.obtenerTemasCalendario);

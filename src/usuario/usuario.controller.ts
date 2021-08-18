@@ -215,14 +215,12 @@ class UsuarioController implements Controller {
     const code = this.randomCode(5);
     const email = request.params.email;
     const usuario = await this.usuario.findOne({ email });
-    console.log('usuario', usuario);
     if (!usuario) {
       return response.status(401).send({ usuario: null, success: false });
     }
     usuario.code = code;
     const usuarioUpdate = await this.usuario.findByIdAndUpdate(usuario._id, { code }, { new: true });
     try {
-      console.log('usuarioUpdate', usuarioUpdate);
       const { SENDINBLUE_API, ENTORNO, MI_EMAIL } = process.env;
       const url = 'https://api.sendinblue.com/v3/smtp/email';
       const options = {

@@ -26,7 +26,6 @@ class CursoController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('CursoController/initializeRoutes');
     this.router.get(`${this.path}/migrar-unicas`, passport.authenticate('jwt', { session: false }), this.migrarCursoesUnicas);
     this.router.get(`${this.path}/migrar`, passport.authenticate('jwt', { session: false }), this.migrarCursoes);
     // this.router.get(`${this.path}/migraralumnos`, this.migrarAlumnos);

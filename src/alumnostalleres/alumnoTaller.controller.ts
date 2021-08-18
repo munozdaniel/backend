@@ -21,7 +21,6 @@ class AlumnoTallerController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('AlumnoTallerController/initializeRoutes');
     this.router
       .all(`${this.path}/*`, passport.authenticate('jwt', { session: false }))
       .get(`${this.path}/planilla-personalizada/:id`, this.obtenerAlumnosPorPlanillaPersonalizada)

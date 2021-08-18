@@ -37,7 +37,6 @@ class CalificacionController implements Controller {
   }
 
   private initializeRoutes() {
-    console.log('CalificacionController/initializeRoutes');
     this.router.get(`${this.path}/migrar`, this.migrar);
     this.router.post(
       `${this.path}/por-alumno/:id`,
@@ -346,7 +345,7 @@ class CalificacionController implements Controller {
         response.send({ calificacion: null });
       }
     } catch (e4) {
-      console.log('[ERROR], ', e4);
+      console.log('[ERROR]  ', e4);
       next(new HttpException(500, 'Ocurrió un error interno'));
     }
   };
