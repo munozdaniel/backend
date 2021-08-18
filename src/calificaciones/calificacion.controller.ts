@@ -218,13 +218,14 @@ class CalificacionController implements Controller {
       {
         $match: match,
       },
+
       {
         $sort: {
           nombreCompleto: 1,
         },
       },
     ];
-    return await this.alumno.aggregate(opciones);
+    return await this.alumno.aggregate(opciones).collation({ locale: 'ar' });
   }
   // Obtengo los alumnos de una planilla taller personalizada
   private async obtenerAlumnosPorCCDP(_id: string) {
@@ -249,13 +250,14 @@ class CalificacionController implements Controller {
       {
         $match: match,
       },
+
       {
         $sort: {
           nombreCompleto: 1,
         },
       },
     ];
-    return await this.alumnotalleres.aggregate(opciones);
+    return await this.alumnotalleres.aggregate(opciones).collation({ locale: 'ar' });
   }
   private informeCalificacionesPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const planilla = request.body.planillaTaller;

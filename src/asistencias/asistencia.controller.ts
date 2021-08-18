@@ -580,7 +580,7 @@ class AsistenciaController implements Controller {
         },
       },
     ];
-    return await this.alumno.aggregate(opciones);
+    return await this.alumno.aggregate(opciones).collation({ locale: 'ar' });
   }
   private informeAsistenciasPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const planilla = request.body.planillaTaller;

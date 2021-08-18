@@ -468,7 +468,7 @@ class AlumnoController implements Controller {
         },
       ];
 
-      const planillasTalleres = await this.asistencia.aggregate(opciones);
+      const planillasTalleres = await this.asistencia.aggregate(opciones).collation({ locale: 'ar' });
       if (!planillasTalleres || planillasTalleres.length < 1) {
         response.send({ planillasTalleres: [] });
       } else {
@@ -590,7 +590,7 @@ class AlumnoController implements Controller {
         ];
         // Busco todos los alumnos por ciclo y
 
-        const alumnosAggregate = await this.alumno.aggregate(opciones);
+        const alumnosAggregate = await this.alumno.aggregate(opciones).collation({ locale: 'ar' });
         response.send({ alumnos: alumnosAggregate });
       }
     } catch (error) {
@@ -1294,7 +1294,7 @@ class AlumnoController implements Controller {
           },
         },
       ];
-      const alumnos = await this.alumno.aggregate(opciones);
+      const alumnos = await this.alumno.aggregate(opciones).collation({ locale: 'ar' });
       // .find()
       // .find({ 'comisiones.cicloLectivo': 2019 })
       // .find( {
