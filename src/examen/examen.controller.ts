@@ -43,7 +43,7 @@ class ExamenController implements Controller {
   private obtenerPorPlanillaYAlumnno = async (request: Request, response: Response, next: NextFunction) => {
     const { alumnoId, planillaId } = request.body;
     try {
-      console.log({ alumno: ObjectId(alumnoId), planilla: ObjectId(planillaId) });
+      // console.log({ alumno: ObjectId(alumnoId), planilla: ObjectId(planillaId) });
       const examen = await this.examen.find({ alumno: ObjectId(alumnoId), planillaTaller: ObjectId(planillaId) }).sort('_id');
       response.send(examen);
     } catch (error) {
@@ -53,7 +53,7 @@ class ExamenController implements Controller {
   };
 
   private agregarExamen = async (request: Request, response: Response, next: NextFunction) => {
-    const { alumnoId, planillaId, mes, nota } = request.body;
+    const { alumnoId, planillaId, mes, nota, ausente } = request.body;
     try {
       const alumno = await this.alumno.findById(alumnoId);
       if (!alumno) {
@@ -68,6 +68,7 @@ class ExamenController implements Controller {
         nota,
         alumno,
         planillaTaller,
+        ausente,
       };
       const createdExamen = new this.examen({
         ...unExamen,

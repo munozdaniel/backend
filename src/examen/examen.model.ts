@@ -6,6 +6,7 @@ const Schema = mongoose.Schema;
 export const examenSchema = new Schema({
   nota: { type: Number, required: true },
   mes: { type: String, required: true },
+  ausente: { type: Boolean, required: false },
   alumno: {
     type: Schema.Types.ObjectId,
     ref: 'Alumno',
