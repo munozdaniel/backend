@@ -307,6 +307,7 @@ class CalificacionController implements Controller {
       'estadoCursadas.curso.division': Number(division),
       'estadoCursadas.curso.comision': comision.toString(),
       'estadoCursadas.cicloLectivo.anio': Number(ciclo),
+      activo: true,
     };
     const opciones: any = [
       {
@@ -364,6 +365,7 @@ class CalificacionController implements Controller {
   private async obtenerAlumnosPorCCDP(_id: string) {
     let match: any = {
       planillaTaller: ObjectId(_id),
+      'alumno.activo': true,
     };
     const opciones: any = [
       {
