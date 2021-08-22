@@ -78,6 +78,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/informe-inasistencia-por-dia`, this.obtenerInformeInasistenciaPorDia)
       .post(`${this.path}/eliminar-archivo/:id`, this.eliminarArchivo)
       .get(`${this.path}/informe-por-planilla/:id`, this.obtenerInformeAlumnosPorPlanilla)
+      // .get(`${this.path}/informe-promedio-taller/:id`, this.obtenerInformePromediosTaller)
       .put(`${this.path}/guardar-masivo`, this.guardarMasivo)
       .put(
         this.path,
@@ -480,6 +481,47 @@ class AlumnoController implements Controller {
       next(new HttpException(500, 'Problemas  interno'));
     }
   };
+  // private obtenerInformePromediosTaller = async (request: Request, response: Response, next: NextFunction) => {
+  //   const planillaId = request.params.id;
+  //   try {
+  //     const opcionesP: any[] = [
+  //       {
+  //         $lookup: {
+  //           from: 'alumnos',
+  //           localField: 'alumno',
+  //           foreignField: '_id',
+  //           as: 'alumno',
+  //         },
+  //       },
+  //       {
+  //         $unwind: {
+  //           path: '$alumno',
+  //         },
+  //       },
+  //       {
+  //         $match: {
+  //           _id: ObjectId(planillaId),
+  //         },
+  //       },
+  //       {
+  //         $sort: {
+  //           cicloLectivo: 1,
+  //         },
+  //       },
+  //     ];
+  //     console.log('opcionesP', opcionesP);
+  //     const planilla = await this.planillaTaller.aggregate(opcionesP);
+  //     if (!planilla) {
+  //       next(new NotFoundException());
+  //     } else {
+  //       console.log('planilla', planilla);
+  //       response.send({ alumnos: null });
+  //     }
+  //   } catch (error) {
+  //     console.log('[ERROR]', error);
+  //     next(new HttpException(500, 'Problemas  interno'));
+  //   }
+  // };
   private obtenerInformeAlumnosPorPlanilla = async (request: Request, response: Response, next: NextFunction) => {
     const planillaId = request.params.id;
     try {

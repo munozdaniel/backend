@@ -18,6 +18,8 @@ const ObjectId = mongoose.Types.ObjectId;
 import passport from 'passport';
 import alumnoTallerModel from '../alumnostalleres/alumnoTaller.model';
 import temaModel from '../temas/tema.model';
+import _ from 'lodash';
+import examenModel from '../examen/examen.model';
 
 class CalificacionController implements Controller {
   public path = '/calificacion';
@@ -30,6 +32,7 @@ class CalificacionController implements Controller {
   private asistencia = asistenciaModel;
   private calendario = calendarioModel;
   private alumnotalleres = alumnoTallerModel;
+  private examen = examenModel;
   private tema = temaModel;
 
   constructor() {
@@ -51,12 +54,137 @@ class CalificacionController implements Controller {
       passport.authenticate('jwt', { session: false }),
       this.informeCalificacionesPorPlanilla
     );
+    this.router.get(
+      `${this.path}/informe-promedio-taller/:id`,
+      passport.authenticate('jwt', { session: false }),
+      this.obtenerInformePromediosTaller
+    );
     this.router.post(
       `${this.path}/informe-alumnos-por-taller`,
       passport.authenticate('jwt', { session: false }),
       this.informeAlumnosPorTaller
     );
   }
+  private obtenerInformePromediosTaller = async (request: Request, response: Response, next: NextFunction) => {
+    // const alumnoId = request.params.id;
+    // MORALES LAUTARO IGNACIO
+    const alumnoId = '60a1d8adf1b39abcc954a767';
+    try {
+      const opcionesP: any[] = [
+        // {
+        //   $lookup: {
+        //     from: 'alumnos',
+        //     localField: 'alumno',
+        //     foreignField: '_id',
+        //     as: 'alumno',
+        //   },
+        // },
+        // {
+        //   $unwind: {
+        //     path: '$alumno',
+        //   },
+        // },
+        {
+          $lookup: {
+            from: 'planillatalleres',
+            localField: 'planillaTaller',
+            foreignField: '_id',
+            as: 'planillaTaller',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller',
+          },
+        },
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'planillaTaller.cicloLectivo',
+            foreignField: '_id',
+            as: 'planillaTaller.cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.cicloLectivo',
+          },
+        },
+        {
+          $lookup: {
+            from: 'asignaturas',
+            localField: 'planillaTaller.asignatura',
+            foreignField: '_id',
+            as: 'planillaTaller.asignatura',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.asignatura',
+          },
+        },
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'planillaTaller.curso',
+            foreignField: '_id',
+            as: 'planillaTaller.curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$planillaTaller.curso',
+          },
+        },
+        {
+          $match: {
+            alumno: ObjectId(alumnoId),
+            promedia: true,
+          },
+        },
+      ];
+      console.log('opcionesP', opcionesP);
+      const calificaciones = await this.calificacion.aggregate(opcionesP).collation({ locale: 'ar' });
+      if (!calificaciones) {
+        next(new NotFoundException());
+      } else {
+        console.log('calificaciones', calificaciones);
+        let retorno: { ciclo: number; datos: any }[] = [];
+        const agrupadosPorCiclo = _.groupBy(calificaciones, (x) => x.planillaTaller.cicloLectivo.anio);
+        for (const [key, item] of Object.entries(agrupadosPorCiclo)) {
+          let sumaNotas = 0;
+          // key = 'El nombre del ciclo'
+          // item todos los datos agrupados por ciclo: {'2019':[notas del 2019, notas del 2019]}
+          const agruparPorCicloYCurso = _.groupBy(item, (x) => {
+            // sumaNotas += x.promedioGeneral;
+            // x.sumaNotas = sumaNotas;
+            return x.planillaTaller.asignatura.detalle;
+          });
+          // key2 = 'El nombre de la materia'
+          // item2 = Todos los datos agrupados por materia: {'Ajuste':[nota de ajuste, nota de ajuste, nota de ajuste]
+          for (const [key2, item2] of Object.entries(agruparPorCicloYCurso)) {
+            const notaFinal = Number(_.sumBy(item2, (x2) => x2.promedioGeneral) / item2.length);
+            let examen = null;
+            if (notaFinal < 7) {
+              examen = await this.examen.find({ alumno: ObjectId(alumnoId), planillaTaller: ObjectId(item2[0].planillaTaller._id) });
+            }
+            const datos = {
+              materia: key2,
+              notaFinal: notaFinal.toFixed(2),
+              examen,
+            };
+            retorno.push({ ciclo: Number(key), datos });
+          }
+        }
+
+        console.log('retorno', retorno);
+        response.send({ calificaciones2: retorno, calificaciones: _.groupBy(calificaciones, (x) => x.planillaTaller.cicloLectivo.anio) });
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Problemas  interno'));
+    }
+  };
   private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {
     const opciones: any = [
       {
