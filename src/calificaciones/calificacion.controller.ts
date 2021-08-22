@@ -66,9 +66,9 @@ class CalificacionController implements Controller {
     );
   }
   private obtenerInformePromediosTaller = async (request: Request, response: Response, next: NextFunction) => {
-    // const alumnoId = request.params.id;
+    const alumnoId = request.params.id;
     // MORALES LAUTARO IGNACIO
-    const alumnoId = '60a1d8adf1b39abcc954a767';
+    // const alumnoId = '60a1d8adf1b39abcc954a767';
     try {
       const opcionesP: any[] = [
         // {
@@ -143,13 +143,11 @@ class CalificacionController implements Controller {
           },
         },
       ];
-      console.log('opcionesP', opcionesP);
       const calificaciones = await this.calificacion.aggregate(opcionesP).collation({ locale: 'ar' });
       if (!calificaciones) {
         next(new NotFoundException());
       } else {
-        console.log('calificaciones', calificaciones);
-        let retorno: { ciclo: number; datos: any }[] = [];
+        let retorno: { curso: any; ciclo: number; datos: any[] }[] = [];
         const agrupadosPorCiclo = _.groupBy(calificaciones, (x) => x.planillaTaller.cicloLectivo.anio);
         for (const [key, item] of Object.entries(agrupadosPorCiclo)) {
           let sumaNotas = 0;
@@ -169,16 +167,23 @@ class CalificacionController implements Controller {
               examen = await this.examen.find({ alumno: ObjectId(alumnoId), planillaTaller: ObjectId(item2[0].planillaTaller._id) });
             }
             const datos = {
+              ciclo: key,
+              item: item,
+              item2: item2,
               materia: key2,
               notaFinal: notaFinal.toFixed(2),
               examen,
             };
-            retorno.push({ ciclo: Number(key), datos });
+            const index = retorno.findIndex((i) => i.ciclo === Number(key));
+            if (index === -1) {
+              retorno.push({ ciclo: Number(key), curso: item.map((c) => c.planillaTaller.curso), datos: [datos] });
+            } else {
+              retorno[index].datos.push(datos);
+            }
           }
         }
 
-        console.log('retorno', retorno);
-        response.send({ calificaciones2: retorno, calificaciones: _.groupBy(calificaciones, (x) => x.planillaTaller.cicloLectivo.anio) });
+        response.send({ calificaciones: retorno, calificaciones2: _.groupBy(calificaciones, (x) => x.planillaTaller.cicloLectivo.anio) });
       }
     } catch (error) {
       console.log('[ERROR]', error);
