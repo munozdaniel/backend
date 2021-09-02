@@ -207,8 +207,8 @@ class CalificacionController implements Controller {
   // Resumen de Taller por Alumnos
   private informeAlumnosPorTaller = async (request: Request, response: Response, next: NextFunction) => {
     const planilla = request.body.planillaTaller;
-    let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
-    const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
+    // let fechaInicio: Date = new Date(moment.utc(planilla.fechaInicio).format('YYYY-MM-DD'));
+    // const fechaFinalizacion: Date = new Date(moment.utc(planilla.fechaFinalizacion).format('YYYY-MM-DD'));
     // Obtenemos el calendario
     const temas = await this.tema.find({
       planillaTaller: ObjectId(planilla._id),
@@ -244,6 +244,7 @@ class CalificacionController implements Controller {
             $match: {
               planillaTaller: ObjectId(planilla._id),
               alumno: ObjectId(alumno._id),
+
               //  presente: false,
             },
           },
@@ -256,8 +257,10 @@ class CalificacionController implements Controller {
         await Promise.all(
           asistencias.map((x) => {
             if (!x.presente) {
-              inasistencias.push(x);
-              totalAusentes++;
+              if (!x.ausentePermitido) {
+                inasistencias.push(x);
+                totalAusentes++;
+              }
             } else {
               totalAsistencias++;
             }
