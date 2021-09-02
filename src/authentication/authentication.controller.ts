@@ -304,29 +304,6 @@ class AuthenticationController implements Controller {
         }
       }
     })(request, response);
-    // const isPasswordMatching = await bcrypt.compare(
-    //   logInData.password,
-    //   usuario.get('password', null, { getters: false })
-    // );
-    // if (isPasswordMatching) {
-    //   console.log('usuario', usuario);
-    //   const token = jwt.sign(
-    //     { email: logInData.email },
-    //     config.passport.secret,
-    //     {
-    //       expiresIn: 1000000,
-    //     }
-    //   );
-    //   const userToReturn = { ...usuario.toJSON() };
-    //   delete userToReturn.hashedPassword;
-    //   delete userToReturn.password;
-    //   response.status(200).json({ token, usuario: userToReturn });
-    // } else {
-    //   next(new WrongCredentialsException());
-    // }
-    // } else {
-    //   next(new WrongCredentialsException());
-    // }
   };
 
   private loggingOut = (request: Request, response: Response) => {
