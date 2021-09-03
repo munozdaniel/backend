@@ -17,6 +17,7 @@ export const examenSchema = new Schema({
     ref: 'PlanillaTallere',
     required: true,
   },
+  fecha: { type: Date, required: true},
 });
 examenSchema.plugin(mongoosePaginate);
 const examenModel = mongoose.model('Examene', examenSchema);

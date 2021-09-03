@@ -9,6 +9,7 @@ interface IExamen extends mongoose.Document {
   alumno: IAlumno;
   planilla: IPlanillaTaller;
   ausente?:boolean;
+  fechaCreacion?: Date;
 }
 
 export default IExamen;

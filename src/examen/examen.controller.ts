@@ -53,7 +53,7 @@ class ExamenController implements Controller {
   };
 
   private agregarExamen = async (request: Request, response: Response, next: NextFunction) => {
-    const { alumnoId, planillaId, mes, nota, ausente } = request.body;
+    const { alumnoId, planillaId, mes, nota, ausente, fecha } = request.body;
     try {
       const alumno = await this.alumno.findById(alumnoId);
       if (!alumno) {
@@ -69,6 +69,7 @@ class ExamenController implements Controller {
         alumno,
         planillaTaller,
         ausente,
+        fecha,
       };
       const createdExamen = new this.examen({
         ...unExamen,
