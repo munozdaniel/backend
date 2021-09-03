@@ -57,6 +57,7 @@ class AlumnoController implements Controller {
       .get(`${this.path}/eliminar-coleccion`, this.eliminarColeccion)
       .get(`${this.path}/comprobar-estado-cursada/:id`, this.comprobarEstadoCursadaParaEditar)
       .get(`${this.path}/habilitados`, this.getAllAlumnos)
+      .get(`${this.path}/buscar-cursadas-por-alumno/:id`, this.buscarCursadasPorAlumnoId)
       .post(`${this.path}/ficha`, this.getFichaAlumnos)
 
       .patch(`${this.path}/:id`, validationMiddleware(CreateAlumnoDto, true), this.modifyAlumno)
@@ -1388,6 +1389,39 @@ class AlumnoController implements Controller {
       next(new HttpException(500, 'Ocurrió un problema interno'));
     }
   };
+  private buscarCursadasPorAlumnoId = async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const id = request.params.id;
+      const alumno = await this.alumno.findById(id).populate('estadoCursadas');
+      console.log('alumno entronco', alumno);
+      if (alumno && alumno.estadoCursadas) {
+        const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
+        console.log('ciclosLectivos', ciclosLectivos);
+        const alumnoConCursada = await Promise.all(
+          alumno.estadoCursadas.map(async (x: any) => {
+            const c = await this.curso.findById(x.curso);
+            x.curso = c;
+            const index = await ciclosLectivos.findIndex((i) => ObjectId(i._id).equals(ObjectId(x.cicloLectivo)));
+            console.log(index, 'xxxx', x);
+            if (index !== -1) {
+              console.log('!==========================-1');
+              x.cicloLectivo = ciclosLectivos[index];
+              return x;
+            } else {
+              return x;
+            }
+          })
+        );
+        alumno.estadoCursadas = [...alumnoConCursada];
+        return response.status(200).send(alumno);
+      } else {
+        return response.status(200).send(alumno);
+      }
+    } catch (error) {
+      console.log('[ERROR]', error);
+      next(new HttpException(500, 'Ocurrió un problema interno'));
+    }
+  };
   private getAllAlumnos = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
@@ -1409,7 +1443,43 @@ class AlumnoController implements Controller {
   };
   private obtenerTodos = async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 }); //.populate('author', '-password') populate con imagen
+      const opciones: any[] = [
+        // {
+        //   $unwind: {
+        //     path: '$estadoCursadas',
+        //   },
+        // },
+        {
+          $lookup: {
+            from: 'estadocursadas',
+            localField: 'estadoCursadas',
+            foreignField: '_id',
+            as: 'estadoCursadas',
+          },
+        },
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'estadoCursadas.cicloLectivo',
+            foreignField: '_id',
+            as: 'estadoCursadas.cicloLectivo',
+          },
+        },
+
+        {
+          $unwind: {
+            path: '$estadoCursadas.cicloLectivo',
+          },
+        },
+        {
+          $match: {
+            activo: true,
+          },
+        },
+        { $sort: { _id: -1 } },
+      ];
+      // const alumnos = await this.alumno.aggregate(opciones);
+      const alumnos = await this.alumno.find({ activo: true }).sort({ _id: -1 });
 
       response.send(alumnos);
     } catch (error) {

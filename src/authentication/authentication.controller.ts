@@ -308,12 +308,12 @@ class AuthenticationController implements Controller {
 
   private loggingOut = (request: Request, response: Response) => {
     response.setHeader('Set-Cookie', ['Authorization=;Max-age=0']);
-    response.send(200);
+    response.status(200).send();
   };
   private test = async (request: Request, response: Response, next: NextFunction) => {
     const usuarios = await this.usuario.find();
     if (!usuarios || usuarios.length < 1) {
-      return response.send(null);
+      return response.status(404).send(null);
     }
     const user = usuarios[0];
     const { SENDINBLUE_API, ENTORNO, MI_EMAIL } = process.env;

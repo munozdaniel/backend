@@ -402,12 +402,16 @@ class CalificacionController implements Controller {
     const { curso, comision, division } = planilla.curso;
     let alumnos;
     if (planilla.personalizada) {
-      alumnos = await this.obtenerAlumnosPorCCDP(planilla._id);
+      // alumnos = await this.obtenerAlumnosPorCCDP(planilla._id);
+      const alumnosTaller = await this.obtenerAlumnosPorCCDP(planilla._id);
+      alumnos = alumnosTaller.map((x) => x.alumno);
     } else {
       alumnos = await this.obtenerAlumnosPorCCD(planilla.cicloLectivo.anio, curso, comision, division);
     }
+    console.log('alumnos', alumnos);
     const calificacionesPorAlumno = await Promise.all(
       alumnos.map(async (alumno: any) => {
+        console.log('========================', alumno.activo);
         if (!alumno.activo) {
           return null;
         }
@@ -422,6 +426,7 @@ class CalificacionController implements Controller {
           },
         ];
         const calificaciones = await this.calificacion.aggregate(opciones);
+        console.log('calificaciones', calificaciones);
         const opcionesInasistencias: any[] = [
           {
             $match: {
@@ -432,6 +437,7 @@ class CalificacionController implements Controller {
           },
         ];
         const inasistencias = await this.asistencia.aggregate(opcionesInasistencias);
+        console.log('inasistencias', inasistencias);
         return {
           alumnoId: alumno._id,
           alumnoNombre: alumno.nombreCompleto,
@@ -441,6 +447,7 @@ class CalificacionController implements Controller {
         };
       })
     );
+    console.log('calificacionesPorAlumno=>>', calificacionesPorAlumno);
     return response.send({ calificaciones: calificacionesPorAlumno.filter((x) => x) });
   };
   private eliminar = async (request: Request, response: Response, next: NextFunction) => {
