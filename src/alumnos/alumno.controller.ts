@@ -1295,7 +1295,7 @@ class AlumnoController implements Controller {
       let { cicloLectivo, division, curso } = request.body;
       let match: any = {
         'estadoCursadas.activo': true,
-        'estadoCursadas.cicloLectivo': ObjectId(cicloLectivo._id),
+        'estadoCursadas.cicloLectivo._id': ObjectId(cicloLectivo._id),
         'estadoCursadas.curso.curso': Number(curso),
         'estadoCursadas.curso.division': Number(division),
         activo: true,
@@ -1329,6 +1329,19 @@ class AlumnoController implements Controller {
           },
         },
         {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'estadoCursadas.cicloLectivo',
+            foreignField: '_id',
+            as: 'estadoCursadas.cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$estadoCursadas.cicloLectivo',
+          },
+        },
+        {
           $match: match,
         },
         {
@@ -1359,7 +1372,7 @@ class AlumnoController implements Controller {
       // });
       // .populate("estadoComisiones");
       if (alumnos) {
-        response.send(alumnos);
+        response.send(alumnos.map((x) => ({ ...x, estadoCursadas: [x.estadoCursadas] })));
       } else {
         next(new NotFoundException());
       }
@@ -1393,18 +1406,14 @@ class AlumnoController implements Controller {
     try {
       const id = request.params.id;
       const alumno = await this.alumno.findById(id).populate('estadoCursadas');
-      console.log('alumno entronco', alumno);
       if (alumno && alumno.estadoCursadas) {
         const ciclosLectivos: ICicloLectivo[] = await this.ciclolectivo.find();
-        console.log('ciclosLectivos', ciclosLectivos);
         const alumnoConCursada = await Promise.all(
           alumno.estadoCursadas.map(async (x: any) => {
             const c = await this.curso.findById(x.curso);
             x.curso = c;
             const index = await ciclosLectivos.findIndex((i) => ObjectId(i._id).equals(ObjectId(x.cicloLectivo)));
-            console.log(index, 'xxxx', x);
             if (index !== -1) {
-              console.log('!==========================-1');
               x.cicloLectivo = ciclosLectivos[index];
               return x;
             } else {
