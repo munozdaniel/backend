@@ -127,8 +127,7 @@ class AsistenciaController implements Controller {
     // const now = new Date();
     // const hoy = new Date(moment(now).format('YYYY-MM-DD'));
     const fecha = request.body.fecha;
-
-    const f = new Date(moment.utc(fecha).format('YYYY-MM-DD'));
+    const f = new Date(moment.utc(fecha, 'DD/MM/YYYY').format('YYYY-MM-DD'));
 
     const opciones: any[] = [
       [
