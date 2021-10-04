@@ -26,6 +26,7 @@ import multerMiddleware from '../middleware/upload.middleware';
 import path from 'path';
 // const fs = require('fs');
 import * as fs from 'fs';
+import alumnoTallerModel from '../alumnostalleres/alumnoTaller.model';
 
 const ObjectId = mongoose.Types.ObjectId;
 class AlumnoController implements Controller {
@@ -39,6 +40,7 @@ class AlumnoController implements Controller {
   private ciclolectivo = ciclolectivoModel;
   private planillaTaller = planillaTallerModel;
   private asistencia = asistenciaModel;
+  private alumnotalleres = alumnoTallerModel;
 
   constructor() {
     this.initializeRoutes();
@@ -68,6 +70,7 @@ class AlumnoController implements Controller {
       .post(`${this.path}/toggle-estado/:id`, this.toggleEstadoAlumno)
       .post(`${this.path}/por-curso`, this.obtenerAlumnosPorCurso)
       .post(`${this.path}/por-curso-ciclo`, this.obtenerAlumnosPorCursoCiclo)
+      .post(`${this.path}/por-curso-ciclo-template`, this.obtenerAlumnosPorCursoCicloTemplate)
       .post(`${this.path}/por-curso-division-ciclo`, this.obtenerAlumnosPorCursoDivisionCiclo)
       .post(`${this.path}/por-curso-divisiones-ciclo`, this.obtenerAlumnosPorCursoDivisionesCiclo)
       .post(`${this.path}/por-curso-especifico`, this.obtenerAlumnosPorCursoEspecifico)
@@ -1234,6 +1237,117 @@ class AlumnoController implements Controller {
       next(new NotFoundException());
     }
   };
+  private obtenerAlumnosPorCursoCicloTemplate = async (request: Request, response: Response, next: NextFunction) => {
+    const { planillaTallerId, curso, comision, division, ciclo, personalizada } = request.body;
+    if (personalizada) {
+      // Busco los alumnos seleccionados
+      let match: any = {
+        planillaTaller: ObjectId(planillaTallerId),
+        'alumno.activo': true,
+      };
+      const opciones: any = [
+        {
+          $lookup: {
+            from: 'alumnos',
+            localField: 'alumno',
+            foreignField: '_id',
+            as: 'alumno',
+          },
+        },
+        {
+          $unwind: {
+            path: '$alumno',
+          },
+        },
+
+        {
+          $match: match,
+        },
+
+        {
+          $sort: {
+            nombreCompleto: 1,
+          },
+        },
+      ];
+      const alumnosAggregate = await this.alumnotalleres.aggregate(opciones).collation({ locale: 'ar' });
+      if (alumnosAggregate) {
+        response.send(alumnosAggregate.map((x) => x.alumno));
+      } else {
+        next(new NotFoundException());
+      }
+    } else {
+      let match: any = {
+        'estadoCursadas.curso.curso': Number(curso),
+        'estadoCursadas.curso.comision': comision,
+        'estadoCursadas.curso.division': Number(division),
+        'estadoCursadas.cicloLectivo.anio': Number(ciclo),
+      };
+      if (!comision) {
+        match = {
+          'estadoCursadas.curso.curso': Number(curso),
+          'estadoCursadas.curso.division': Number(division),
+          'estadoCursadas.cicloLectivo.anio': Number(ciclo),
+        };
+      }
+      const opciones: any = [
+        {
+          $lookup: {
+            from: 'estadocursadas',
+            localField: 'estadoCursadas',
+            foreignField: '_id',
+            as: 'estadoCursadas',
+          },
+        },
+        {
+          $unwind: {
+            path: '$estadoCursadas',
+          },
+        },
+        {
+          $lookup: {
+            from: 'ciclolectivos',
+            localField: 'estadoCursadas.cicloLectivo',
+            foreignField: '_id',
+            as: 'estadoCursadas.cicloLectivo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$estadoCursadas.cicloLectivo',
+          },
+        },
+        {
+          $lookup: {
+            from: 'cursos',
+            localField: 'estadoCursadas.curso',
+            foreignField: '_id',
+            as: 'estadoCursadas.curso',
+          },
+        },
+        {
+          $unwind: {
+            path: '$estadoCursadas.curso',
+          },
+        },
+        {
+          $match: match,
+        },
+        {
+          $sort: {
+            nombreCompleto: 1,
+          },
+        },
+      ];
+      const alumnosAggregate = await this.alumno.aggregate(opciones).collation({ locale: 'ar' });
+      if (alumnosAggregate) {
+        response.send(alumnosAggregate);
+      } else {
+        next(new NotFoundException());
+      }
+    }
+  };
+
   private obtenerAlumnosPorCurso = async (request: Request, response: Response, next: NextFunction) => {
     const { curso, comision, division } = request.body;
     let match: any = {
@@ -1709,10 +1823,7 @@ class AlumnoController implements Controller {
                 }
               })
             );
-          } catch (ero) {
-            if (!ero.errmsg) {
-            }
-          }
+          } catch (ero) {}
           if (!x.ApellidoyNombre) {
             return null;
           }
