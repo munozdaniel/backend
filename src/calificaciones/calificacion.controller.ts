@@ -139,7 +139,7 @@ class CalificacionController implements Controller {
         {
           $match: {
             alumno: ObjectId(alumnoId),
-            promedia: true,
+            // promedia: true,
           },
         },
       ];
@@ -161,11 +161,24 @@ class CalificacionController implements Controller {
           // key2 = 'El nombre de la materia'
           // item2 = Todos los datos agrupados por materia: {'Ajuste':[nota de ajuste, nota de ajuste, nota de ajuste]
           for (const [key2, item2] of Object.entries(agruparPorCicloYCurso)) {
-            const notaFinal = Number(_.sumBy(item2, (x2) => x2.promedioGeneral) / item2.length);
+            let suma = 0;
+            let contadorPromedios = 0;
+            item2.forEach((x) => {
+              if (x.promedia) {
+                contadorPromedios += 1;
+                suma += x.promedioGeneral;
+              }
+            });
+            // const notaFinal = Number(_.sumBy(item2, (x2) => x2.promedioGeneral) / item2.length);
+            const notaFinal = suma !== 0 ? Number(suma / contadorPromedios) : 0;
             let examen = null;
             if (notaFinal < 7) {
               examen = await this.examen.find({ alumno: ObjectId(alumnoId), planillaTaller: ObjectId(item2[0].planillaTaller._id) });
             }
+            // if (notaFinal === 0) {
+            //   console.log('NOTA 0');
+            //   console.log('========================', item2);
+            // }
             const datos = {
               ciclo: key,
               item: item,
