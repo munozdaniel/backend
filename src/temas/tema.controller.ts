@@ -74,6 +74,7 @@ class TemaController implements Controller {
       },
       {
         $sort: {
+          fecha: 1,
           temaNro: 1,
         },
       },
