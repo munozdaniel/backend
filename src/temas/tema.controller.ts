@@ -72,6 +72,11 @@ class TemaController implements Controller {
           // caracterClase: { $ne: null },
         },
       },
+      {
+        $sort: {
+          temaNro: 1,
+        },
+      },
     ];
     const temas = await this.tema.aggregate(opciones);
     let totalClases = temas.length;
