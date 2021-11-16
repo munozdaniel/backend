@@ -106,7 +106,14 @@ class AlumnoController implements Controller {
             const index = alumno.archivoDiagnostico.findIndex((x: string) => x === archivo);
             if (index !== -1) {
               alumno.archivoDiagnostico.splice(index, 1);
-              alumnoActualizado = await this.alumno.findByIdAndUpdate(id, { archivoDiagnostico: alumno.archivoDiagnostico }, { new: true });
+              if (alumno.fechasDiagnostico) {
+                alumno.fechasDiagnostico.splice(index, 1);
+              }
+              alumnoActualizado = await this.alumno.findByIdAndUpdate(
+                id,
+                { archivoDiagnostico: alumno.archivoDiagnostico, fechasDiagnostico: alumno.fechasDiagnostico },
+                { new: true }
+              );
               if (alumnoActualizado) {
               } else {
                 response.status(400).send('No se pudo borrar el archivo');
