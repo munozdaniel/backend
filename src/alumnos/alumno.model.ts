@@ -44,6 +44,7 @@ export const alumnoSchema = new mongoose.Schema({
   emailTae: { type: String },
   diagnostico: { type: String, require: false },
   archivoDiagnostico: { type: [String], require: false },
+  fechasDiagnostico: { type: [String], require: false },
   observaciones: { type: String },
   observacionTelefono: { type: String },
 

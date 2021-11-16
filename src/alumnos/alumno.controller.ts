@@ -196,6 +196,9 @@ class AlumnoController implements Controller {
             alumno.archivoDiagnostico = ['public/imagenes/' + request.file.filename];
           }
           try {
+            const now = new Date();
+            const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+            alumno.fechasDiagnostico.push(hoy);
             const alumnoActualizado = await this.alumno.findByIdAndUpdate(alumno._id, alumno, { new: true });
             // const imagenData: ImagenDto = JSON.parse(request.body.imagen);
             // console.log('request.file.filename', request.file.filename);
