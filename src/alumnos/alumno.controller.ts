@@ -106,6 +106,7 @@ class AlumnoController implements Controller {
             const index = alumno.archivoDiagnostico.findIndex((x: string) => x === archivo);
             if (index !== -1) {
               alumno.archivoDiagnostico.splice(index, 1);
+              console.log(index, 'alumno.fechasDiagnostico', alumno.fechasDiagnostico);
               if (alumno.fechasDiagnostico) {
                 alumno.fechasDiagnostico.splice(index, 1);
               }
@@ -197,15 +198,17 @@ class AlumnoController implements Controller {
           response.send({ success: true, message: 'EXITO' });
         } else {
           // console.log('=>', request.file.filename);
+          const now = new Date();
+          const hoy = new Date(moment.utc(now).format('YYYY-MM-DD'));
           if (alumno.archivoDiagnostico && alumno.archivoDiagnostico.length > 0) {
             alumno.archivoDiagnostico.push('public/imagenes/' + request.file.filename);
+
+            alumno.fechasDiagnostico.push(hoy);
           } else {
             alumno.archivoDiagnostico = ['public/imagenes/' + request.file.filename];
+            alumno.fechasDiagnostico = [hoy];
           }
           try {
-            const now = new Date();
-            const hoy = new Date(moment.utc(now).format('YYYY-MM-DD'));
-            alumno.fechasDiagnostico.push(hoy);
             const alumnoActualizado = await this.alumno.findByIdAndUpdate(alumno._id, alumno, { new: true });
             // const imagenData: ImagenDto = JSON.parse(request.body.imagen);
             // console.log('request.file.filename', request.file.filename);
