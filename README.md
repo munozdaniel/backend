@@ -85,15 +85,21 @@ seguimiento_de_alumnos
 ## Backup de la bd sacando la seguridad de la configuracion /etc/mongod.conf
 
 sudo mongodump --username adminEscuela --password 'system2021$cet30' --db sega30 --out /var/backups/mongobackups/`date +"%m-%d-%y"`--gzip --authenticationDatabase admin
- 
- mongodump  --port 27017 --db sega30 --username adminEscuela --password 'system2021$cet30' --out /www/cet30.com/mongodb-autoBackup/database-backup-mongodump-2021-8-1
+
+mongodump --port 27017 --db sega30 --username adminEscuela --password 'system2021$cet30' --out /www/cet30.com/mongodb-autoBackup/database-backup-mongodump-2021-8-1
 
 # PRODUCCION
+
 pm2 delete npm
 pm2 start npm -- run prod
 pm2 startup
 pm2 save
 
-
-
 https://www.youtube.com/watch?v=JlM81PN9OP4
+
+Para exportar collections en MongoCompass
+
+1. Cerrar todo
+2. Abrir e ingresar la siguiente conexion
+
+mongodb://adminEscuela:system2021$cet30@app.cet30.edu.ar:27017
