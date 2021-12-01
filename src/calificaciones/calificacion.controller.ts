@@ -85,6 +85,12 @@ class CalificacionController implements Controller {
         //   },
         // },
         {
+          $match: {
+            alumno: ObjectId(alumnoId),
+            // promedia: true,
+          },
+        },
+        {
           $lookup: {
             from: 'planillatalleres',
             localField: 'planillaTaller',
@@ -136,14 +142,9 @@ class CalificacionController implements Controller {
             path: '$planillaTaller.curso',
           },
         },
-        {
-          $match: {
-            alumno: ObjectId(alumnoId),
-            // promedia: true,
-          },
-        },
       ];
       const calificaciones = await this.calificacion.aggregate(opcionesP).collation({ locale: 'ar' });
+
       if (!calificaciones) {
         next(new NotFoundException());
       } else {
@@ -151,52 +152,77 @@ class CalificacionController implements Controller {
         const agrupadosPorCiclo = _.groupBy(calificaciones, (x) => x.planillaTaller.cicloLectivo.anio);
         for (const [key, item] of Object.entries(agrupadosPorCiclo)) {
           let sumaNotas = 0;
-          // key = 'El nombre del ciclo'
-          // item todos los datos agrupados por ciclo: {'2019':[notas del 2019, notas del 2019]}
+          // key = 'El nombre del ciclo' = ej '2021'
+          // item = todos los datos agrupados por ciclo: {'2019':[notas del 2019, notas del 2019]}
+
           const agruparPorCicloYCurso = _.groupBy(item, (x) => {
             // sumaNotas += x.promedioGeneral;
             // x.sumaNotas = sumaNotas;
             return x.planillaTaller.asignatura.detalle;
           });
+          const nuevoD: any[] = [];
           // key2 = 'El nombre de la materia'
           // item2 = Todos los datos agrupados por materia: {'Ajuste':[nota de ajuste, nota de ajuste, nota de ajuste]
-          for (const [key2, item2] of Object.entries(agruparPorCicloYCurso)) {
-            let suma = 0;
-            let contadorPromedios = 0;
-            item2.forEach((x) => {
-              if (x.promedia) {
-                contadorPromedios += 1;
-                suma += x.promedioGeneral;
-              }
+          _.forOwn(agruparPorCicloYCurso, (valor, llave) => {
+            // console.log('agruparPorCicloYCurso', llave, 'valor', valor);
+            const separadoPorBimestre = _.groupBy(valor, (x) => {
+              // sumaNotas += x.promedioGeneral;
+              // x.sumaNotas = sumaNotas;
+              return x.planillaTaller.bimestre;
             });
-            // const notaFinal = Number(_.sumBy(item2, (x2) => x2.promedioGeneral) / item2.length);
-            const notaFinal = suma !== 0 ? Number(suma / contadorPromedios) : 0;
-            let examen = null;
-            if (notaFinal < 7) {
-              examen = await this.examen.find({ alumno: ObjectId(alumnoId), planillaTaller: ObjectId(item2[0].planillaTaller._id) });
-            }
-            // if (notaFinal === 0) {
-            //   console.log('NOTA 0');
-            //   console.log('========================', item2);
-            // }
-            const datos = {
-              ciclo: key,
-              item: item,
-              item2: item2,
-              materia: key2,
-              notaFinal: notaFinal.toFixed(2),
-              examen,
-            };
-            const index = retorno.findIndex((i) => i.ciclo === Number(key));
-            if (index === -1) {
-              retorno.push({ ciclo: Number(key), curso: item.map((c) => c.planillaTaller.curso), datos: [datos] });
-            } else {
-              retorno[index].datos.push(datos);
-            }
-          }
+            _.forOwn(separadoPorBimestre, async (valorCalificaciones, llaveBimestre) => {
+              // console.log('separadoPorBimestre', llave, valorCalificaciones);
+              nuevoD.push({ [llave]: valorCalificaciones });
+            });
+          });
+          await Promise.all(
+            nuevoD.map(async (c) => {
+              for (const [key4, item4a] of Object.entries(c)) {
+                const item4 = item4a as any[];
+                // for (const [key4, item4] of Object.entries(nuevoD)) {
+                let suma = 0;
+                let contadorPromedios = 0;
+                item4.forEach((x: any) => {
+                  if (x.promedia) {
+                    contadorPromedios += 1;
+                    suma += x.promedioGeneral;
+                  }
+                });
+                // const notaFinal = Number(_.sumBy(item4, (x2) => x2.promedioGeneral) / item4.length);
+                const notaFinal = suma !== 0 ? Number(suma / contadorPromedios) : 0;
+                let examen = null;
+                if (notaFinal < 7) {
+                  examen = await this.examen.find({ alumno: ObjectId(alumnoId), planillaTaller: ObjectId(item4[0].planillaTaller._id) });
+                }
+                // if (notaFinal === 0) {
+                //   console.log('NOTA 0');
+                //   console.log('========================', item4);
+                // }
+                const datos = {
+                  ciclo: key,
+                  item: item,
+                  item2: item4,
+                  materia: key4,
+                  bimestre: item4[0].planillaTaller.bimestre,
+                  notaFinal: notaFinal.toFixed(2),
+                  examen,
+                };
+                const index = retorno.findIndex((i) => i.ciclo === Number(key));
+                if (index === -1) {
+                  retorno.push({ ciclo: Number(key), curso: item.map((c) => c.planillaTaller.curso), datos: [datos] });
+                } else {
+                  retorno[index].datos.push(datos);
+                }
+              }
+            })
+          );
         }
 
-        response.send({ calificaciones: retorno, calificaciones2: _.groupBy(calificaciones, (x) => x.planillaTaller.cicloLectivo.anio) });
+        response.send({
+          test: calificaciones,
+          calificaciones: retorno,
+          calificaciones2: _.groupBy(calificaciones, (x) => x.planillaTaller.cicloLectivo.anio),
+        });
       }
     } catch (error) {
       console.log('[ERROR]', error);
