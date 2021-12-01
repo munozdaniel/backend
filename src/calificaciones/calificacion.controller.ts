@@ -202,7 +202,7 @@ class CalificacionController implements Controller {
                   ciclo: key,
                   item: item,
                   item2: item4,
-                  materia: key4,
+                  materia: key4 + ` (${item4[0].planillaTaller.bimestre.substring(0, 8)}.)`,
                   bimestre: item4[0].planillaTaller.bimestre,
                   notaFinal: notaFinal.toFixed(2),
                   examen,
