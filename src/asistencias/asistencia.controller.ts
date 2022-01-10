@@ -409,14 +409,14 @@ class AsistenciaController implements Controller {
       };
     }
     if (curso) {
-      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), presente: false, 'planillaTaller.turno': turno };
+      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), 'planillaTaller.turno': turno };
     } else {
-      match = { fecha: matchFecha, presente: false, 'planillaTaller.turno': turno };
+      match = { fecha: matchFecha, 'planillaTaller.turno': turno };
     }
     if (division) {
       match = { ...match, 'planillaTaller.curso.division': division };
     }
-    match = { ...match, ausentePermitido: { $ne: true } };
+    match = { ...match };
     try {
       const opciones: any[] = [
         {
@@ -502,13 +502,15 @@ class AsistenciaController implements Controller {
         },
       ];
       const alumnosInasistentes = await this.asistencia.aggregate(opciones);
-
-      response.send({ alumnos: alumnosInasistentes });
+      // Si alumnosInasistentes es [] entonces busco a todos los alumnos del curso y division seleccionado
+      // y hago un reporte de asistencia completa
+      response.send({ alumnos: alumnosInasistentes, asistenciaCompleta: false });
     } catch (error) {
       console.log('[ERROR]', error);
       next(new HttpException(500, 'Problemas interno'));
     }
   };
+
   private async obtenerCalendarioEntreFechas(fechaInicio: Date, fechaFinalizacion: Date) {
     const opciones: any = [
       {
