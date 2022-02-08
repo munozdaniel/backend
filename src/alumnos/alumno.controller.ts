@@ -917,23 +917,56 @@ class AlumnoController implements Controller {
       const alumnosActualizados = await Promise.all(
         // Por cada alumno
         alumnosAggregate.map(async (x: IAlumno, index: number) => {
+          console.log('x.estadoCursadas', x.estadoCursadas);
           // Veo si existe la cursada
           const indice = await x.estadoCursadas.findIndex((x: IEstadoCursada) => {
             return x.cicloLectivo.anio === ciclo.anio;
           });
 
-          const estadosCursadasAGuardar: IEstadoCursada & any = {
-            curso: x.estadoCursadas[0].curso, // debe contener un solo ciclo
-            cicloLectivo: ciclo,
-            condicion: 'REGULAR',
-            fechaCreacion: hoy,
-            activo: true,
-          };
+          // const estadosCursadasAGuardar: IEstadoCursada & any = {
+          //   curso: x.estadoCursadas[0].curso, // debe contener un solo ciclo
+          //   cicloLectivo: ciclo,
+          //   condicion: 'REGULAR',
+          //   fechaCreacion: hoy,
+          //   activo: true,
+          // };
+          const ec = await x.estadoCursadas.sort((a: IEstadoCursada, b: IEstadoCursada) => {
+            if (a.curso.curso > b.curso.curso) {
+              return -1;
+            }
+
+            if (a.curso.curso < b.curso.curso) {
+              return 1;
+            }
+
+            return 0;
+          });
+          console.log('ec', ec);
           if (indice === -1) {
-            //
+            // Buscamos el estadocursada mas grande para crear el curso siguiente
+            const existeCurso = await this.curso.find({
+              curso: ec[0].curso.curso + 1,
+              division: ec[0].curso.division,
+              comision: ec[0].curso.comision,
+            });
+            let siguienteCurso = null;
+            if (existeCurso && existeCurso.length > 0) {
+              siguienteCurso = existeCurso[0];
+            } else {
+              const now = new Date();
+              const hoy = new Date(moment(now).format('YYYY-MM-DD'));
+              const createCurso = new this.curso({
+                comision: ec[0].curso.comision,
+                curso: ec[0].curso.curso + 1,
+                division: ec[0].curso.division,
+                fechaCreacion: hoy,
+                activo: true,
+              });
+              siguienteCurso = await createCurso.save();
+            }
             // No existe el ciclo entonces estamos seguro de insertarlo
             const created = new this.estadoCursada({
-              curso: x.estadoCursadas[0].curso, // debe contener un solo ciclo
+              curso: ObjectId(siguienteCurso._id), // debe contener un solo ciclo
               cicloLectivo: ciclo,
               condicion: 'REGULAR',
               fechaCreacion: hoy,
