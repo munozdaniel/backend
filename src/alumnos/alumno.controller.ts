@@ -917,7 +917,6 @@ class AlumnoController implements Controller {
       const alumnosActualizados = await Promise.all(
         // Por cada alumno
         alumnosAggregate.map(async (x: IAlumno, index: number) => {
-          console.log('x.estadoCursadas', x.estadoCursadas);
           // Veo si existe la cursada
           const indice = await x.estadoCursadas.findIndex((x: IEstadoCursada) => {
             return x.cicloLectivo.anio === ciclo.anio;
@@ -941,7 +940,6 @@ class AlumnoController implements Controller {
 
             return 0;
           });
-          console.log('ec', ec);
           if (indice === -1) {
             // Buscamos el estadocursada mas grande para crear el curso siguiente
             const existeCurso = await this.curso.find({
