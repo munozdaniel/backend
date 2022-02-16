@@ -394,6 +394,8 @@ class AsistenciaController implements Controller {
     const curso = Number(request.body.curso);
     const division = Number(request.body.division);
     const turno = request.body.turno;
+    const incluirPresente = request.body.incluirPresente;
+    console.log('request.body', request.body);
     let desde: Date = new Date(moment.utc(request.body.desde).format('YYYY-MM-DD'));
     let hasta: Date = new Date(moment.utc(request.body.hasta).format('YYYY-MM-DD'));
     let match;
@@ -409,14 +411,21 @@ class AsistenciaController implements Controller {
       };
     }
     if (curso) {
-      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso), 'planillaTaller.turno': turno };
+      match = { fecha: matchFecha, 'planillaTaller.curso.curso': Number(curso) };
     } else {
-      match = { fecha: matchFecha, 'planillaTaller.turno': turno };
+      match = { fecha: matchFecha };
+    }
+    if (turno) {
+      match = { ...match, 'planillaTaller.turno': turno };
     }
     if (division) {
       match = { ...match, 'planillaTaller.curso.division': division };
     }
+    if (!incluirPresente) {
+      match = { ...match, presente: false };
+    }
     match = { ...match };
+    console.log('match', match);
     try {
       const opciones: any[] = [
         {
