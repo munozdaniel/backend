@@ -41,12 +41,14 @@ class PlanillaTallerController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}/migrar`, this.migrarPlanillaTalleres);
     this.router.get(`${this.path}/paginar`, passport.authenticate('jwt', { session: false }), this.paginar);
-    this.router.get(`${this.path}/ciclo/:ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillaTalleresPorCiclo);
+    // Agregar mostrarEliminados
+    this.router.post(`${this.path}/ciclo/:ciclo`, passport.authenticate('jwt', { session: false }), this.obtenerPlanillaTalleresPorCiclo);
     this.router.post(
       `${this.path}/ciclo-profesor/:ciclo`,
       passport.authenticate('jwt', { session: false }),
       this.obtenerPlanillaTalleresPorCicloProf
     );
+    //
     this.router.get(
       `${this.path}/filtro/:id/:ciclo`,
       passport.authenticate('jwt', { session: false }),
@@ -79,17 +81,22 @@ class PlanillaTallerController implements Controller {
   };
   private obtenerPlanillaTalleresPorCiclo = async (request: Request, response: Response, next: NextFunction) => {
     const ciclo = request.params.ciclo;
+    const mostrarEliminados = request.body.mostrarEliminados;
+
     const profesorId = request.body.profesorId;
     let match: any = {
       'cicloLectivo.anio': Number(ciclo),
-      activo: true,
+      // activo: true,
     };
     if (profesorId) {
       match = {
         'cicloLectivo.anio': Number(ciclo),
-        activo: true,
+        // activo: true,
         profesor: ObjectId(profesorId),
       };
+    }
+    if (!mostrarEliminados) {
+      match.activo = true;
     }
     const opciones: any = [
       {
@@ -163,17 +170,21 @@ class PlanillaTallerController implements Controller {
   };
   private obtenerPlanillaTalleresPorCicloProf = async (request: Request, response: Response, next: NextFunction) => {
     const ciclo = request.params.ciclo;
+    const mostrarEliminados = request.body.mostrarEliminados;
     const profesorId = request.body.profesorId;
     let match: any = {
       'cicloLectivo.anio': Number(ciclo),
-      activo: true,
+      // activo: true,
     };
     if (profesorId) {
       match = {
         'cicloLectivo.anio': Number(ciclo),
-        activo: true,
+        // activo: true,
         'profesor._id': ObjectId(profesorId),
       };
+    }
+    if (!mostrarEliminados) {
+      match.activo = true;
     }
     const opciones: any = [
       {
